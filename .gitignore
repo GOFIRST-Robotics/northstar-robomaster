@@ -1,7 +1,7 @@
 *.pyc
 
-template-project/build
-template-project/Pipfile.lock
+NorthStarFleet2025-project/build
+NorthStarFleet2025-project/Pipfile.lock
 project.xml.log
 
 .vscode/.cortex-debug.peripherals.state.json

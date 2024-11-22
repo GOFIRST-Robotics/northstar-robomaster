@@ -13,7 +13,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -29,7 +29,7 @@
             },
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -42,7 +42,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -55,7 +55,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -68,7 +68,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -81,7 +81,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -94,7 +94,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -107,7 +107,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -120,7 +120,7 @@
             "group": "none",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
         {
@@ -133,7 +133,7 @@
             "group": "none",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/template-project"
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         }
     ]

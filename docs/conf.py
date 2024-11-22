@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'taproot-template-project'
-copyright = '2020, taproot-template-project'
-author = 'taproot-template-project'
+project = 'NorthStarFleet2025'
+copyright = '2020, NorthStarFleet2025'
+author = 'NorthStarFleet2025'
 
 # The full version, including alpha/beta/rc tags
 release = '1.0.0'
@@ -55,7 +55,7 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 
-breathe_default_project = "taproot-template-project"
+breathe_default_project = "NorthStarFleet2025"
 
 extensions = [
     # there may be others here already, e.g. 'sphinx.ext.mathjax'
@@ -65,7 +65,7 @@ extensions = [
 
 # Setup the breathe extension
 breathe_projects = {
-    "taproot-template-project": "./doxyoutput/xml"
+    "NorthStarFleet2025": "./doxyoutput/xml"
 }
 
 # Setup the exhale extension
