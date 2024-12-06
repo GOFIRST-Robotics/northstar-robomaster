@@ -54,7 +54,7 @@ public:
 
     static constexpr float MAX_WHEELSPEED_RPM = 7000;
 
-    ChassisSubsystem(Drivers& drivers, const ChassisConfig& config);
+    ChassisSubsystem(tap::Drivers& drivers, const ChassisConfig& config);
 
     ///
     /// @brief Initializes the drive motors.
