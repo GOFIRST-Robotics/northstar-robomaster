@@ -41,7 +41,7 @@ namespace control::chassis
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
-        #ifdef THING //TODO Make not THING
+        #ifdef THING //TODO Make not THING ok
         distToCenter = 10.0f; // In inches atm
         float forwardAdjusted = forward * cos(robotHeading);
         float sidewaysAdjusted = sideways * sin(robotHeading);
