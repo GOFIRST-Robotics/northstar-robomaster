@@ -4,6 +4,8 @@
 
 #include "drivers.hpp"
 
+#define THING
+
 #include <cmath>
 
 using tap::algorithms::limitVal;
@@ -33,25 +35,26 @@ namespace control::chassis
         }
     }
 // STEP 3 (Tank Drive): setVelocityTankDrive function
-    void ChassisSubsystem::setVelocityTankDrive(float forward, float sideways, float rotational) {
+    void ChassisSubsystem::setVelocityTankDrive(float forward, float sideways, float rotational, float robotHeading) {
         float distToCenter;
         float LFSpeed;
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
-        #ifdef THING
+        #ifdef THING //TODO Make not THING
         distToCenter = 10.0f; // In inches atm
-        LFSpeed = mpsToRpm(forward - sideways - (2 * distToCenter * rotational * M_PI / 180));
-        LBSpeed = mpsToRpm(forward + sideways - (2 * distToCenter * rotational * M_PI / 180));
-        RFSpeed = mpsToRpm(forward + sideways + (2 * distToCenter * rotational * M_PI / 180));
-        RBSpeed = mpsToRpm(forward - sideways + (2 * distToCenter * rotational * M_PI / 180));
+        float forwardAdjusted = forward * cos(robotHeading);
+        float sidewaysAdjusted = sideways * sin(robotHeading);
+        LFSpeed = mpsToRpm(forwardAdjusted - sidewaysAdjusted - (2 * distToCenter * rotational * M_PI / 180));
+        LBSpeed = mpsToRpm(forwardAdjusted + sidewaysAdjusted - (2 * distToCenter * rotational * M_PI / 180));
+        RFSpeed = mpsToRpm(forwardAdjusted + sidewaysAdjusted + (2 * distToCenter * rotational * M_PI / 180));
+        RBSpeed = mpsToRpm(forwardAdjusted - sidewaysAdjusted + (2 * distToCenter * rotational * M_PI / 180));
         #else
         distToCenter = 10.0f;
-        float tempHeading = M_PI_2;
-        LFSpeed = mpsToRpm(forward * cos(tempHeading) + sideways * sin(tempHeading) + modm::toRadian(rotational) * distToCenter);
-        RFSpeed = mpsToRpm(forward * cos(tempHeading + M_PI_2) + sideways * sin(tempHeading + M_PI_2) + modm::toRadian(rotational) * distToCenter);
-        RBSpeed = mpsToRpm(forward * cos(tempHeading + M_PI) + sideways * sin(tempHeading + M_PI) + modm::toRadian(rotational) * distToCenter);
-        LBSpeed = mpsToRpm(forward * cos(tempHeading + 3 * M_PI / 2) + sideways * sin(tempHeading + 3 * M_PI / 2) + modm::toRadian(rotational) * distToCenter);
+        LFSpeed = mpsToRpm(forward * cos(robotHeading) + sideways * sin(robotHeading) + modm::toRadian(rotational) * distToCenter);
+        RFSpeed = mpsToRpm(forward * cos(robotHeading + M_PI_2) + sideways * sin(robotHeading + M_PI_2) + modm::toRadian(rotational) * distToCenter);
+        RBSpeed = mpsToRpm(forward * cos(robotHeading + M_PI) + sideways * sin(robotHeading + M_PI) + modm::toRadian(rotational) * distToCenter);
+        LBSpeed = mpsToRpm(forward * cos(robotHeading + 3 * M_PI / 2) + sideways * sin(robotHeading + 3 * M_PI / 2) + modm::toRadian(rotational) * distToCenter);
         #endif
         desiredOutput[static_cast<int>(MotorId::LF)] = limitVal<float>(LFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[static_cast<int>(MotorId::LB)] = limitVal<float>(LBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
