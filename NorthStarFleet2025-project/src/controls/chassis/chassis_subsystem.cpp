@@ -11,7 +11,7 @@ using tap::algorithms::limitVal;
 namespace control::chassis
 {
 // STEP 1 (Tank Drive): create constructor
-    ChassisSubsystem::ChassisSubsystem(Drivers& drivers, const ChassisConfig& config) :
+    ChassisSubsystem::ChassisSubsystem(tap::Drivers& drivers, const ChassisConfig& config) :
     Subsystem(&drivers), 
     desiredOutput{},
     pidControllers{},
@@ -57,7 +57,6 @@ namespace control::chassis
         desiredOutput[static_cast<int>(MotorId::LB)] = limitVal<float>(LBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[static_cast<int>(MotorId::RF)] = limitVal<float>(RFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[static_cast<int>(MotorId::RB)] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        return;
     }
     void ChassisSubsystem::refresh() {
         auto runPid = [](Pid &pid, Motor &motor, float desiredOutput) {
