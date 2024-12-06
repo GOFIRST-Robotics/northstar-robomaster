@@ -56,13 +56,17 @@ public:
 
     void refresh() override;
 
-    void refreshSafeDisconnect() override // TODO
-    {
-        subsystemJamStatus = false;
-        agitatorMotor.setDesiredOutput(0);
-    }
+    // void refreshSafeDisconnect() override // TODO
+    // {
+    //     subsystemJamStatus = false;
+    //     agitatorMotor.setDesiredOutput(0);
+    // }
 
-    const char* getName() const override { return "velocity agitator"; } // TODO
+    void runHardwareTests() override;
+
+    void onHardwareTestStart() override;
+
+    const char* getName() override { return "velocity agitator"; } // TODO
 
     /// @return The velocity setpoint that some command has requested, in radians / second
     inline float getSetpoint() const override { return velocitySetpoint; }

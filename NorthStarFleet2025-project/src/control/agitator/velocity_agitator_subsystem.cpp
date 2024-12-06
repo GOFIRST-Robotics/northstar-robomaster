@@ -75,6 +75,10 @@ bool VelocityAgitatorSubsystem::calibrateHere()
     return true;
 }
 
+void VelocityAgitatorSubsystem::runHardwareTests() {}
+
+void VelocityAgitatorSubsystem::onHardwareTestStart() {}
+
 float VelocityAgitatorSubsystem::getCurrentValueIntegral() const
 {
     if (!agitatorIsCalibrated)
