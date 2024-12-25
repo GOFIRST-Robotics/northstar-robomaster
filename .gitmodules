@@ -2,5 +2,5 @@
 	path = taproot-scripts
 	url = https://gitlab.com/aruw/controls/taproot-scripts.git
 [submodule "LateralRoot"]
-	path = LateralRoot
+	path = taproot
 	url = https://github.com/GOFIRST-Robotics/LateralRoot.git
