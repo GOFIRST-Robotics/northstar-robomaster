@@ -3,7 +3,7 @@
 #include "standard.hpp"
 
 #include "tap/util_macros.hpp"
-#include "turret/turret_constants/standard_turret_constants.hpp"
+// #include "turret/turret_constants/standard_turret_constants.hpp"
 
 
 using tap::can::CanBus;
@@ -21,16 +21,16 @@ namespace control
 {
 Robot::Robot(src::Drivers &drivers) 
     : drivers(drivers),
-      m_ChassisSubsystem(
-          drivers,
-          chassis::ChassisConfig{
-              .leftFrontId = MotorId::MOTOR2,
-              .leftBackId = MotorId::MOTOR3,
-              .rightBackId = MotorId::MOTOR4,
-              .rightFrontId = MotorId::MOTOR1,
-              .canBus = CanBus::CAN_BUS1,
-              .wheelVelocityPidConfig = modm::Pid<float>::Parameter(10, 0, 0, 0, 16'000),
-          }),
+    //   m_ChassisSubsystem(
+    //       drivers,
+    //       chassis::ChassisConfig{
+    //           .leftFrontId = MotorId::MOTOR2,
+    //           .leftBackId = MotorId::MOTOR3,
+    //           .rightBackId = MotorId::MOTOR4,
+    //           .rightFrontId = MotorId::MOTOR1,
+    //           .canBus = CanBus::CAN_BUS1,
+    //           .wheelVelocityPidConfig = modm::Pid<float>::Parameter(10, 0, 0, 0, 16'000),
+    //       }),
       agitatorSubsystemConfig{
         .gearRatio = 36.0f,
         .agitatorMotorId = tap::motor::MOTOR7,
@@ -92,13 +92,13 @@ Robot::Robot(src::Drivers &drivers)
         RemoteMapState(
             RemoteMapState::MouseButton::RIGHT),
             true),
-                m_FlyWheel(
-        drivers,
-        &drivers.pwm,
-        tap::gpio::Pwm::C6,
-        tap::gpio::Pwm::C7),
-    m_ControlOperatorInterface(drivers.remote),
-    m_FlyWheelCommand(m_FlyWheel, m_ControlOperatorInterface),
+        //         m_FlyWheel(
+        // drivers,
+        // &drivers.pwm,
+        // tap::gpio::Pwm::C6,
+        // tap::gpio::Pwm::C7),
+    // m_ControlOperatorInterface(drivers.remote),
+    // m_FlyWheelCommand(m_FlyWheel, m_ControlOperatorInterface),
         leftSwitchUp(
         &drivers,
         {&rotateAndUnjamAgitatorCommand},
@@ -110,50 +110,50 @@ Robot::Robot(src::Drivers &drivers)
         MotorId::MOTOR5, 
         CanBus::CAN_BUS1, 
         true, "pitchMotor"),
-    turretPitchMotor(
-        &pitchMotor,
-        PITCH_MOTOR_CONFIG),
+    // turretPitchMotor(
+    //     &pitchMotor,
+    //     PITCH_MOTOR_CONFIG),
     yawMotor(
         &drivers, 
         MotorId::MOTOR8, 
         CanBus::CAN_BUS1, 
-        false, "YawMotor"),
-    turretGyro(
-        &drivers),
-    turretYawMotor(
-        &yawMotor,
-        YAW_MOTOR_CONFIG,
-        &turretGyro
-    ),
-    turret(
-        &drivers,
-        &pitchMotor,
-        &yawMotor, 
-        PITCH_MOTOR_CONFIG,
-        YAW_MOTOR_CONFIG, 
-        turretGyro),
-    yawController(
-        turretYawMotor, 
-        YAW_PID_CONFIG),
-    pitchController(
-        turretPitchMotor, 
-        PITCH_PID_CONFIG),
-    turretUserControlCommand(
-        &drivers,
-        m_ControlOperatorInterface,
-        &turret, 
-        &yawController,
-        &pitchController,
-        USER_YAW_INPUT_SCALAR,
-        USER_PITCH_INPUT_SCALAR,
-        0
-    ),
-        turretOrientedDriveCommand(
-        &drivers,
-        m_ControlOperatorInterface,
-        &m_ChassisSubsystem,
-        &turretYawMotor
-    )
+        false, "YawMotor")
+    // turretGyro(
+    //     &drivers),
+    // turretYawMotor(
+    //     &yawMotor,
+    //     YAW_MOTOR_CONFIG,
+    //     &turretGyro
+    // ),
+    // turret(
+    //     &drivers,
+    //     &pitchMotor,
+    //     &yawMotor, 
+    //     PITCH_MOTOR_CONFIG,
+    //     YAW_MOTOR_CONFIG, 
+    //     turretGyro),
+    // yawController(
+    //     turretYawMotor, 
+    //     YAW_PID_CONFIG),
+    // pitchController(
+    //     turretPitchMotor, 
+    //     PITCH_PID_CONFIG),
+    // turretUserControlCommand(
+    //     &drivers,
+    //     m_ControlOperatorInterface,
+    //     &turret, 
+    //     &yawController,
+    //     &pitchController,
+    //     USER_YAW_INPUT_SCALAR,
+    //     USER_PITCH_INPUT_SCALAR,
+    //     0
+    // ),
+    //     turretOrientedDriveCommand(
+    //     &drivers,
+    //     m_ControlOperatorInterface,
+    //     &m_ChassisSubsystem,
+    //     &turretYawMotor
+    // )
 {
     
 }
@@ -169,25 +169,25 @@ void Robot::initSubsystemCommands()
 
 void Robot::initializeSubsystems()
 {
-    m_ChassisSubsystem.initialize();
+    // m_ChassisSubsystem.initialize();
     agitatorSubsystem.initialize();
-    m_FlyWheel.initialize();
-    turret.initialize();
+    // m_FlyWheel.initialize();
+    // turret.initialize();
 }
 
 void Robot::registerSoldierSubsystems()
 {
-    drivers.commandScheduler.registerSubsystem(&m_ChassisSubsystem);
+    // drivers.commandScheduler.registerSubsystem(&m_ChassisSubsystem);
     drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
-    drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
-    drivers.commandScheduler.registerSubsystem(&turret);
+    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
+    // drivers.commandScheduler.registerSubsystem(&turret);
 }
 
 void Robot::setDefaultSoldierCommands()
 {
-    m_ChassisSubsystem.setDefaultCommand(&turretOrientedDriveCommand);
-    m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
-    turret.setDefaultCommand(&turretUserControlCommand);
+    // m_ChassisSubsystem.setDefaultCommand(&turretOrientedDriveCommand);
+    // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
+    // turret.setDefaultCommand(&turretUserControlCommand);
 }
 
 void Robot::startSoldierCommands() {}
