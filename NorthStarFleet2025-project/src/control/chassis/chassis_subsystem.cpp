@@ -41,7 +41,7 @@ namespace control::chassis
         }
     }
 // STEP 3 (Tank Drive): setVelocityTankDrive function
-    void ChassisSubsystem::setVelocityTankDrive(float forward, float sideways, float rotational, float robotHeading) {
+    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float robotHeading) {
         float distToCenter;
         float LFSpeed;
         float LBSpeed;

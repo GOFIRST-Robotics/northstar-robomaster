@@ -4,8 +4,6 @@
 
 #include "tap/architecture/clock.hpp"
 
-#include <iostream>
-
 using tap::arch::clock::getTimeMilliseconds;
 
 namespace control::algorithms
