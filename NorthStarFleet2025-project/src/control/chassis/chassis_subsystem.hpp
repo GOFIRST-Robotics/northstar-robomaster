@@ -4,6 +4,7 @@
 
 #include "tap/control/subsystem.hpp"
 #include "tap/util_macros.hpp"
+#include "control/algorithms/slew_rate_limiter.hpp"
 
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
@@ -94,6 +95,8 @@ private:
 
     /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
+
+    std::array<control::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
 
 protected:
     /// Motors.

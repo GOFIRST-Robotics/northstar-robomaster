@@ -22,6 +22,12 @@ namespace control::chassis
         Motor(&drivers, config.leftBackId, config.canBus, false, "LB"),
         Motor(&drivers, config.rightFrontId, config.canBus, true, "RF"),
         Motor(&drivers, config.rightBackId, config.canBus, true, "RB"),
+    },
+    rateLimiters{
+        control::algorithms::SlewRateLimiter(10, 0.5),
+        control::algorithms::SlewRateLimiter(10, 0.5),
+        control::algorithms::SlewRateLimiter(10, 0.5),
+        control::algorithms::SlewRateLimiter(10, 0.5),
     }
     {
         for (auto &controller : pidControllers) {
@@ -41,7 +47,7 @@ namespace control::chassis
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
-        #ifdef THING //TODO Make not THING ok
+        #ifdef THING //TODO Make not THING 
         distToCenter = 10.0f; // In inches atm
         float forwardAdjusted = forward * cos(robotHeading);
         float sidewaysAdjusted = sideways * sin(robotHeading);
@@ -56,10 +62,14 @@ namespace control::chassis
         RBSpeed = mpsToRpm(forward * cos(robotHeading + M_PI) + sideways * sin(robotHeading + M_PI) + modm::toRadian(rotational) * distToCenter);
         LBSpeed = mpsToRpm(forward * cos(robotHeading + 3 * M_PI / 2) + sideways * sin(robotHeading + 3 * M_PI / 2) + modm::toRadian(rotational) * distToCenter);
         #endif
-        desiredOutput[static_cast<int>(MotorId::LF)] = limitVal<float>(LFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        desiredOutput[static_cast<int>(MotorId::LB)] = limitVal<float>(LBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        desiredOutput[static_cast<int>(MotorId::RF)] = limitVal<float>(RFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        desiredOutput[static_cast<int>(MotorId::RB)] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
+        int LF = static_cast<int>(MotorId::LF);
+        int LB = static_cast<int>(MotorId::LB);
+        int RF = static_cast<int>(MotorId::RF);
+        int RB = static_cast<int>(MotorId::RB);
+        desiredOutput[LF] = limitVal<float>(rateLimiters[LF].runLimiter(LFSpeed, motors[LF].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
+        desiredOutput[LB] = limitVal<float>(rateLimiters[LB].runLimiter(LBSpeed, motors[LB].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
+        desiredOutput[RF] = limitVal<float>(rateLimiters[RF].runLimiter(RFSpeed, motors[RF].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
+        desiredOutput[RB] = limitVal<float>(rateLimiters[RB].runLimiter(RBSpeed, motors[RB].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
     }
     void ChassisSubsystem::refresh() {
         auto runPid = [](Pid &pid, Motor &motor, float desiredOutput) {
