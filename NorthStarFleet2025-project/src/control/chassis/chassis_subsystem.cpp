@@ -41,13 +41,14 @@ namespace control::chassis
         }
     }
 // STEP 3 (Tank Drive): setVelocityTankDrive function
-    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float robotHeading) {
+    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float robotHeading = 0.0f) {
         float distToCenter;
         float LFSpeed;
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
         #ifdef THING //TODO Make not THING 
+        //Mecanum
         distToCenter = 10.0f; // In inches atm
         float forwardAdjusted = forward * cos(robotHeading);
         float sidewaysAdjusted = sideways * sin(robotHeading);
@@ -56,6 +57,7 @@ namespace control::chassis
         RFSpeed = mpsToRpm(forwardAdjusted + sidewaysAdjusted + (2 * distToCenter * rotational * M_PI / 180));
         RBSpeed = mpsToRpm(forwardAdjusted - sidewaysAdjusted + (2 * distToCenter * rotational * M_PI / 180));
         #else
+        //Omni
         distToCenter = 10.0f;
         LFSpeed = mpsToRpm(forward * cos(robotHeading) + sideways * sin(robotHeading) + modm::toRadian(rotational) * distToCenter);
         RFSpeed = mpsToRpm(forward * cos(robotHeading + M_PI_2) + sideways * sin(robotHeading + M_PI_2) + modm::toRadian(rotational) * distToCenter);
