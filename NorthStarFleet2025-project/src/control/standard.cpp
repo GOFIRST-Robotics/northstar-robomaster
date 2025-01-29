@@ -1,26 +1,26 @@
-// #include "drivers.hpp"
+#include "drivers.hpp"
 
-// #include "standard.hpp"
+#include "standard.hpp"
 
 // #include "tap/util_macros.hpp"
 // #include "turret/turret_constants/standard_turret_constants.hpp"
 
 
-// using tap::can::CanBus;
-// using tap::communication::serial::Remote;
-// using tap::control::RemoteMapState;
-// using tap::motor::MotorId;
+using tap::can::CanBus;
+using tap::communication::serial::Remote;
+using tap::control::RemoteMapState;
+using tap::motor::MotorId;
 // using tap::control::setpoint::IntegrableSetpointSubsystem;
 // using tap::control::setpoint::MoveIntegralCommand;
 // using tap::control::setpoint::UnjamIntegralCommand;
 // using tap::control::setpoint::MoveUnjamIntegralComprisedCommand;
 
-// // using namespace control::turret;
+// using namespace control::turret;
 
-// namespace control
-// {
-// Robot::Robot(src::Drivers &drivers) 
-//     : drivers(drivers),
+namespace control
+{
+Robot::Robot(src::Drivers &drivers) 
+    : drivers(drivers),
 //       m_ChassisSubsystem(
 //           drivers,
 //           chassis::ChassisConfig{
@@ -97,7 +97,7 @@
 //         &drivers.pwm,
 //         tap::gpio::Pwm::C6,
 //         tap::gpio::Pwm::C7),
-//     m_ControlOperatorInterface(drivers.remote),
+    m_ControlOperatorInterface(drivers.remote)
 //     m_FlyWheelCommand(m_FlyWheel, m_ControlOperatorInterface),
 //         leftSwitchUp(
 //         &drivers,
@@ -154,49 +154,49 @@
 //         &m_ChassisSubsystem,
 //         &turretYawMotor
 //     )
-// {
+{
     
-// }
+}
 
-// void Robot::initSubsystemCommands()
-// {
-//     initializeSubsystems();
-//     registerSoldierSubsystems();
-//     setDefaultSoldierCommands();
-//     startSoldierCommands();
-//     registerSoldierIoMappings();
-// }
+void Robot::initSubsystemCommands()
+{
+    initializeSubsystems();
+    registerSoldierSubsystems();
+    setDefaultSoldierCommands();
+    startSoldierCommands();
+    registerSoldierIoMappings();
+}
 
-// void Robot::initializeSubsystems()
-// {
-//     m_ChassisSubsystem.initialize();
-//     agitatorSubsystem.initialize();
-//     m_FlyWheel.initialize();
-//     turret.initialize();
-// }
+void Robot::initializeSubsystems()
+{
+    // m_ChassisSubsystem.initialize();
+    // agitatorSubsystem.initialize();
+    // m_FlyWheel.initialize();
+    // turret.initialize();
+}
 
-// void Robot::registerSoldierSubsystems()
-// {
-//     drivers.commandScheduler.registerSubsystem(&m_ChassisSubsystem);
-//     drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
-//     drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
-//     drivers.commandScheduler.registerSubsystem(&turret);
-// }
+void Robot::registerSoldierSubsystems()
+{
+    // drivers.commandScheduler.registerSubsystem(&m_ChassisSubsystem);
+    // drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
+    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
+    // drivers.commandScheduler.registerSubsystem(&turret);
+}
 
-// void Robot::setDefaultSoldierCommands()
-// {
-//     m_ChassisSubsystem.setDefaultCommand(&turretOrientedDriveCommand);
-//     m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
-//     turret.setDefaultCommand(&turretUserControlCommand);
-// }
+void Robot::setDefaultSoldierCommands()
+{
+    // m_ChassisSubsystem.setDefaultCommand(&turretOrientedDriveCommand);
+    // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
+    // turret.setDefaultCommand(&turretUserControlCommand);
+}
 
-// void Robot::startSoldierCommands() {}
+void Robot::startSoldierCommands() {}
 
-// void Robot::registerSoldierIoMappings()
-// {
-//     drivers.commandMapper.addMap(&leftMousePressed);
-//     drivers.commandMapper.addMap(&rightMousePressed);
-//     drivers.commandMapper.addMap(&leftSwitchUp);
+void Robot::registerSoldierIoMappings()
+{
+    // drivers.commandMapper.addMap(&leftMousePressed);
+    // drivers.commandMapper.addMap(&rightMousePressed);
+    // drivers.commandMapper.addMap(&leftSwitchUp);
 
-// }   
-// }  // namespace control
+}   
+}  // namespace control
