@@ -6,9 +6,9 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
-#include "control/chassis/chassis_subsystem.hpp"
+// #include "control/chassis/chassis_subsystem.hpp"
 
-#include "control/chassis/mecanum_drive_command.hpp"
+// #include "control/chassis/mecanum_drive_command.hpp"
 
 #include "tap/control/setpoint/commands/unjam_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
@@ -21,24 +21,24 @@
 
 
 
-#include "control/flywheel/fly_wheel_subsystem.hpp"
-#include "control/flywheel/fly_wheel_shoot_command.hpp"
-#include "control/control_operator_interface.hpp"
-#include "turret/turret_super_structure/standard_turret_subsystem.hpp"
-#include "turret/turret_control/turret_user_control_command.hpp"
-#include "turret/turret_components/chassis_frame_turret_controller.hpp"
-#include "turret/turret_components/yaw_turret_motor.hpp"
+// #include "control/flywheel/fly_wheel_subsystem.hpp"
+// #include "control/flywheel/fly_wheel_shoot_command.hpp"
+// #include "control/control_operator_interface.hpp"
+// #include "turret/turret_super_structure/standard_turret_subsystem.hpp"
+// #include "turret/turret_control/turret_user_control_command.hpp"
+// #include "turret/turret_components/chassis_frame_turret_controller.hpp"
+// #include "turret/turret_components/yaw_turret_motor.hpp"
 
-#include "control/chassis/turret_orientated_drive_command.hpp"
+// #include "control/chassis/turret_orientated_drive_command.hpp"
 
 
 
 class Drivers;
 
 
-using namespace control::turret;
-using namespace control::turret::user;
-using namespace control::turret::algorithms;
+// using namespace control::turret;
+// using namespace control::turret::user;
+// using namespace control::turret::algorithms;
 namespace control
 {
 class Robot
@@ -58,7 +58,7 @@ private:
 
     src::Drivers &drivers;
 
-    control::chassis::ChassisSubsystem m_ChassisSubsystem;
+    // control::chassis::ChassisSubsystem m_ChassisSubsystem;
 
     // control::chassis::MecanumDriveCommand m_MecanumDriveCommand;
     
@@ -77,22 +77,22 @@ private:
 
 
 
-    control::ControlOperatorInterface m_ControlOperatorInterface;
+    // control::ControlOperatorInterface m_ControlOperatorInterface;
 
-    control::flyWheel::FlyWheelSubsystem m_FlyWheel;
+    // control::flyWheel::FlyWheelSubsystem m_FlyWheel;
 
-    control::flyWheel::flyWheelCommand m_FlyWheelCommand;
+    // control::flyWheel::flyWheelCommand m_FlyWheelCommand;
     tap::motor::DjiMotor pitchMotor;
-    TurretMotor turretPitchMotor;
+    // TurretMotor turretPitchMotor;
     tap::motor::DjiMotor yawMotor;
-    TurretMCBCGryo turretGyro;
-    YawTurretMotor turretYawMotor;
-    StandardTurretSubsystem turret;
-    ChassisFrameYawTurretController yawController;
-    ChassisFramePitchTurretController pitchController;
-    TurretUserControlCommand turretUserControlCommand;
+    // TurretMCBCGryo turretGyro;
+    // YawTurretMotor turretYawMotor;
+    // StandardTurretSubsystem turret;
+    // ChassisFrameYawTurretController yawController;
+    // ChassisFramePitchTurretController pitchController;
+    // TurretUserControlCommand turretUserControlCommand;
 
-    control::chassis::ChassisTurretDriveCommand turretOrientedDriveCommand;
+    // control::chassis::ChassisTurretDriveCommand turretOrientedDriveCommand;
 
     
 
