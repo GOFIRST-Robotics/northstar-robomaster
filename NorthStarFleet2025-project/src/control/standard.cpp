@@ -35,7 +35,7 @@ Robot::Robot(src::Drivers &drivers)
         .gearRatio = 36.0f,
         .agitatorMotorId = tap::motor::MOTOR7,
         .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
-        .isAgitatorInverted = false,
+        .isAgitatorInverted = true,
         .jammingVelocityDifference = M_TWOPI,
         .jammingTime = 100,
         .jamLogicEnabled = true,
@@ -55,7 +55,7 @@ Robot::Robot(src::Drivers &drivers)
         agitatorVelocityPidConfig, 
         agitatorSubsystemConfig),
     rotateAgitatorCommandConfig{
-        .targetIntegralChange = M_TWOPI / 10.0f,
+        .targetIntegralChange = M_TWOPI / 8.0f,
         .desiredSetpoint = M_TWOPI,
         .integralSetpointTolerance = 0,
     },
