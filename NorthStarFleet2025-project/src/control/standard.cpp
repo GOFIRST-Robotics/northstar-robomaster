@@ -1,21 +1,21 @@
-// #include "drivers.hpp"
+#include "drivers.hpp"
 
-// #include "standard.hpp"
+#include "standard.hpp"
 
 #include "tap/util_macros.hpp"
 // #include "turret/turret_constants/standard_turret_constants.hpp"
 
 
-// using tap::can::CanBus;
-// using tap::communication::serial::Remote;
-// using tap::control::RemoteMapState;
-// using tap::motor::MotorId;
-// using tap::control::setpoint::IntegrableSetpointSubsystem;
-// using tap::control::setpoint::MoveIntegralCommand;
-// using tap::control::setpoint::UnjamIntegralCommand;
-// using tap::control::setpoint::MoveUnjamIntegralComprisedCommand;
+using tap::can::CanBus;
+using tap::communication::serial::Remote;
+using tap::control::RemoteMapState;
+using tap::motor::MotorId;
+using tap::control::setpoint::IntegrableSetpointSubsystem;
+using tap::control::setpoint::MoveIntegralCommand;
+using tap::control::setpoint::UnjamIntegralCommand;
+using tap::control::setpoint::MoveUnjamIntegralComprisedCommand;
 
-// // using namespace control::turret;
+// using namespace control::turret;
 
 namespace control
 {
@@ -156,16 +156,16 @@ Robot::Robot(src::Drivers &drivers)
     // )
 {
     
-// }
+}
 
-// void Robot::initSubsystemCommands()
-// {
-//     initializeSubsystems();
-//     registerSoldierSubsystems();
-//     setDefaultSoldierCommands();
-//     startSoldierCommands();
-//     registerSoldierIoMappings();
-// }
+void Robot::initSubsystemCommands()
+{
+    initializeSubsystems();
+    registerSoldierSubsystems();
+    setDefaultSoldierCommands();
+    startSoldierCommands();
+    registerSoldierIoMappings();
+}
 
 void Robot::initializeSubsystems()
 {
@@ -190,13 +190,13 @@ void Robot::setDefaultSoldierCommands()
     // turret.setDefaultCommand(&turretUserControlCommand);
 }
 
-// void Robot::startSoldierCommands() {}
+void Robot::startSoldierCommands() {}
 
-// void Robot::registerSoldierIoMappings()
-// {
-//     drivers.commandMapper.addMap(&leftMousePressed);
-//     drivers.commandMapper.addMap(&rightMousePressed);
-//     drivers.commandMapper.addMap(&leftSwitchUp);
+void Robot::registerSoldierIoMappings()
+{
+    drivers.commandMapper.addMap(&leftMousePressed);
+    drivers.commandMapper.addMap(&rightMousePressed);
+    drivers.commandMapper.addMap(&leftSwitchUp);
 
-// }   
-// }  // namespace control
+}   
+}  // namespace control
