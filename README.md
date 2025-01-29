@@ -41,7 +41,7 @@ _Make sure you have followed the above setup instructions._
 Run the following to clone this repository:
 
 ```
-git clone --recursive https://gitlab.com/my-team/my-amazing-project.git
+git clone --recursive https://github.com/GOFIRST-Robotics/RoboMaster2025NorthStar.git
 ```
 
 If you use the Docker container, or have already cloned the repository yourself, you should instead
@@ -51,10 +51,10 @@ run:
 git submodule update --init --recursive
 ```
 
-Now, `cd` into the project directory, activate the virtualenv, and run some builds:
+Now, `cd` into the project directory (whatever folder name you created to store the project), activate the virtualenv, and run some builds:
 
 ```
-cd my-amazing-project/NorthStarFleet2025-project
+cd project-directory/NorthStarFleet2025-project
 pipenv shell
 # Build for hardware
 scons build
