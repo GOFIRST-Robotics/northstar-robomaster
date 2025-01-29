@@ -2,7 +2,7 @@
 
 #include "tap/algorithms/math_user_utils.hpp"
 
-//#include "control/control_operator_interface.hpp"
+#include "control/control_operator_interface.hpp"
 
 #include "chassis_subsystem.hpp"
 
@@ -24,10 +24,10 @@ namespace control::chassis
         };
 
         chassis.setVelocityDrive(
-            scale(operatorInterface.getChassisForwardInput()),
-            scale(operatorInterface.getChassisSidewaysInput()),
-            scale(operatorInterface.getChassisRotationalInput()),
-            10
+            scale(operatorInterface.getDrivetrainVerticalTranslation()),
+            scale(operatorInterface.getDrivetrainHorizontalTranslation()),
+            scale(operatorInterface.getDrivetrainRotation()),
+            0
         );
     }
 // STEP 3 (Tank Drive): end function

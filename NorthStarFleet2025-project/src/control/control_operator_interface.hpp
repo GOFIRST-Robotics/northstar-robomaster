@@ -76,15 +76,15 @@ public:
 
     // STEP 1 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
     // declarations
-    float getMecanumHorizontalTranslation();
+    float getDrivetrainHorizontalTranslation();
 
     float getMecanumHorizontalTranslationKeyBoard();
 
-    float getMecanumVerticalTranslation();
+    float getDrivetrainVerticalTranslation();
 
     float getMecanumVerticalTranslationKeyBoard();
 
-    float getMecanumRotation();
+    float getDrivetrainRotation();
 
     float getMecanumRotationKeyBoard();
 

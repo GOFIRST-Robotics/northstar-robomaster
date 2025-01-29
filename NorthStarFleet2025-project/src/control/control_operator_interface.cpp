@@ -132,7 +132,7 @@ static inline void applyAccelerationToRamp(
 // STEP 2 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
 // definitions
 
-float ControlOperatorInterface::getMecanumHorizontalTranslation() {
+float ControlOperatorInterface::getDrivetrainHorizontalTranslation() {
     if(remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT)){
         return -0.2f;
     } else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT)){
@@ -183,7 +183,7 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
     return outputDebug;
 }
 
-float ControlOperatorInterface::getMecanumVerticalTranslation() {
+float ControlOperatorInterface::getDrivetrainVerticalTranslation() {
     if(remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT)){
         return 0.2f;
     } else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT)){
@@ -231,7 +231,7 @@ uint32_t updateCounter = remote.getUpdateCounter();
     return chassisYInputRamp.getValue();
 }
 
-float ControlOperatorInterface::getMecanumRotation()
+float ControlOperatorInterface::getDrivetrainRotation()
 {
     if(remote.keyPressed(Remote::Key::CTRL)){
         return 0.2f;
