@@ -1,7 +1,7 @@
-// #pragma once
+#pragma once
 
-// #include "tap/control/hold_command_mapping.hpp"
-// #include "tap/control/hold_repeat_command_mapping.hpp"
+#include "tap/control/hold_command_mapping.hpp"
+#include "tap/control/hold_repeat_command_mapping.hpp"
 
 // #include "control/agitator/velocity_agitator_subsystem.hpp"
 
@@ -14,16 +14,16 @@
 // #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 
 
-// #include "tap/algorithms/smooth_pid.hpp"
+#include "tap/algorithms/smooth_pid.hpp"
 
 
-// // using name
+// using name
 
 
 
 // #include "control/flywheel/fly_wheel_subsystem.hpp"
 // #include "control/flywheel/fly_wheel_shoot_command.hpp"
-// #include "control/control_operator_interface.hpp"
+#include "control/control_operator_interface.hpp"
 // #include "turret/turret_super_structure/standard_turret_subsystem.hpp"
 // #include "turret/turret_control/turret_user_control_command.hpp"
 // #include "turret/turret_components/chassis_frame_turret_controller.hpp"
@@ -33,30 +33,30 @@
 
 
 
-// class Drivers;
+class Drivers;
 
 
 // using namespace control::turret;
 // using namespace control::turret::user;
 // using namespace control::turret::algorithms;
-// namespace control
-// {
-// class Robot
-// {
-// public:
-//     Robot(src::Drivers &drivers);
+namespace control
+{
+class Robot
+{
+public:
+    Robot(src::Drivers &drivers);
 
-//     void initSubsystemCommands();
+    void initSubsystemCommands();
     
 
-// private:
-//     void initializeSubsystems();
-//     void registerSoldierSubsystems();
-//     void setDefaultSoldierCommands();
-//     void startSoldierCommands();
-//     void registerSoldierIoMappings();
+private:
+    void initializeSubsystems();
+    void registerSoldierSubsystems();
+    void setDefaultSoldierCommands();
+    void startSoldierCommands();
+    void registerSoldierIoMappings();
 
-//     src::Drivers &drivers;
+    src::Drivers &drivers;
 
 //     control::chassis::ChassisSubsystem m_ChassisSubsystem;
 
@@ -77,7 +77,7 @@
 
 
 
-//     control::ControlOperatorInterface m_ControlOperatorInterface;
+    control::ControlOperatorInterface m_ControlOperatorInterface;
 
 //     control::flyWheel::FlyWheelSubsystem m_FlyWheel;
 
@@ -101,5 +101,5 @@
 
     
     
-// };  
-// }  // namespace control
+};  
+}  // namespace control

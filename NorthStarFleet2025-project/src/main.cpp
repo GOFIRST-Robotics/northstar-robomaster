@@ -43,8 +43,13 @@
 /* control includes ---------------------------------------------------------*/
 #include "tap/architecture/clock.hpp"
 
+/* robot includes ---------------------------------------------------------*/
+#include "control/standard.hpp"
+
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
+
+control::Robot robot(*src::DoNotUse_getDrivers());
 
 // Place any sort of input/output initialization here. For example, place
 // serial init stuff here.
@@ -70,7 +75,7 @@ int main()
 
     Board::initialize();
     initializeIo(drivers);
-
+    robot.initSubsystemCommands();
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::resetMotorSims();
     // Blocking call, waits until Windows Simulator connects.
