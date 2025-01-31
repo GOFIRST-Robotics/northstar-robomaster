@@ -172,7 +172,7 @@ void Robot::initializeSubsystems()
     // m_ChassisSubsystem.initialize();
     // agitatorSubsystem.initialize();
     // m_FlyWheel.initialize();
-    // turret.initialize();
+    turret.initialize();
 }
 
 void Robot::registerSoldierSubsystems()
@@ -180,14 +180,14 @@ void Robot::registerSoldierSubsystems()
     // drivers.commandScheduler.registerSubsystem(&m_ChassisSubsystem);
     // drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
     // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
-    // drivers.commandScheduler.registerSubsystem(&turret);
+    drivers.commandScheduler.registerSubsystem(&turret);
 }
 
 void Robot::setDefaultSoldierCommands()
 {
     // m_ChassisSubsystem.setDefaultCommand(&turretOrientedDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
-    // turret.setDefaultCommand(&turretUserControlCommand);
+    turret.setDefaultCommand(&turretUserControlCommand);
 }
 
 void Robot::startSoldierCommands() {}
