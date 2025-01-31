@@ -21,7 +21,7 @@
 #define TURRET_SUBSYSTEM_HPP_
 
 #include "tap/algorithms/linear_interpolation_predictor.hpp"
-#include "additionalTapResources/wrapped_float.hpp"
+#include "tap/algorithms/wrapped_float.hpp"
 #include "tap/control/subsystem.hpp"
 #include "tap/control/turret_subsystem_interface.hpp"
 #include "tap/motor/dji_motor.hpp"
