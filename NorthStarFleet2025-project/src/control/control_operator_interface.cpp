@@ -23,6 +23,7 @@
 #include "tap/architecture/clock.hpp"
 #include "tap/drivers.hpp"
 #include <tap/architecture/clock.hpp>
+#include <random>
 
 
 using namespace tap::algorithms;
@@ -241,6 +242,33 @@ float ControlOperatorInterface::getDrivetrainRotation()
 }
 
 
+float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
+    if (isBeyblade()) {
+        // if (count >= 250) {
+        //     std::random_device rd;
+        //     std::mt19937 gen(rd());
+        //     std::uniform_int_distribution<> dist(1, 9);
+        //     beyBladeValue = dist(gen);
+        //     count = 0;
+        // }
+        // return 0.1f * static_cast<float>(sin(beyBladeValue)) + 0.9f;
+        return 1.0f;
+    }
+
+    if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.2f;
+    } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.4f;
+    } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
+        return 0.2f;
+    } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
+        return-0.4f;
+    } else {
+        return 0.0f;
+    }
+}
+
+
 float ControlOperatorInterface::getMecanumRotationKeyBoard()
 {
     uint32_t updateCounter = remote.getUpdateCounter();
@@ -283,6 +311,10 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
 
     bool ControlOperatorInterface::isGKeyPressed(){
         return (remote.keyPressed(Remote::Key::G));
+    }
+
+    bool ControlOperatorInterface::isBeyblade(){
+        return (remote.keyPressed(Remote::Key::B));
     }
     
 }  // namespace control

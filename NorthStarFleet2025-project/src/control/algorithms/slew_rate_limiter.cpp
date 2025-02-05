@@ -1,28 +1,21 @@
-// #include "slew_rate_limiter.hpp"
+#include "slew_rate_limiter.hpp"
 
-// #include "tap/algorithms/math_user_utils.hpp"
+#include "tap/algorithms/math_user_utils.hpp"
 
-// #include "tap/architecture/clock.hpp"
+namespace control::algorithms
+{
 
-// using tap::arch::clock::getTimeMilliseconds;
+float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
+    if (abs(desiredVelocity - (currentVelocity + rateLimit)) > maxError) {
+        if (desiredVelocity < currentVelocity) {
+            return currentVelocity - rateLimit;
+        }/* else {
+            return currentVelocity + rateLimit;
+        }*/
+    } else {
+        return desiredVelocity;
+    }
 
-// namespace control::algorithms
-// {
+}
 
-// float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
-//     timeDiff = getTimeMilliseconds() - prevTime;
-//     prevTime = getTimeMilliseconds(); // Might not work
-
-//     if (abs(desiredVelocity - (currentVelocity + timeDiff * rateLimit)) > maxError) {
-//         if (desiredVelocity < currentVelocity) {
-//             return currentVelocity + timeDiff * -rateLimit;
-//         } else {
-//             return currentVelocity + timeDiff * rateLimit;
-//         }
-//     } else {
-//         return desiredVelocity;
-//     }
-
-// }
-
-// }
+}

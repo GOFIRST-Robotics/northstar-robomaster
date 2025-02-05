@@ -26,7 +26,7 @@ namespace control::chassis
         chassis.setVelocityDrive(
             scale(operatorInterface.getDrivetrainVerticalTranslation()),
             scale(operatorInterface.getDrivetrainHorizontalTranslation()),
-            scale(operatorInterface.getDrivetrainRotation()),
+            scale(operatorInterface.getDrivetrainRotationalTranslation()),
             0
         );
     }
