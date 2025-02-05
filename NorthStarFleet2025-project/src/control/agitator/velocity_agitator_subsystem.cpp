@@ -75,9 +75,9 @@ bool VelocityAgitatorSubsystem::calibrateHere()
     return true;
 }
 
-void VelocityAgitatorSubsystem::runHardwareTests() {}
+// void VelocityAgitatorSubsystem::runHardwareTests() {}
 
-void VelocityAgitatorSubsystem::onHardwareTestStart() {}
+// void VelocityAgitatorSubsystem::onHardwareTestStart() {}
 
 float VelocityAgitatorSubsystem::getCurrentValueIntegral() const
 {

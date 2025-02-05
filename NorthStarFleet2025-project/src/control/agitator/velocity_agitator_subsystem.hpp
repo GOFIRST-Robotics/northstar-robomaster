@@ -62,11 +62,11 @@ public:
     //     agitatorMotor.setDesiredOutput(0);
     // }
 
-    void runHardwareTests() override;
+    // void runHardwareTests() override;
 
-    void onHardwareTestStart() override;
+    // void onHardwareTestStart() override;
 
-    const char* getName() override { return "velocity agitator"; } // TODO
+    // const char* getName() override { return "velocity agitator"; } // TODO
 
     /// @return The velocity setpoint that some command has requested, in radians / second
     inline float getSetpoint() const override { return velocitySetpoint; }
