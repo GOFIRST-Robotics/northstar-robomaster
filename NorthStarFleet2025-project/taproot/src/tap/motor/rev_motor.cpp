@@ -21,7 +21,7 @@
  * along with Taproot.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "spark_max.hpp"
+#include "rev_motor.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/drivers.hpp"
@@ -39,9 +39,9 @@ namespace tap
 {
 namespace motor
 {
-DjiMotor::~DjiMotor() { drivers->djiMotorTxHandler.removeFromMotorManager(*this); }
+RevMotor::~RevMotor() { drivers->djiMotorTxHandler.removeFromMotorManager(*this); }
 
-DjiMotor::DjiMotor(
+RevMotor::RevMotor(
     Drivers* drivers,
     MotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
@@ -65,15 +65,15 @@ DjiMotor::DjiMotor(
     motorDisconnectTimeout.stop();
 }
 
-void DjiMotor::initialize()
+void RevMotor::initialize()
 {
     drivers->djiMotorTxHandler.addMotorToManager(this);
     attachSelfToRxHandler();
 }
 
-void DjiMotor::processMessage(const modm::can::Message& message)
+void RevMotor::processMessage(const modm::can::Message& message)
 {
-    if (message.getIdentifier() != DjiMotor::getMotorIdentifier())
+    if (message.getIdentifier() != RevMotor::getMotorIdentifier())
     {
         return;
     }
@@ -93,14 +93,14 @@ void DjiMotor::processMessage(const modm::can::Message& message)
     updateEncoderValue(encoderActual);
 }
 
-void DjiMotor::setDesiredOutput(int32_t desiredOutput)
+void RevMotor::setDesiredOutput(int32_t desiredOutput)
 {
     int16_t desOutputNotInverted =
         static_cast<int16_t>(tap::algorithms::limitVal<int32_t>(desiredOutput, SHRT_MIN, SHRT_MAX));
     this->desiredOutput = motorInverted ? -desOutputNotInverted : desOutputNotInverted;
 }
 
-bool DjiMotor::isMotorOnline() const
+bool RevMotor::isMotorOnline() const
 {
     /*
      * motor online if the disconnect timout has not expired (if it received message but
@@ -110,7 +110,7 @@ bool DjiMotor::isMotorOnline() const
     return !motorDisconnectTimeout.isExpired() && !motorDisconnectTimeout.isStopped();
 }
 
-void DjiMotor::serializeCanSendData(modm::can::Message* txMessage) const
+void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
 {
     int id = DJI_MOTOR_TO_NORMALIZED_ID(this->getMotorIdentifier());  // number between 0 and 7
     // this method assumes you have choosen the correct message
@@ -122,31 +122,31 @@ void DjiMotor::serializeCanSendData(modm::can::Message* txMessage) const
 }
 
 // getter functions
-int16_t DjiMotor::getOutputDesired() const { return desiredOutput; }
+int16_t RevMotor::getOutputDesired() const { return desiredOutput; }
 
-uint32_t DjiMotor::getMotorIdentifier() const { return motorIdentifier; }
+uint32_t RevMotor::getMotorIdentifier() const { return motorIdentifier; }
 
-int8_t DjiMotor::getTemperature() const { return temperature; }
+int8_t RevMotor::getTemperature() const { return temperature; }
 
-int16_t DjiMotor::getTorque() const { return torque; }
+int16_t RevMotor::getTorque() const { return torque; }
 
-int16_t DjiMotor::getShaftRPM() const { return shaftRPM; }
+int16_t RevMotor::getShaftRPM() const { return shaftRPM; }
 
-bool DjiMotor::isMotorInverted() const { return motorInverted; }
+bool RevMotor::isMotorInverted() const { return motorInverted; }
 
-tap::can::CanBus DjiMotor::getCanBus() const { return motorCanBus; }
+tap::can::CanBus RevMotor::getCanBus() const { return motorCanBus; }
 
-const char* DjiMotor::getName() const { return motorName; }
+const char* RevMotor::getName() const { return motorName; }
 
-int64_t DjiMotor::getEncoderUnwrapped() const
+int64_t RevMotor::getEncoderUnwrapped() const
 {
     return static_cast<int64_t>(encoderWrapped) +
            static_cast<int64_t>(ENC_RESOLUTION) * encoderRevolutions;
 }
 
-uint16_t DjiMotor::getEncoderWrapped() const { return encoderWrapped; }
+uint16_t RevMotor::getEncoderWrapped() const { return encoderWrapped; }
 
-void DjiMotor::updateEncoderValue(uint16_t newEncWrapped)
+void RevMotor::updateEncoderValue(uint16_t newEncWrapped)
 {
     int16_t enc_dif = newEncWrapped - encoderWrapped;
     if (enc_dif < -ENC_RESOLUTION / 2)

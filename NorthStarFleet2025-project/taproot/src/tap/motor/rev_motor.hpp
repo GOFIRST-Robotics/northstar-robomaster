@@ -72,7 +72,7 @@ enum MotorId : uint32_t
  * @note Currently there is no error handling for using a motor without having it be properly
  * initialize. You must call the `initialize` function in order for this class to work properly.
  */
-class DjiMotor : public can::CanRxListener, public MotorInterface
+class RevMotor : public can::CanRxListener, public MotorInterface
 {
 public:
     // 0 - 8191 for dji motors
@@ -89,9 +89,9 @@ public:
      * @param encoderWrapped the starting encoderValue to store for this motor.
      *      Will be overwritten by the first reported encoder value from the motor
      * @param encoderRevolutions the starting number of encoder revolutions to store.
-     *      See comment for DjiMotor::encoderRevolutions for more details.
+     *      See comment for RevMotor::encoderRevolutions for more details.
      */
-    DjiMotor(
+    RevMotor(
         Drivers* drivers,
         MotorId desMotorIdentifier,
         tap::can::CanBus motorCanBus,
@@ -100,7 +100,7 @@ public:
         uint16_t encoderWrapped = ENC_RESOLUTION / 2,
         int64_t encoderRevolutions = 0);
 
-    mockable ~DjiMotor();
+    mockable ~RevMotor();
 
     void initialize() override;
 
@@ -108,7 +108,7 @@ public:
 
     uint16_t getEncoderWrapped() const override;
 
-    DISALLOW_COPY_AND_ASSIGN(DjiMotor)
+    DISALLOW_COPY_AND_ASSIGN(RevMotor)
 
     /**
      * Overrides virtual method in the can class, called every time a message with the
