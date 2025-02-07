@@ -62,14 +62,14 @@ static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
 static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
     .startAngle = M_PI_2,
     .startEncoderValue = 4739,
-    .minAngle = 1.3,
-    .maxAngle = 1.7,
+    .minAngle = 0,
+    .maxAngle = 3.14,
     .limitMotorAngles = true,
 };
 
-static constexpr float TURRET_CG_X = 30.17;
-static constexpr float TURRET_CG_Z = 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 7'000;
+static constexpr float TURRET_CG_X = 0.0f; //30.17;
+static constexpr float TURRET_CG_Z = 0.0f; //34.02;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f; //7'000;
 
 
 static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
@@ -157,14 +157,14 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_VEL_PID_CONFIG = {
 };
 
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
-    .kp = 229'000.1f,
+    .kp = 200'000.0f,
     .ki = 0.0f,
-    .kd = 3500.2f,
+    .kd = 2000.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    .tQDerivativeKalman = 1.0f,
+    .tQDerivativeKalman = 0.1f,
     .tRDerivativeKalman = 70.0f,
-    .tQProportionalKalman = 1.0f,
+    .tQProportionalKalman = 0.1f,
     .tRProportionalKalman = 0.0f,
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
@@ -183,14 +183,26 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
-    .kp = 100'183.1f,
+    // .kp = 100'183.1f,
+    // .ki = 0.0f,
+    // .kd = 3'448.5f,
+    // .maxICumulative = 0.0f,
+    // .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
+    // .tQDerivativeKalman = 0.1f,
+    // .tRDerivativeKalman = 10.0f,
+    // .tQProportionalKalman = 0.1f,
+    // .tRProportionalKalman = 2.0f,
+    // .errDeadzone = 0.0f,
+    // .errorDerivativeFloor = 0.0f,
+
+    .kp = 50'000.0f,
     .ki = 0.0f,
     .kd = 3'448.5f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    .tQDerivativeKalman = 1.0f,
+    .tQDerivativeKalman = 0.1f,
     .tRDerivativeKalman = 10.0f,
-    .tQProportionalKalman = 1.0f,
+    .tQProportionalKalman = 0.1f,
     .tRProportionalKalman = 2.0f,
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
