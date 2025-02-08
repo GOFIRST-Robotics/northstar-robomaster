@@ -37,9 +37,9 @@ namespace tap::motor
 void RevMotorTxHandler::addMotorToManager(RevMotor** canMotorStore, RevMotor* const motor)
 {
     assert(motor != nullptr);
-    uint32_t idIndex = DJI_MOTOR_TO_NORMALIZED_ID(motor->getMotorIdentifier());
+    uint32_t idIndex = motor->getMotorIdentifier();
     bool motorOverloaded = canMotorStore[idIndex] != nullptr;
-    bool motorOutOfBounds = idIndex >= DJI_MOTORS_PER_CAN;
+    bool motorOutOfBounds = idIndex >= REV_MOTORS_PER_CAN;
     modm_assert(!motorOverloaded && !motorOutOfBounds, "RevMotorTxHandler", "overloading");
     canMotorStore[idIndex] = motor;
 }
@@ -62,45 +62,22 @@ void RevMotorTxHandler::addMotorToManager(RevMotor* motor)
 void RevMotorTxHandler::encodeAndSendCanData()
 {
     // set up new can messages to be sent via CAN bus 1 and 2
-    modm::can::Message can1MessageLow(
-        CAN_DJI_LOW_IDENTIFIER,
-        CAN_DJI_MESSAGE_SEND_LENGTH,
-        0,
-        false);
-    modm::can::Message can1MessageHigh(
-        CAN_DJI_HIGH_IDENTIFIER,
-        CAN_DJI_MESSAGE_SEND_LENGTH,
-        0,
-        false);
-    modm::can::Message can2MessageLow(
-        CAN_DJI_LOW_IDENTIFIER,
-        CAN_DJI_MESSAGE_SEND_LENGTH,
-        0,
-        false);
-    modm::can::Message can2MessageHigh(
-        CAN_DJI_HIGH_IDENTIFIER,
-        CAN_DJI_MESSAGE_SEND_LENGTH,
-        0,
-        false);
 
-    bool can1ValidMotorMessageLow = false;
-    bool can1ValidMotorMessageHigh = false;
-    bool can2ValidMotorMessageLow = false;
-    bool can2ValidMotorMessageHigh = false;
+    uint32_t canVoltageArbitrationID = 0x2051080;
+    uint8_t canRevIdLength = 8;
+    
+
+    modm::can::Message can1Message(
+        canVoltageArbitrationID,
+        canRevIdLength,
+        0,
+        false);
 
     serializeMotorStoreSendData(
         can1MotorStore,
-        &can1MessageLow,
-        &can1MessageHigh,
-        &can1ValidMotorMessageLow,
-        &can1ValidMotorMessageHigh);
+        &can1Message);
 
-    serializeMotorStoreSendData(
-        can2MotorStore,
-        &can2MessageLow,
-        &can2MessageHigh,
-        &can2ValidMotorMessageLow,
-        &can2ValidMotorMessageHigh);
+
 
     bool messageSuccess = true;
 
@@ -134,29 +111,13 @@ void RevMotorTxHandler::encodeAndSendCanData()
 }
 
 void RevMotorTxHandler::serializeMotorStoreSendData(
-    RevMotor** canMotorStore,
-    modm::can::Message* messageLow,
-    modm::can::Message* messageHigh,
-    bool* validMotorMessageLow,
-    bool* validMotorMessageHigh)
+    RevMotor** canMotorStore, modm::can::Message* message)
 {
-    for (int i = 0; i < DJI_MOTORS_PER_CAN; i++)
+
+    for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
     {
-        const RevMotor* const motor = canMotorStore[i];
-        if (motor != nullptr)
-        {
-            if (DJI_MOTOR_TO_NORMALIZED_ID(motor->getMotorIdentifier()) <=
-                DJI_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR4))
-            {
-                motor->serializeCanSendData(messageLow);
-                *validMotorMessageLow = true;
-            }
-            else
-            {
-                motor->serializeCanSendData(messageHigh);
-                *validMotorMessageHigh = true;
-            }
-        }
+    const RevMotor* const motor = canMotorStore[i];
+    motor->serializeCanSendData(message);
     }
 }
 

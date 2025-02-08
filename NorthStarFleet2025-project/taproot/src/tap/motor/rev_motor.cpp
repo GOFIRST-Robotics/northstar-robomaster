@@ -46,23 +46,24 @@ RevMotor::RevMotor(
     MotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
     bool isInverted,
-    const char* name,
-    uint16_t encoderWrapped,
-    int64_t encoderRevolutions)
+    const char* name
+    // uint16_t encoderWrapped,
+    // int64_t encoderRevolutions
+    )
     : CanRxListener(drivers, static_cast<uint32_t>(desMotorIdentifier), motorCanBus),
       motorName(name),
       drivers(drivers),
       motorIdentifier(desMotorIdentifier),
       motorCanBus(motorCanBus),
       desiredOutput(0),
-      shaftRPM(0),
-      temperature(0),
-      torque(0),
-      motorInverted(isInverted),
-      encoderWrapped(encoderWrapped),
-      encoderRevolutions(encoderRevolutions)
+    //   shaftRPM(0),
+    //   temperature(0),
+    //   torque(0),
+      motorInverted(isInverted)
+    //   encoderWrapped(encoderWrapped),
+    //   encoderRevolutions(encoderRevolutions)
 {
-    motorDisconnectTimeout.stop();
+    // motorDisconnectTimeout.stop();
 }
 
 void RevMotor::initialize()
@@ -71,27 +72,27 @@ void RevMotor::initialize()
     attachSelfToRxHandler();
 }
 
-void RevMotor::processMessage(const modm::can::Message& message)
-{
-    if (message.getIdentifier() != RevMotor::getMotorIdentifier())
-    {
-        return;
-    }
-    uint16_t encoderActual =
-        static_cast<uint16_t>(message.data[0] << 8 | message.data[1]);        // encoder value
-    shaftRPM = static_cast<int16_t>(message.data[2] << 8 | message.data[3]);  // rpm
-    shaftRPM = motorInverted ? -shaftRPM : shaftRPM;
-    torque = static_cast<int16_t>(message.data[4] << 8 | message.data[5]);  // torque
-    torque = motorInverted ? -torque : torque;
-    temperature = static_cast<int8_t>(message.data[6]);  // temperature
+// void RevMotor::processMessage(const modm::can::Message& message)
+// {
+//     if (message.getIdentifier() != RevMotor::getMotorIdentifier())
+//     {
+//         return;
+//     }
+//     uint16_t encoderActual =
+//         static_cast<uint16_t>(message.data[0] << 8 | message.data[1]);        // encoder value
+//     shaftRPM = static_cast<int16_t>(message.data[2] << 8 | message.data[3]);  // rpm
+//     shaftRPM = motorInverted ? -shaftRPM : shaftRPM;
+//     torque = static_cast<int16_t>(message.data[4] << 8 | message.data[5]);  // torque
+//     torque = motorInverted ? -torque : torque;
+//     temperature = static_cast<int8_t>(message.data[6]);  // temperature
 
-    // restart disconnect timer, since you just received a message from the motor
-    motorDisconnectTimeout.restart(MOTOR_DISCONNECT_TIME);
+//     // restart disconnect timer, since you just received a message from the motor
+//     motorDisconnectTimeout.restart(MOTOR_DISCONNECT_TIME);
 
-    // invert motor if necessary
-    encoderActual = motorInverted ? ENC_RESOLUTION - 1 - encoderActual : encoderActual;
-    updateEncoderValue(encoderActual);
-}
+//     // invert motor if necessary
+//     encoderActual = motorInverted ? ENC_RESOLUTION - 1 - encoderActual : encoderActual;
+//     updateEncoderValue(encoderActual);
+// }
 
 void RevMotor::setDesiredOutput(int32_t desiredOutput)
 {
@@ -100,25 +101,29 @@ void RevMotor::setDesiredOutput(int32_t desiredOutput)
     this->desiredOutput = motorInverted ? -desOutputNotInverted : desOutputNotInverted;
 }
 
-bool RevMotor::isMotorOnline() const
-{
-    /*
-     * motor online if the disconnect timout has not expired (if it received message but
-     * somehow got disconnected) and the timeout hasn't been stopped (initially, the timeout
-     * is stopped)
-     */
-    return !motorDisconnectTimeout.isExpired() && !motorDisconnectTimeout.isStopped();
-}
+
+
+
+// bool RevMotor::isMotorOnline() const
+// {
+//     /*
+//      * motor online if the disconnect timout has not expired (if it received message but
+//      * somehow got disconnected) and the timeout hasn't been stopped (initially, the timeout
+//      * is stopped)
+//      */
+//     return !motorDisconnectTimeout.isExpired() && !motorDisconnectTimeout.isStopped();
+// }
 
 void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
 {
-    int id = DJI_MOTOR_TO_NORMALIZED_ID(this->getMotorIdentifier());  // number between 0 and 7
+    int id = this->getMotorIdentifier();  // number between 0 and 7
     // this method assumes you have choosen the correct message
     // to send the data in. Is blind to message type and is a private method
     // that I use accordingly.
-    id %= 4;
-    txMessage->data[2 * id] = this->getOutputDesired() >> 8;
-    txMessage->data[2 * id + 1] = this->getOutputDesired() & 0xFF;
+    txMessage->data[]
+    // id %= 4;
+    // txMessage->data[2 * id] = this->getOutputDesired() >> 8;
+    // txMessage->data[2 * id + 1] = this->getOutputDesired() & 0xFF;
 }
 
 // getter functions
@@ -126,11 +131,11 @@ int16_t RevMotor::getOutputDesired() const { return desiredOutput; }
 
 uint32_t RevMotor::getMotorIdentifier() const { return motorIdentifier; }
 
-int8_t RevMotor::getTemperature() const { return temperature; }
+// int8_t RevMotor::getTemperature() const { return temperature; }
 
-int16_t RevMotor::getTorque() const { return torque; }
+// int16_t RevMotor::getTorque() const { return torque; }
 
-int16_t RevMotor::getShaftRPM() const { return shaftRPM; }
+// int16_t RevMotor::getShaftRPM() const { return shaftRPM; }
 
 bool RevMotor::isMotorInverted() const { return motorInverted; }
 
@@ -138,27 +143,27 @@ tap::can::CanBus RevMotor::getCanBus() const { return motorCanBus; }
 
 const char* RevMotor::getName() const { return motorName; }
 
-int64_t RevMotor::getEncoderUnwrapped() const
-{
-    return static_cast<int64_t>(encoderWrapped) +
-           static_cast<int64_t>(ENC_RESOLUTION) * encoderRevolutions;
-}
+// int64_t RevMotor::getEncoderUnwrapped() const
+// {
+//     return static_cast<int64_t>(encoderWrapped) +
+//            static_cast<int64_t>(ENC_RESOLUTION) * encoderRevolutions;
+// }
 
-uint16_t RevMotor::getEncoderWrapped() const { return encoderWrapped; }
+// uint16_t RevMotor::getEncoderWrapped() const { return encoderWrapped; }
 
-void RevMotor::updateEncoderValue(uint16_t newEncWrapped)
-{
-    int16_t enc_dif = newEncWrapped - encoderWrapped;
-    if (enc_dif < -ENC_RESOLUTION / 2)
-    {
-        encoderRevolutions++;
-    }
-    else if (enc_dif > ENC_RESOLUTION / 2)
-    {
-        encoderRevolutions--;
-    }
-    encoderWrapped = newEncWrapped;
-}
+// void RevMotor::updateEncoderValue(uint16_t newEncWrapped)
+// {
+//     int16_t enc_dif = newEncWrapped - encoderWrapped;
+//     if (enc_dif < -ENC_RESOLUTION / 2)
+//     {
+//         encoderRevolutions++;
+//     }
+//     else if (enc_dif > ENC_RESOLUTION / 2)
+//     {
+//         encoderRevolutions--;
+//     }
+//     encoderWrapped = newEncWrapped;
+// }
 }  // namespace motor
 
 }  // namespace tap

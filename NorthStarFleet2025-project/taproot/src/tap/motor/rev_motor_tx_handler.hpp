@@ -37,24 +37,24 @@ class Drivers;
 
 namespace tap::motor
 {
-/**
- * Converts the dji MotorId to a uint32_t.
- * @param[in] id Some CAN MotorId
- * @return id normalized to be around [0, DJI_MOTORS_PER_CAN), or some value >= DJI_MOTORS_PER_CAN
- * if the id is out of bounds
- */
-#define DJI_MOTOR_TO_NORMALIZED_ID(id)                                                  \
-    static_cast<uint32_t>(                                                              \
-        (id < tap::motor::MOTOR1) ? (tap::motor::RevMotorTxHandler::DJI_MOTORS_PER_CAN) \
-                                  : (id - tap::motor::MOTOR1))
+// /**
+//  * Converts the dji MotorId to a uint32_t.
+//  * @param[in] id Some CAN MotorId
+//  * @return id normalized to be around [0, DJI_MOTORS_PER_CAN), or some value >= DJI_MOTORS_PER_CAN
+//  * if the id is out of bounds
+//  */
+// #define DJI_MOTOR_TO_NORMALIZED_ID(id)                                                  \
+//     static_cast<uint32_t>(                                                              \
+//         (id < tap::motor::MOTOR1) ? (tap::motor::RevMotorTxHandler::DJI_MOTORS_PER_CAN) \
+//                                   : (id - tap::motor::MOTOR1))
 
-/**
- * Converts the dji MotorId to a uint32_t.
- * @param[in] idx Some index, a motor id index normalized between [0, DJI_MOTORS_PER_CAN)
- * @return idx, converted to a MotorId
- */
-#define NORMALIZED_ID_TO_DJI_MOTOR(idx) \
-    static_cast<tap::motor::MotorId>(idx + static_cast<int32_t>(tap::motor::MotorId::MOTOR1))
+// /**
+//  * Converts the dji MotorId to a uint32_t.
+//  * @param[in] idx Some index, a motor id index normalized between [0, DJI_MOTORS_PER_CAN)
+//  * @return idx, converted to a MotorId
+//  */
+// #define NORMALIZED_ID_TO_DJI_MOTOR(idx) \
+//     static_cast<tap::motor::MotorId>(idx + static_cast<int32_t>(tap::motor::MotorId::MOTOR1))
 
 /**
  * Uses modm can interface to send CAN packets to `RevMotor`'s connected to the two CAN buses.
@@ -70,54 +70,55 @@ class RevMotorTxHandler
 {
 public:
     /** Number of motors on each CAN bus. */
-    static constexpr int DJI_MOTORS_PER_CAN = 8;
+    static constexpr int REV_MOTORS_PER_CAN = 8;
     /** CAN message length of each motor control message. */
-    static constexpr int CAN_DJI_MESSAGE_SEND_LENGTH = 8;
-    /** CAN message identifier for "low" segment (low 4 CAN motor IDs) of control message. */
-    static constexpr uint32_t CAN_DJI_LOW_IDENTIFIER = 0X200;
-    /** CAN message identifier for "high" segment (high 4 CAN motor IDs) of control message. */
-    static constexpr uint32_t CAN_DJI_HIGH_IDENTIFIER = 0X1FF;
+    static constexpr int CAN_REV_MESSAGE_SEND_LENGTH = 8;
+    // /** CAN message identifier for "low" segment (low 4 CAN motor IDs) of control message. */
+    // static constexpr uint32_t CAN_DJI_LOW_IDENTIFIER = 0X200;
+    // /** CAN message identifier for "high" segment (high 4 CAN motor IDs) of control message. */
+    // static constexpr uint32_t CAN_DJI_HIGH_IDENTIFIER = 0X1FF;
 
     RevMotorTxHandler(Drivers* drivers) : drivers(drivers) {}
-    mockable ~RevMotorTxHandler() = default;
+    // mockable ~RevMotorTxHandler() = default;
     DISALLOW_COPY_AND_ASSIGN(RevMotorTxHandler)
 
     /**
      * Adds the motor to the manager so that it can receive motor messages from the CAN bus. If
      * there is already a motor with the same ID in the manager, the program will abort
      */
-    mockable void addMotorToManager(RevMotor* motor);
+    void addMotorToManager(RevMotor* motor);
 
     /**
      * Sends motor commands across the CAN bus. Sends up to 4 messages (2 per CAN bus), though it
      * may send less depending on which motors have been registered with the motor manager. Each
      * messages encodes motor controller command information for up to 4 motors.
      */
-    mockable void encodeAndSendCanData();
+    void encodeAndSendCanData();
 
     /**
      * Removes the motor from the motor manager.
      */
-    mockable void removeFromMotorManager(const RevMotor& motor);
+    void removeFromMotorManager(const RevMotor& motor);
 
-    mockable RevMotor const* getCan1Motor(MotorId motorId);
+    RevMotor const* getCan1Motor(MotorId motorId);
 
-    mockable RevMotor const* getCan2Motor(MotorId motorId);
+    RevMotor const* getCan2Motor(MotorId motorId);
 
 private:
     Drivers* drivers;
 
-    RevMotor* can1MotorStore[DJI_MOTORS_PER_CAN] = {0};
-    RevMotor* can2MotorStore[DJI_MOTORS_PER_CAN] = {0};
+    RevMotor* can1MotorStore[REV_MOTORS_PER_CAN] = {0};
+    RevMotor* can2MotorStore[REV_MOTORS_PER_CAN] = {0};
 
     void addMotorToManager(RevMotor** canMotorStore, RevMotor* const motor);
 
     void serializeMotorStoreSendData(
         RevMotor** canMotorStore,
-        modm::can::Message* messageLow,
-        modm::can::Message* messageHigh,
-        bool* validMotorMessageLow,
-        bool* validMotorMessageHigh);
+        modm::can::Message* message
+        // modm::can::Message* messageHigh,
+        // bool* validMotorMessageLow,
+        // bool* validMotorMessageHigh
+        );
 
     void removeFromMotorManager(const RevMotor& motor, RevMotor** motorStore);
 };

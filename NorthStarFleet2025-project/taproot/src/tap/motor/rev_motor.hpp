@@ -41,12 +41,12 @@ namespace tap::motor
  */
 enum MotorId : uint32_t
 {
-    MOTOR1 = 0X201,
-    MOTOR2 = 0x202,
-    MOTOR3 = 0x203,
-    MOTOR4 = 0x204,
-    MOTOR5 = 0x205,
-    MOTOR6 = 0x206,
+    MOTOR1 = 0x001,
+    MOTOR2 = 0x002,
+    MOTOR3 = 0x003,
+    MOTOR4 = 0x004,
+    MOTOR5 = 0x005,
+    MOTOR6 = 0x006,
     MOTOR7 = 0x207,
     MOTOR8 = 0x208,
 };
@@ -76,7 +76,7 @@ class RevMotor : public can::CanRxListener, public MotorInterface
 {
 public:
     // 0 - 8191 for dji motors
-    static constexpr uint16_t ENC_RESOLUTION = 8192;
+    // static constexpr uint16_t ENC_RESOLUTION = 42;
 
     /**
      * @param drivers a pointer to the drivers struct
@@ -96,28 +96,29 @@ public:
         MotorId desMotorIdentifier,
         tap::can::CanBus motorCanBus,
         bool isInverted,
-        const char* name,
-        uint16_t encoderWrapped = ENC_RESOLUTION / 2,
-        int64_t encoderRevolutions = 0);
+        const char* name
+        // uint16_t encoderWrapped = ENC_RESOLUTION / 2,
+        // int64_t encoderRevolutions = 0
+        );
 
-    mockable ~RevMotor();
+    // mockable ~RevMotor();
 
     void initialize() override;
 
-    int64_t getEncoderUnwrapped() const override;
+    // int64_t getEncoderUnwrapped() const override;
 
-    uint16_t getEncoderWrapped() const override;
+    // uint16_t getEncoderWrapped() const override;
 
     DISALLOW_COPY_AND_ASSIGN(RevMotor)
 
-    /**
-     * Overrides virtual method in the can class, called every time a message with the
-     * CAN message id this class is attached to is received by the can receive handler.
-     * Parses the data in the message and updates this class's fields accordingly.
-     *
-     * @param[in] message the message to be processed.
-     */
-    void processMessage(const modm::can::Message& message) override;
+    // /**
+    //  * Overrides virtual method in the can class, called every time a message with the
+    //  * CAN message id this class is attached to is received by the can receive handler.
+    //  * Parses the data in the message and updates this class's fields accordingly.
+    //  *
+    //  * @param[in] message the message to be processed.
+    //  */
+    // void processMessage(const modm::can::Message& message) override;
 
     /**
      * Set the desired output for the motor. The meaning of this value is motor
@@ -131,11 +132,11 @@ public:
      */
     void setDesiredOutput(int32_t desiredOutput) override;
 
-    /**
-     * @return `true` if a CAN message has been received from the motor within the last
-     *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
-     */
-    bool isMotorOnline() const override;
+    // /**
+    //  * @return `true` if a CAN message has been received from the motor within the last
+    //  *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
+    //  */
+    // bool isMotorOnline() const override;
 
     /**
      * Serializes send data and deposits it in a message to be sent.
@@ -150,15 +151,15 @@ public:
 
     mockable uint32_t getMotorIdentifier() const;
 
-    /**
-     * @return the temperature of the motor as reported by the motor in degrees Celsius
-     */
-    int8_t getTemperature() const override;
+    // /**
+    //  * @return the temperature of the motor as reported by the motor in degrees Celsius
+    //  */
+    // int8_t getTemperature() const override;
 
-    int16_t getTorque() const override;
+    // int16_t getTorque() const override;
 
-    /// For interpreting the sign of return value see class comment
-    int16_t getShaftRPM() const override;
+    // /// For interpreting the sign of return value see class comment
+    // int16_t getShaftRPM() const override;
 
     mockable bool isMotorInverted() const;
 
@@ -166,28 +167,28 @@ public:
 
     mockable const char* getName() const;
 
-    template <typename T>
-    static void assertEncoderType()
-    {
-        constexpr bool good_type =
-            std::is_same<typename std::decay<T>::type, std::int64_t>::value ||
-            std::is_same<typename std::decay<T>::type, std::uint16_t>::value;
-        static_assert(good_type, "x is not of the correct type");
-    }
+    // template <typename T>
+    // static void assertEncoderType()
+    // {
+    //     constexpr bool good_type =
+    //         std::is_same<typename std::decay<T>::type, std::int64_t>::value ||
+    //         std::is_same<typename std::decay<T>::type, std::uint16_t>::value;
+    //     static_assert(good_type, "x is not of the correct type");
+    // }
 
-    template <typename T>
-    static T degreesToEncoder(float angle)
-    {
-        assertEncoderType<T>();
-        return static_cast<T>((ENC_RESOLUTION * angle) / 360);
-    }
+    // template <typename T>
+    // static T degreesToEncoder(float angle)
+    // {
+    //     assertEncoderType<T>();
+    //     return static_cast<T>((ENC_RESOLUTION * angle) / 360);
+    // }
 
-    template <typename T>
-    static float encoderToDegrees(T encoder)
-    {
-        assertEncoderType<T>();
-        return (360.0f * static_cast<float>(encoder)) / ENC_RESOLUTION;
-    }
+    // template <typename T>
+    // static float encoderToDegrees(T encoder)
+    // {
+    //     assertEncoderType<T>();
+    //     return (360.0f * static_cast<float>(encoder)) / ENC_RESOLUTION;
+    // }
 
 private:
     // wait time before the motor is considered disconnected, in milliseconds
@@ -209,11 +210,11 @@ private:
 
     int16_t desiredOutput;
 
-    int16_t shaftRPM;
+    // int16_t shaftRPM;
 
-    int8_t temperature;
+    // int8_t temperature;
 
-    int16_t torque;
+    // int16_t torque;
 
     /**
      * If `false` the positive rotation direction of the shaft is counter-clockwise when
@@ -222,22 +223,22 @@ private:
      */
     bool motorInverted;
 
-    /**
-     * The raw encoder value reported by the motor controller. It wraps around from
-     * {0..8191}, hence "Wrapped"
-     */
-    uint16_t encoderWrapped;
+    // /**
+    //  * The raw encoder value reported by the motor controller. It wraps around from
+    //  * {0..8191}, hence "Wrapped"
+    //  */
+    // uint16_t encoderWrapped;
 
-    /**
-     * Absolute unwrapped encoder position =
-     *      encoderRevolutions * ENCODER_RESOLUTION + encoderWrapped
-     * This lets us keep track of some sense of absolute position even while
-     * raw encoderValue continuosly loops within {0..8191}. Origin value is
-     * arbitrary.
-     */
-    int64_t encoderRevolutions;
+    // /**
+    //  * Absolute unwrapped encoder position =
+    //  *      encoderRevolutions * ENCODER_RESOLUTION + encoderWrapped
+    //  * This lets us keep track of some sense of absolute position even while
+    //  * raw encoderValue continuosly loops within {0..8191}. Origin value is
+    //  * arbitrary.
+    //  */
+    // int64_t encoderRevolutions;
 
-    tap::arch::MilliTimeout motorDisconnectTimeout;
+    // tap::arch::MilliTimeout motorDisconnectTimeout;
 };
 
 }  // namespace tap::motor
