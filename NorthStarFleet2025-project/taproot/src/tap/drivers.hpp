@@ -61,6 +61,7 @@
 #include "tap/errors/error_controller.hpp"
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
+#include "tap/motor/rev_motor_tx_handler.hpp"
 #include "tap/control/command_scheduler.hpp"
 #endif
 
@@ -92,6 +93,7 @@ protected:
           errorController(this),
           djiMotorTerminalSerialHandler(this),
           djiMotorTxHandler(this),
+          revMotorTxHandler(this),
           bmi088(this),
 #ifdef ENV_UNIT_TESTS
           commandScheduler(this)
@@ -137,6 +139,7 @@ public:
     errors::ErrorController errorController;
     motor::DjiMotorTerminalSerialHandler djiMotorTerminalSerialHandler;
     motor::DjiMotorTxHandler djiMotorTxHandler;
+    motor::RevMotorTxHandler revMotorTxHandler;
     communication::sensors::imu::bmi088::Bmi088 bmi088;
     control::CommandScheduler commandScheduler;
 #endif
