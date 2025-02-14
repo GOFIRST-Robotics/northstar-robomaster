@@ -135,13 +135,13 @@ static inline void applyAccelerationToRamp(
 
 float ControlOperatorInterface::getDrivetrainHorizontalTranslation() {
     if(remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.6f;
     } else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.6f;
     } else {
         return 0.0f;
     }
@@ -186,13 +186,13 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
 
 float ControlOperatorInterface::getDrivetrainVerticalTranslation() {
     if(remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.6f;
     } else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.6f;
     } else {
         return 0.0f;
     }
@@ -256,13 +256,13 @@ float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
     }
 
     if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
-    } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
         return -0.4f;
+    } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.8f;
     } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.4f;
     } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
-        return-0.4f;
+        return-0.48f;
     } else {
         return 0.0f;
     }

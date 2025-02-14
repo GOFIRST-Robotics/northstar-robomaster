@@ -24,10 +24,10 @@ namespace control::chassis
         Motor(&drivers, config.rightBackId, config.canBus, true, "RB"),
     },
     rateLimiters{
-        control::algorithms::SlewRateLimiter(3500, 50),
-        control::algorithms::SlewRateLimiter(3500, 50),
-        control::algorithms::SlewRateLimiter(3500, 50),
-        control::algorithms::SlewRateLimiter(3500, 50),
+        control::algorithms::SlewRateLimiter(60000, 10),
+        control::algorithms::SlewRateLimiter(60000, 10),
+        control::algorithms::SlewRateLimiter(60000, 10),
+        control::algorithms::SlewRateLimiter(60000, 10),
     }
     {
         for (auto &controller : pidControllers) {
@@ -41,12 +41,13 @@ namespace control::chassis
         }
     }
 // STEP 3 (Tank Drive): setVelocityTankDrive function
-    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float robotHeading = 0.0f) {
+    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational) {
         float distToCenter;
         float LFSpeed;
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
+        float robotHeading = modm::toRadian(drivers->bmi088.getYaw());
         #ifdef THING //TODO Make not THING 
         //Mecanum
         distToCenter = 10.0f; // In inches atm
@@ -58,8 +59,8 @@ namespace control::chassis
         RBSpeed = mpsToRpm(forwardAdjusted - sidewaysAdjusted + (2 * distToCenter * rotational * M_PI / 180));
         #else
         //Omni
-        distToCenter = 10.0f;
-        robotHeading += M_PI_4;
+        distToCenter = 30.48f;
+        robotHeading += M_PI + M_PI_4;
         LFSpeed = mpsToRpm(forward * cos(robotHeading) + sideways * sin(robotHeading) + modm::toRadian(rotational) * distToCenter);
         RFSpeed = -mpsToRpm(forward * cos(robotHeading + M_PI_2) + sideways * sin(robotHeading + M_PI_2) + modm::toRadian(rotational) * distToCenter);
         RBSpeed = -mpsToRpm(forward * cos(robotHeading + M_PI) + sideways * sin(robotHeading + M_PI) + modm::toRadian(rotational) * distToCenter);

@@ -70,7 +70,7 @@ public:
     /// forward, negative is backwards.
     /// @param right Desired chassis speed in m/s of the right side of the chassis.
     ///
-    mockable void setVelocityDrive(float forward, float sideways, float rotational, float robotHeading);
+    mockable void setVelocityDrive(float forward, float sideways, float rotational);
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.

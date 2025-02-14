@@ -13,7 +13,7 @@ namespace control::chassis
 // STEP 1 (Tank Drive): Constructor
     ChassisDriveCommand::ChassisDriveCommand(ChassisSubsystem& chassis, ControlOperatorInterface& operatorInterface) :
     chassis(chassis),
-    operatorInterface(operatorInterface) 
+    operatorInterface(operatorInterface)
     {
         addSubsystemRequirement(&chassis);
     }
@@ -22,16 +22,15 @@ namespace control::chassis
         auto scale = [](float raw) -> float {
             return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
         };
-
+         
         chassis.setVelocityDrive(
             scale(operatorInterface.getDrivetrainVerticalTranslation()),
             scale(operatorInterface.getDrivetrainHorizontalTranslation()),
-            scale(operatorInterface.getDrivetrainRotationalTranslation()),
-            0
+            scale(operatorInterface.getDrivetrainRotationalTranslation())
         );
     }
 // STEP 3 (Tank Drive): end function
     void ChassisDriveCommand::end(bool interrupted) {
-        chassis.setVelocityDrive(0, 0, 0, 0);
+        chassis.setVelocityDrive(0, 0, 0);
     }
 };  // namespace control::chassis

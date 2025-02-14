@@ -6,16 +6,16 @@ namespace control::algorithms
 {
 
 float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
-    if (abs(desiredVelocity - (currentVelocity + rateLimit)) > maxError) {
-        if (desiredVelocity < currentVelocity) {
-            return currentVelocity - rateLimit;
-        }/* else {
-            return currentVelocity + rateLimit;
-        }*/
-    } else {
-        return desiredVelocity;
+    float delta = desiredVelocity - currentVelocity; 
+
+    // If stationary and should move, apply a boost
+    float startBoost = 300.0f;
+    if (std::abs(currentVelocity) < startBoost && std::abs(desiredVelocity) > startBoost) {
+        return (desiredVelocity > 0) ? startBoost : -startBoost;
     }
 
+    float step = tap::algorithms::limitVal(delta, -rateLimit, rateLimit);
+    return currentVelocity + step;
 }
 
 }

@@ -29,7 +29,7 @@ Robot::Robot(src::Drivers &drivers)
               .rightBackId = MotorId::MOTOR4,
               .rightFrontId = MotorId::MOTOR1,
               .canBus = CanBus::CAN_BUS1,
-              .wheelVelocityPidConfig = modm::Pid<float>::Parameter(10, 0, 0, 0, 16'000),
+              .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
           }),
           chassisDriveCommand(chassisSubsystem, m_ControlOperatorInterface),
     //   agitatorSubsystemConfig{
