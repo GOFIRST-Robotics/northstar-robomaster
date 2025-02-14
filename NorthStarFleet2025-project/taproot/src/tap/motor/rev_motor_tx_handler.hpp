@@ -43,18 +43,18 @@ namespace tap::motor
 //  * @return id normalized to be around [0, DJI_MOTORS_PER_CAN), or some value >= DJI_MOTORS_PER_CAN
 //  * if the id is out of bounds
 //  */
-// #define DJI_MOTOR_TO_NORMALIZED_ID(id)                                                  \
-//     static_cast<uint32_t>(                                                              \
-//         (id < tap::motor::MOTOR1) ? (tap::motor::RevMotorTxHandler::DJI_MOTORS_PER_CAN) \
-//                                   : (id - tap::motor::MOTOR1))
+ #define REV_MOTOR_TO_NORMALIZED_ID(id)                                                  \
+     static_cast<uint32_t>(                                                              \
+         (id < tap::motor::MOTOR1) ? (tap::motor::RevMotorTxHandler::REV_MOTORS_PER_CAN) \
+                                   : (id - tap::motor::MOTOR1))
 
 // /**
 //  * Converts the dji MotorId to a uint32_t.
 //  * @param[in] idx Some index, a motor id index normalized between [0, DJI_MOTORS_PER_CAN)
 //  * @return idx, converted to a MotorId
 //  */
-// #define NORMALIZED_ID_TO_DJI_MOTOR(idx) \
-//     static_cast<tap::motor::MotorId>(idx + static_cast<int32_t>(tap::motor::MotorId::MOTOR1))
+ #define NORMALIZED_ID_TO_REV_MOTOR(idx) \
+     static_cast<tap::motor::MotorId>(idx + static_cast<int32_t>(tap::motor::MotorId::MOTOR1))
 
 /**
  * Uses modm can interface to send CAN packets to `RevMotor`'s connected to the two CAN buses.

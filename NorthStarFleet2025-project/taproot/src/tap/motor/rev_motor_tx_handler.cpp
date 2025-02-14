@@ -73,34 +73,38 @@ void RevMotorTxHandler::encodeAndSendCanData()
         0,
         false);
 
+    modm::can::Message can2Message(
+        canVoltageArbitrationID,
+        canRevIdLength,
+        0,
+        false);
+
+    bool can1ValidMotorMessage = false;
+    bool can2ValidMotorMessage = false;
+
     serializeMotorStoreSendData(
         can1MotorStore,
         &can1Message);
 
+    serializeMotorStoreSendData(
+        can2MotorStore,
+        &can2Message);
 
 
     bool messageSuccess = true;
 
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
     {
-        if (can1ValidMotorMessageLow)
+        if (can1ValidMotorMessage)
         {
-            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, can1MessageLow);
-        }
-        if (can1ValidMotorMessageHigh)
-        {
-            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, can1MessageHigh);
+            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, can1Message);
         }
     }
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS2))
     {
-        if (can2ValidMotorMessageLow)
+        if (can2ValidMotorMessage)
         {
-            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, can2MessageLow);
-        }
-        if (can2ValidMotorMessageHigh)
-        {
-            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, can2MessageHigh);
+            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, can2Message);
         }
     }
 
@@ -116,8 +120,8 @@ void RevMotorTxHandler::serializeMotorStoreSendData(
 
     for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
     {
-    const RevMotor* const motor = canMotorStore[i];
-    motor->serializeCanSendData(message);
+        const RevMotor* const motor = canMotorStore[i];
+        motor->serializeCanSendData(message);
     }
 }
 
@@ -135,8 +139,8 @@ void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor)
 
 void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor, RevMotor** motorStore)
 {
-    uint32_t id = DJI_MOTOR_TO_NORMALIZED_ID(motor.getMotorIdentifier());
-    if (id > DJI_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) || motorStore[id] == nullptr)
+    uint32_t id = REV_MOTOR_TO_NORMALIZED_ID(motor.getMotorIdentifier());
+    if (id > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) || motorStore[id] == nullptr)
     {
         RAISE_ERROR(drivers, "invalid motor id");
         return;
@@ -146,13 +150,13 @@ void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor, RevMotor**
 
 RevMotor const* RevMotorTxHandler::getCan1Motor(MotorId motorId)
 {
-    uint32_t index = DJI_MOTOR_TO_NORMALIZED_ID(motorId);
-    return index > DJI_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can1MotorStore[index];
+    uint32_t index = REV_MOTOR_TO_NORMALIZED_ID(motorId);
+    return index > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can1MotorStore[index];
 }
 
 RevMotor const* RevMotorTxHandler::getCan2Motor(MotorId motorId)
 {
-    uint32_t index = DJI_MOTOR_TO_NORMALIZED_ID(motorId);
-    return index > DJI_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can2MotorStore[index];
+    uint32_t index = REV_MOTOR_TO_NORMALIZED_ID(motorId);
+    return index > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can2MotorStore[index];
 }
 }  // namespace tap::motor
