@@ -172,12 +172,15 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(MotorId motorId)
 
 
 modm::can::Message calculateRevArbID(u_int32_t controlModeID, const RevMotor* motor) {
-    modm::can::Message can1Message(
+    uint32_t canVoltageArbitrationID = 0x2051080 | motor->getMotorIdentifier();
+    //the number of bytes in the message
+    uint8_t canRevIdLength = 8;
+    modm::can::Message canMessage(
         canVoltageArbitrationID,
         canRevIdLength,
         0,
         true);
-
+    return canMessage;
 }
 
 

@@ -23,7 +23,7 @@ namespace modm::can
 
 /// Representation of a CAN message
 /// @ingroup modm_architecture_can
-struct Message
+struct FMessage
 {
 	inline Message(uint32_t inIdentifier = 0, uint8_t inLength = 0) :
 		identifier(inIdentifier), flags(), length(inLength)
