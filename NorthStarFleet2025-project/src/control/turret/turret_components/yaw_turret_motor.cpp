@@ -47,9 +47,9 @@ namespace control::turret
 
     //fromt the perspective you are controlling the driven gear rather than the driving gear
     float YawTurretMotor::getChassisFrameUnwrappedMeasuredAngle() const {
-        smallGearChassisFrameUnwrappedMeasurementDebug = chassisFrameUnwrappedMeasurement;
-        chassisFrameUnwrappedMeasurementDebug = chassisFrameUnwrappedMeasurement * 3/4 + calibrationOffset;
-       return chassisFrameUnwrappedMeasurement * 3/4 + calibrationOffset;
+        // smallGearChassisFrameUnwrappedMeasurementDebug = chassisFrameUnwrappedMeasurement;
+        // chassisFrameUnwrappedMeasurementDebug = chassisFrameUnwrappedMeasurement * 3/4 + calibrationOffset;
+       return chassisFrameUnwrappedMeasurement + calibrationOffset;
     }
 
     float YawTurretMotor::getChassisDriveOffset() const {

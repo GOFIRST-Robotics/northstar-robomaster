@@ -57,6 +57,8 @@ void TurretUserControlCommand::initialize()
 
 
 // float pitchSetpointDebug = 0;
+float angle = 6;
+float lastYaw;
 void TurretUserControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -70,14 +72,14 @@ void TurretUserControlCommand::execute()
 
     pitchController->runController(dt, pitchSetpoint);
 
-
-    // const float yawSetpoint =
-    //     yawController->getSetpoint() +
-    //     userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
-
-    const float yawSetpoint =
-        userYawInputScalar * turretSubsystem->turretGyro.getYaw();
+    
+    const float yawSetpoint = -(turretSubsystem->turretGyro.getYaw()-lastYaw) +
+        yawController->getSetpoint() +
+        userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
+    // angle = -turretSubsystem->turretGyro.getYaw();
+    // const float yawSetpoint = yawController->getSetpoint() + angle;
     yawController->runController(dt, yawSetpoint);
+    lastYaw = turretSubsystem->turretGyro.getYaw();
 }
 
 bool TurretUserControlCommand::isFinished() const
