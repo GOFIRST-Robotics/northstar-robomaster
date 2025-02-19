@@ -3,7 +3,7 @@
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 
-#include "control/agitator/velocity_agitator_subsystem.hpp"
+// #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"

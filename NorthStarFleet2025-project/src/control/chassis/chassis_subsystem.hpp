@@ -19,6 +19,7 @@ class Drivers;
 
 namespace control::chassis
 {
+
 struct ChassisConfig
 {
     tap::motor::MotorId leftFrontId;
@@ -77,7 +78,7 @@ public:
     ///
     void refresh() override;
 
-    const char* getName() override { return "Chassis"; }
+    const char* getName() { return "Chassis"; }
 
 private:
     inline float mpsToRpm(float mps)
