@@ -64,6 +64,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
     // set up new can messages to be sent via CAN bus 1 and 2
 
     uint32_t canVoltageArbitrationID = 0x2051080;
+    //the number of bytes in the message
     uint8_t canRevIdLength = 8;
     
 
@@ -71,13 +72,14 @@ void RevMotorTxHandler::encodeAndSendCanData()
         canVoltageArbitrationID,
         canRevIdLength,
         0,
-        false);
+        true);
+
 
     modm::can::Message can2Message(
         canVoltageArbitrationID,
         canRevIdLength,
         0,
-        false);
+        true);
 
     bool can1ValidMotorMessage = false;
     bool can2ValidMotorMessage = false;
@@ -159,4 +161,39 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(MotorId motorId)
     uint32_t index = REV_MOTOR_TO_NORMALIZED_ID(motorId);
     return index > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can2MotorStore[index];
 }
+
+
+
+
+
+
+
+
+
+
+modm::can::Message calculateRevArbID(u_int32_t controlModeID, const RevMotor* motor) {
+    modm::can::Message can1Message(
+        canVoltageArbitrationID,
+        canRevIdLength,
+        0,
+        true);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }  // namespace tap::motor

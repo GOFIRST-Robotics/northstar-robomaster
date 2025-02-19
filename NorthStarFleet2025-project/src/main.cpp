@@ -89,6 +89,7 @@ int main()
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ()); //todo figuer out if this causes issues
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
         }
         modm::delay_us(10);

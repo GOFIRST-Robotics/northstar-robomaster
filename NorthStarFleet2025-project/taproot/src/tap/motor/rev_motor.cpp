@@ -121,6 +121,7 @@ void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
     // to send the data in. Is blind to message type and is a private method
     // that I use accordingly.
     txMessage->data[];
+    txMessage->
     // id %= 4;
     // txMessage->data[2 * id] = this->getOutputDesired() >> 8;
     // txMessage->data[2 * id + 1] = this->getOutputDesired() & 0xFF;

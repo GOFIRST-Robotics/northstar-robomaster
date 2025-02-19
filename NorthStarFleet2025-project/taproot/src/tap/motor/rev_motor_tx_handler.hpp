@@ -21,8 +21,8 @@
  * along with Taproot.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TAPROOT_DJI_MOTOR_TX_HANDLER_HPP_
-#define TAPROOT_DJI_MOTOR_TX_HANDLER_HPP_
+#ifndef TAPROOT_REV_MOTOR_TX_HANDLER_HPP_
+#define TAPROOT_REV_MOTOR_TX_HANDLER_HPP_
 
 #include <limits.h>
 
@@ -121,6 +121,27 @@ private:
         );
 
     void removeFromMotorManager(const RevMotor& motor, RevMotor** motorStore);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * calculates the 29 bit ID for the REV Spark max motor controller. The basis for this is that in the
+     * id is the control mode with some 28 bit number for a specific control mode like voltage or setpoint.
+     * there is then an operation done to merge the devices CAN ID with the Messgae ID to create a message for
+     * a specific motor controller
+     */
+    modm::can::Message calculateRevArbID(u_int32_t controlModeID, const RevMotor* motor);
+
 };
 
 }  // namespace tap::motor
