@@ -76,15 +76,17 @@ public:
 
     // STEP 1 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
     // declarations
-    float getMecanumHorizontalTranslation();
+    float getDrivetrainHorizontalTranslation();
 
     float getMecanumHorizontalTranslationKeyBoard();
 
-    float getMecanumVerticalTranslation();
+    float getDrivetrainVerticalTranslation();
 
     float getMecanumVerticalTranslationKeyBoard();
 
-    float getMecanumRotation();
+    float getDrivetrainRotation();
+
+    float getDrivetrainRotationalTranslation();
 
     float getMecanumRotationKeyBoard();
 
@@ -97,6 +99,8 @@ public:
     bool isRightSwitchUp();
 
     bool isGKeyPressed();
+
+    bool isBeyblade();
 
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
@@ -121,11 +125,11 @@ private:
     uint32_t prevChassisXInputCalledTime = 0;
     uint32_t prevChassisYInputCalledTime = 0;
     uint32_t prevChassisRInputCalledTime = 0;
-
+    short beyBladeValue = 1;
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */
-
+    short count = 0;
 };
 }  // namespace control
 

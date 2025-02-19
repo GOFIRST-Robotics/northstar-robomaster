@@ -23,6 +23,7 @@
 #include "tap/architecture/clock.hpp"
 #include "tap/drivers.hpp"
 #include <tap/architecture/clock.hpp>
+#include <random>
 
 
 using namespace tap::algorithms;
@@ -132,15 +133,15 @@ static inline void applyAccelerationToRamp(
 // STEP 2 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
 // definitions
 
-float ControlOperatorInterface::getMecanumHorizontalTranslation() {
+float ControlOperatorInterface::getDrivetrainHorizontalTranslation() {
     if(remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.6f;
     } else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.6f;
     } else {
         return 0.0f;
     }
@@ -183,15 +184,15 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
     return outputDebug;
 }
 
-float ControlOperatorInterface::getMecanumVerticalTranslation() {
+float ControlOperatorInterface::getDrivetrainVerticalTranslation() {
     if(remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.6f;
     } else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.6f;
     } else {
         return 0.0f;
     }
@@ -231,12 +232,39 @@ uint32_t updateCounter = remote.getUpdateCounter();
     return chassisYInputRamp.getValue();
 }
 
-float ControlOperatorInterface::getMecanumRotation()
+float ControlOperatorInterface::getDrivetrainRotation()
 {
     if(remote.keyPressed(Remote::Key::CTRL)){
         return 0.2f;
     } else {
         return 0;
+    }
+}
+
+
+float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
+    if (isBeyblade()) {
+        // if (count >= 250) {
+        //     std::random_device rd;
+        //     std::mt19937 gen(rd());
+        //     std::uniform_int_distribution<> dist(1, 9);
+        //     beyBladeValue = dist(gen);
+        //     count = 0;
+        // }
+        // return 0.1f * static_cast<float>(sin(beyBladeValue)) + 0.9f;
+        return 1.0f;
+    }
+
+    if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.4f;
+    } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.8f;
+    } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
+        return 0.4f;
+    } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
+        return-0.48f;
+    } else {
+        return 0.0f;
     }
 }
 
@@ -283,6 +311,10 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
 
     bool ControlOperatorInterface::isGKeyPressed(){
         return (remote.keyPressed(Remote::Key::G));
+    }
+
+    bool ControlOperatorInterface::isBeyblade(){
+        return (remote.keyPressed(Remote::Key::B));
     }
     
 }  // namespace control
