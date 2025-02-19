@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#define FIELD
+
 using tap::algorithms::limitVal;
 
 namespace control::chassis
@@ -44,14 +46,21 @@ namespace control::chassis
         }
     }
 // STEP 3 (Tank Drive): setVelocityTankDrive function
-    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational) {
+    void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float turretRot = 0.0f) {
         float distToCenter;
         float LFSpeed;
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
         drivers->bmi088.read();
+        #ifdef FIELD
         float robotHeading = -modm::toRadian(drivers->bmi088.getYaw());
+        robotHeading = fmod(robotHeading, 2 * M_PI);
+        #else
+        float robotHeading = -(turretRot - modm::toRadian(drivers->bmi088.getYaw())); // Signs subject to change, just want the difference
+        robotHeading = fmod(robotHeading, 2 * M_PI);
+        #endif
+        // For robotCentric only just + M_PI_4
         #ifdef THING //TODO Make not THING 
         //Mecanum
         distToCenter = 10.0f; // In inches atm
@@ -64,8 +73,6 @@ namespace control::chassis
         #else
         //Omni
         distToCenter = 30.48f;
-        robotHeading += M_PI_4;
-        robotHeading = fmod(robotHeading, 2 * M_PI);
         LFSpeed = mpsToRpm(forward * cos(robotHeading) + sideways * sin(robotHeading) + modm::toRadian(rotational) * distToCenter);
         RFSpeed = -mpsToRpm(forward * cos(robotHeading + M_PI_2) + sideways * sin(robotHeading + M_PI_2) + modm::toRadian(rotational) * distToCenter);
         RBSpeed = -mpsToRpm(forward * cos(robotHeading + M_PI) + sideways * sin(robotHeading + M_PI) + modm::toRadian(rotational) * distToCenter);
@@ -84,6 +91,7 @@ namespace control::chassis
         desiredOutput[RF] = limitVal<float>(rateLimiters[RF].runLimiter(RFSpeed, motors[RF].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[RB] = limitVal<float>(rateLimiters[RB].runLimiter(RBSpeed, motors[RB].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
     }
+    
     void ChassisSubsystem::refresh() {
         auto runPid = [](Pid &pid, Motor &motor, float desiredOutput) {
             pid.update(desiredOutput - motor.getShaftRPM());
