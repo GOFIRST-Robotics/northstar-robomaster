@@ -210,6 +210,10 @@ private:
 
     int16_t desiredOutput;
 
+    float targetVoltage;
+
+    
+
     // int16_t shaftRPM;
 
     // int8_t temperature;

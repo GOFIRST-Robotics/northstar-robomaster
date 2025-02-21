@@ -63,30 +63,18 @@ void RevMotorTxHandler::encodeAndSendCanData()
 {
     // set up new can messages to be sent via CAN bus 1 and 2
 
-    uint32_t canVoltageArbitrationID = 0x2051080;
-    //the number of bytes in the message
-    uint8_t canRevIdLength = 8;
-    
-
-    modm::can::Message can1Message(
-        canVoltageArbitrationID,
-        canRevIdLength,
-        0,
-        true);
-
-
-    modm::can::Message can2Message(
-        canVoltageArbitrationID,
-        canRevIdLength,
-        0,
-        true);
-
     bool can1ValidMotorMessage = false;
     bool can2ValidMotorMessage = false;
+
+    modm::can::Message can1Message = calculateRevArbID(0x2051080, can1MotorStore[0]);
+
 
     serializeMotorStoreSendData(
         can1MotorStore,
         &can1Message);
+
+
+    modm::can::Message can2Message = calculateRevArbID(0x2051080, can1MotorStore[0]);
 
     serializeMotorStoreSendData(
         can2MotorStore,

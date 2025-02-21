@@ -59,7 +59,8 @@ RevMotor::RevMotor(
     //   shaftRPM(0),
     //   temperature(0),
     //   torque(0),
-      motorInverted(isInverted)
+      motorInverted(isInverted),
+      targetVoltage(0)
     //   encoderWrapped(encoderWrapped),
     //   encoderRevolutions(encoderRevolutions)
 {
@@ -120,8 +121,9 @@ void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
     // this method assumes you have choosen the correct message
     // to send the data in. Is blind to message type and is a private method
     // that I use accordingly.
-    txMessage->data[];
-    txMessage->data[];
+    
+    // std::memcpy(txMessage->data.data(), &targetVoltage, sizeof(targetVoltage));
+    *reinterpret_cast<float*>(txMessage->data) = targetVoltage;
     // id %= 4;
     // txMessage->data[2 * id] = this->getOutputDesired() >> 8;
     // txMessage->data[2 * id + 1] = this->getOutputDesired() & 0xFF;
