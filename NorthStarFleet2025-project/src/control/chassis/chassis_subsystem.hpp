@@ -9,6 +9,8 @@
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
+#define FIELD
+
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
 #else
@@ -71,7 +73,7 @@ public:
     /// forward, negative is backwards.
     /// @param right Desired chassis speed in m/s of the right side of the chassis.
     ///
-    mockable void setVelocityDrive(float forward, float sideways, float rotational, float turretRot = 0.0f);
+    mockable void setVelocityDrive(float forward, float sideways, float rotational, float turretRot);
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.
