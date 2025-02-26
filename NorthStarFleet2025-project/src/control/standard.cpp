@@ -1,4 +1,5 @@
 #include "drivers.hpp"
+#include "../../robot-type/robot_type.hpp"
 
 #include "standard.hpp"
 
@@ -98,7 +99,7 @@ Robot::Robot(src::Drivers &drivers)
     //     &drivers.pwm,
     //     tap::gpio::Pwm::C6,
     //     tap::gpio::Pwm::C7),
-    m_ControlOperatorInterface(drivers.remote)
+    m_ControlOperatorInterface(drivers.remote),
     // m_FlyWheelCommand(m_FlyWheel, m_ControlOperatorInterface),
     //     leftSwitchUp(
     //     &drivers,
@@ -106,49 +107,49 @@ Robot::Robot(src::Drivers &drivers)
     //     RemoteMapState(
     //         Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP), 
     //         true ),
-    // pitchMotor(
-    //     &drivers, 
-    //     MotorId::MOTOR5, 
-    //     CanBus::CAN_BUS1, 
-    //     true, "pitchMotor"),
-    // turretPitchMotor(
-    //     &pitchMotor,
-    //     PITCH_MOTOR_CONFIG),
-    // yawMotor(
-    //     &drivers, 
-    //     MotorId::MOTOR8, 
-    //     CanBus::CAN_BUS1, 
-    //     false, "YawMotor"),
-    // turretGyro(
-    //     &drivers),
-    // turretYawMotor(
-    //     &yawMotor,
-    //     YAW_MOTOR_CONFIG,
-    //     &turretGyro
-    // ),
-    // turret(
-    //     &drivers,
-    //     &pitchMotor,
-    //     &yawMotor, 
-    //     PITCH_MOTOR_CONFIG,
-    //     YAW_MOTOR_CONFIG, 
-    //     turretGyro),
-    // yawController(
-    //     turretYawMotor, 
-    //     YAW_PID_CONFIG),
-    // pitchController(
-    //     turretPitchMotor, 
-    //     PITCH_PID_CONFIG),
-    // turretUserControlCommand(
-    //     &drivers,
-    //     m_ControlOperatorInterface,
-    //     &turret, 
-    //     &yawController,
-    //     &pitchController,
-    //     USER_YAW_INPUT_SCALAR,
-    //     USER_PITCH_INPUT_SCALAR,
-    //     0
-    // ),
+    pitchMotor(
+        &drivers, 
+        MotorId::MOTOR5, 
+        CanBus::CAN_BUS1, 
+        true, "pitchMotor"),
+    turretPitchMotor(
+        &pitchMotor,
+        PITCH_MOTOR_CONFIG),
+    yawMotor(
+        &drivers, 
+        MotorId::MOTOR8, 
+        CanBus::CAN_BUS1, 
+        false, "YawMotor"),
+    turretGyro(
+        &drivers),
+    turretYawMotor(
+        &yawMotor,
+        YAW_MOTOR_CONFIG,
+        &turretGyro
+    ),
+    turret(
+        &drivers,
+        &pitchMotor,
+        &yawMotor, 
+        PITCH_MOTOR_CONFIG,
+        YAW_MOTOR_CONFIG, 
+        turretGyro),
+    yawController(
+        turretYawMotor, 
+        YAW_PID_CONFIG),
+    pitchController(
+        turretPitchMotor, 
+        PITCH_PID_CONFIG),
+    turretUserControlCommand(
+        &drivers,
+        m_ControlOperatorInterface,
+        &turret, 
+        &yawController,
+        &pitchController,
+        USER_YAW_INPUT_SCALAR,
+        USER_PITCH_INPUT_SCALAR,
+        0
+    )
     //     turretOrientedDriveCommand(
     //     &drivers,
     //     m_ControlOperatorInterface,
