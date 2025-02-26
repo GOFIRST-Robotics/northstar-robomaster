@@ -21,8 +21,8 @@
  * along with Taproot.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TAPROOT_DJI_MOTOR_HPP_
-#define TAPROOT_DJI_MOTOR_HPP_
+#ifndef TAPROOT_REV_MOTOR_HPP_
+#define TAPROOT_REV_MOTOR_HPP_
 
 #include <string>
 
@@ -39,16 +39,16 @@ namespace tap::motor
  * for declaring a new motor, must be one of these motor
  * identifiers
  */
-enum MotorId : uint32_t
+enum REVMotorId : uint32_t
 {
-    MOTOR1 = 0x001,
-    MOTOR2 = 0x002,
-    MOTOR3 = 0x003,
-    MOTOR4 = 0x004,
-    MOTOR5 = 0x005,
-    MOTOR6 = 0x006,
-    MOTOR7 = 0x207,
-    MOTOR8 = 0x208,
+    REV_MOTOR1 = 0x001,
+    REV_MOTOR2 = 0x002,
+    REV_MOTOR3 = 0x003,
+    REV_MOTOR4 = 0x004,
+    REV_MOTOR5 = 0x005,
+    REV_MOTOR6 = 0x006,
+    REV_MOTOR7 = 0x007,
+    REV_MOTOR8 = 0x008,
 };
 
 /**
@@ -93,7 +93,7 @@ public:
      */
     RevMotor(
         Drivers* drivers,
-        MotorId desMotorIdentifier,
+        REVMotorId desMotorIdentifier,
         tap::can::CanBus motorCanBus,
         bool isInverted,
         const char* name
@@ -101,7 +101,7 @@ public:
         // int64_t encoderRevolutions = 0
         );
 
-    // mockable ~RevMotor();
+    mockable ~RevMotor();
 
     void initialize() override;
 
@@ -243,6 +243,9 @@ private:
     // int64_t encoderRevolutions;
 
     // tap::arch::MilliTimeout motorDisconnectTimeout;
+
+
+    void setTargetVoltage(float targetVoltage);
 };
 
 }  // namespace tap::motor

@@ -43,18 +43,18 @@ namespace tap::motor
 //  * @return id normalized to be around [0, DJI_MOTORS_PER_CAN), or some value >= DJI_MOTORS_PER_CAN
 //  * if the id is out of bounds
 //  */
- #define REV_MOTOR_TO_NORMALIZED_ID(id)                                                  \
-     static_cast<uint32_t>(                                                              \
-         (id < tap::motor::MOTOR1) ? (tap::motor::RevMotorTxHandler::REV_MOTORS_PER_CAN) \
-                                   : (id - tap::motor::MOTOR1))
+//  #define REV_MOTOR_TO_NORMALIZED_ID(id)                                                  \
+//      static_cast<uint32_t>(                                                              \
+//          (id < tap::motor::REV_MOTOR1) ? (tap::motor::RevMotorTxHandler::REV_MOTORS_PER_CAN) \
+//                                    : (id - tap::motor::MOTOR1))
 
 // /**
 //  * Converts the dji MotorId to a uint32_t.
 //  * @param[in] idx Some index, a motor id index normalized between [0, DJI_MOTORS_PER_CAN)
 //  * @return idx, converted to a MotorId
 //  */
- #define NORMALIZED_ID_TO_REV_MOTOR(idx) \
-     static_cast<tap::motor::MotorId>(idx + static_cast<int32_t>(tap::motor::MotorId::MOTOR1))
+//  #define NORMALIZED_ID_TO_REV_MOTOR(idx) \
+//      static_cast<tap::motor::REVMotorId>(idx + static_cast<int32_t>(tap::motor::REVMotorId::MOTOR1))
 
 /**
  * Uses modm can interface to send CAN packets to `RevMotor`'s connected to the two CAN buses.
@@ -100,9 +100,9 @@ public:
      */
     void removeFromMotorManager(const RevMotor& motor);
 
-    RevMotor const* getCan1Motor(MotorId motorId);
+    RevMotor const* getCan1Motor(REVMotorId motorId);
 
-    RevMotor const* getCan2Motor(MotorId motorId);
+    RevMotor const* getCan2Motor(REVMotorId motorId);
 
 private:
     Drivers* drivers;
@@ -140,7 +140,7 @@ private:
      * there is then an operation done to merge the devices CAN ID with the Messgae ID to create a message for
      * a specific motor controller
      */
-    modm::can::Message calculateRevArbID(u_int32_t controlModeID, const RevMotor* motor);
+    modm::can::Message createRevCanMessage(u_int32_t controlModeID, const RevMotor* motor);
 
 };
 

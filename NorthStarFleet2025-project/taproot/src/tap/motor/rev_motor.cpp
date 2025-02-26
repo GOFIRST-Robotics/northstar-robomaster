@@ -39,11 +39,11 @@ namespace tap
 {
 namespace motor
 {
-RevMotor::~RevMotor() { drivers->djiMotorTxHandler.removeFromMotorManager(*this); }
+RevMotor::~RevMotor() { drivers->revMotorTxHandler.removeFromMotorManager(*this); }
 
 RevMotor::RevMotor(
     Drivers* drivers,
-    MotorId desMotorIdentifier,
+    REVMotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
     bool isInverted,
     const char* name
@@ -69,7 +69,7 @@ RevMotor::RevMotor(
 
 void RevMotor::initialize()
 {
-    drivers->djiMotorTxHandler.addMotorToManager(this);
+    drivers->revMotorTxHandler.addMotorToManager(this);
     attachSelfToRxHandler();
 }
 
@@ -102,6 +102,11 @@ void RevMotor::setDesiredOutput(int32_t desiredOutput)
     this->desiredOutput = motorInverted ? -desOutputNotInverted : desOutputNotInverted;
 }
 
+void RevMotor::setTargetVoltage(float targetVoltage)
+{
+    this->targetVoltage = targetVoltage;
+}
+
 
 
 
@@ -117,16 +122,7 @@ void RevMotor::setDesiredOutput(int32_t desiredOutput)
 
 void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
 {
-    int id = this->getMotorIdentifier();  // number between 0 and 7
-    // this method assumes you have choosen the correct message
-    // to send the data in. Is blind to message type and is a private method
-    // that I use accordingly.
-    
-    // std::memcpy(txMessage->data.data(), &targetVoltage, sizeof(targetVoltage));
-    *reinterpret_cast<float*>(txMessage->data) = targetVoltage;
-    // id %= 4;
-    // txMessage->data[2 * id] = this->getOutputDesired() >> 8;
-    // txMessage->data[2 * id + 1] = this->getOutputDesired() & 0xFF;
+    std::memcpy(txMessage->data, &targetVoltage, sizeof(targetVoltage));
 }
 
 // getter functions

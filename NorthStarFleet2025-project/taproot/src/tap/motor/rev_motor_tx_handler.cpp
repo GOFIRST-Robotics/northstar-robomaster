@@ -66,7 +66,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
     bool can1ValidMotorMessage = false;
     bool can2ValidMotorMessage = false;
 
-    modm::can::Message can1Message = calculateRevArbID(0x2051080, can1MotorStore[0]);
+    modm::can::Message can1Message = createRevCanMessage(0x2051080, can1MotorStore[0]);
 
 
     serializeMotorStoreSendData(
@@ -74,7 +74,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
         &can1Message);
 
 
-    modm::can::Message can2Message = calculateRevArbID(0x2051080, can1MotorStore[0]);
+    modm::can::Message can2Message = createRevCanMessage(0x2051080, can1MotorStore[0]);
 
     serializeMotorStoreSendData(
         can2MotorStore,
@@ -129,8 +129,8 @@ void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor)
 
 void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor, RevMotor** motorStore)
 {
-    uint32_t id = REV_MOTOR_TO_NORMALIZED_ID(motor.getMotorIdentifier());
-    if (id > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) || motorStore[id] == nullptr)
+    uint32_t id = motor.getMotorIdentifier();
+    if (id > tap::motor::REV_MOTOR8 || motorStore[id] == nullptr)
     {
         RAISE_ERROR(drivers, "invalid motor id");
         return;
@@ -138,16 +138,16 @@ void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor, RevMotor**
     motorStore[id] = nullptr;
 }
 
-RevMotor const* RevMotorTxHandler::getCan1Motor(MotorId motorId)
+RevMotor const* RevMotorTxHandler::getCan1Motor(REVMotorId motorId)
 {
-    uint32_t index = REV_MOTOR_TO_NORMALIZED_ID(motorId);
-    return index > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can1MotorStore[index];
+    uint32_t index = motorId;
+    return index > tap::motor::REV_MOTOR8 ? nullptr : can1MotorStore[index];
 }
 
-RevMotor const* RevMotorTxHandler::getCan2Motor(MotorId motorId)
+RevMotor const* RevMotorTxHandler::getCan2Motor(REVMotorId motorId)
 {
-    uint32_t index = REV_MOTOR_TO_NORMALIZED_ID(motorId);
-    return index > REV_MOTOR_TO_NORMALIZED_ID(tap::motor::MOTOR8) ? nullptr : can2MotorStore[index];
+    uint32_t index = motorId;
+    return index > tap::motor::MOTOR8 ? nullptr : can2MotorStore[index];
 }
 
 
@@ -158,9 +158,14 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(MotorId motorId)
 
 
 
-
-modm::can::Message calculateRevArbID(u_int32_t controlModeID, const RevMotor* motor) {
-    uint32_t canVoltageArbitrationID = 0x2051080 | motor->getMotorIdentifier();
+/**
+ * constructs a can message for the given REV motor by using the motor's id and the 
+ * desired control mode id to tell the the motor what method of control you want to 
+ * use. the control modes can be found in a REV SW Spark Max google sheet which can be
+ * obtained by emailing REV Robotics.
+ */
+modm::can::Message RevMotorTxHandler::createRevCanMessage(u_int32_t controlModeID, const RevMotor* motor) {
+    uint32_t canVoltageArbitrationID = controlModeID | motor->getMotorIdentifier();
     //the number of bytes in the message
     uint8_t canRevIdLength = 8;
     modm::can::Message canMessage(
