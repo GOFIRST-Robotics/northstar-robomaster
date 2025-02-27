@@ -125,7 +125,7 @@ private:
     uint32_t prevChassisXInputCalledTime = 0;
     uint32_t prevChassisYInputCalledTime = 0;
     uint32_t prevChassisRInputCalledTime = 0;
-    short beyBladeValue = 1;
+    float beyBladeValue = 1;
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */

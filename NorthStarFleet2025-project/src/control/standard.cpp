@@ -32,7 +32,7 @@ Robot::Robot(src::Drivers &drivers)
               .canBus = CanBus::CAN_BUS1,
               .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
           }),
-          chassisDriveCommand(chassisSubsystem, m_ControlOperatorInterface),
+          chassisDriveCommand(chassisSubsystem, m_ControlOperatorInterface, &turretYawMotor),
     //   agitatorSubsystemConfig{
     //     .gearRatio = 36.0f,
     //     .agitatorMotorId = tap::motor::MOTOR7,

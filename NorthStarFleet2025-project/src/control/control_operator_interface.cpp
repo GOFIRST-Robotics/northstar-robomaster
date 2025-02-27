@@ -244,14 +244,15 @@ float ControlOperatorInterface::getDrivetrainRotation()
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
     if (isBeyblade()) {
+        // count++;
         // if (count >= 250) {
         //     std::random_device rd;
         //     std::mt19937 gen(rd());
-        //     std::uniform_int_distribution<> dist(1, 9);
-        //     beyBladeValue = dist(gen);
+        //     std::uniform_int_distribution<int> distrib(0, 359);
+        //     beyBladeValue = distrib(gen) * M_PI / 180.0f;
         //     count = 0;
         // }
-        // return 0.1f * static_cast<float>(sin(beyBladeValue)) + 0.9f;
+        // return 0.2f * sin(beyBladeValue) + 0.8f;
         return 1.0f;
     }
 

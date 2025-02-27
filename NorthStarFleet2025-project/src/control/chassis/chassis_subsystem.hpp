@@ -9,7 +9,7 @@
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
-#define FIELD
+//#define FIELD
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
