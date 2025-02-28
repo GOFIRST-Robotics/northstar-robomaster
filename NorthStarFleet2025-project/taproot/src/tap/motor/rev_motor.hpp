@@ -105,9 +105,9 @@ public:
 
     void initialize() override;
 
-    // int64_t getEncoderUnwrapped() const override;
+    int64_t getEncoderUnwrapped() const override {return 0;};
 
-    // uint16_t getEncoderWrapped() const override;
+    uint16_t getEncoderWrapped() const override {return 0;};
 
     DISALLOW_COPY_AND_ASSIGN(RevMotor)
 
@@ -118,7 +118,7 @@ public:
     //  *
     //  * @param[in] message the message to be processed.
     //  */
-    // void processMessage(const modm::can::Message& message) override;
+    void processMessage(const modm::can::Message& message) override {};
 
     /**
      * Set the desired output for the motor. The meaning of this value is motor
@@ -136,7 +136,7 @@ public:
     //  * @return `true` if a CAN message has been received from the motor within the last
     //  *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
     //  */
-    // bool isMotorOnline() const override;
+    bool isMotorOnline() const override {return false;};
 
     /**
      * Serializes send data and deposits it in a message to be sent.
@@ -151,17 +151,17 @@ public:
 
     mockable uint32_t getMotorIdentifier() const;
 
-    // /**
-    //  * @return the temperature of the motor as reported by the motor in degrees Celsius
-    //  */
-    // int8_t getTemperature() const override;
+    /**
+     * @return the temperature of the motor as reported by the motor in degrees Celsius
+     */
+    int8_t getTemperature() const override { return 0; };
 
-    // int16_t getTorque() const override;
+    int16_t getTorque() const override { return 0; };
 
-    // /// For interpreting the sign of return value see class comment
-    // int16_t getShaftRPM() const override;
+    /// For interpreting the sign of return value see class comment
+    int16_t getShaftRPM() const override { return 0; };
 
-    mockable bool isMotorInverted() const;
+    mockable bool isMotorInverted() const { return false; };
 
     mockable tap::can::CanBus getCanBus() const;
 
@@ -189,6 +189,12 @@ public:
     //     assertEncoderType<T>();
     //     return (360.0f * static_cast<float>(encoder)) / ENC_RESOLUTION;
     // }
+
+
+
+
+
+    void setTargetVoltage(float targetVoltage);
 
 private:
     // wait time before the motor is considered disconnected, in milliseconds
@@ -245,7 +251,7 @@ private:
     // tap::arch::MilliTimeout motorDisconnectTimeout;
 
 
-    void setTargetVoltage(float targetVoltage);
+    
 };
 
 }  // namespace tap::motor

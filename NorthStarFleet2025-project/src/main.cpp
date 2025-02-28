@@ -73,6 +73,30 @@ int main()
     Board::initialize();
     initializeIo(drivers);
 
+    tap::motor::RevMotor motor(
+        drivers, 
+        tap::motor::REVMotorId::REV_MOTOR1, 
+        tap::can::CanBus::CAN_BUS1, 
+        false, 
+        "REV Motor 1"
+    );
+
+
+    // tap::motor::DjiMotor m_DjiMotor(
+    //     drivers, 
+    //     tap::motor::MotorId::MOTOR1, 
+    //     tap::can::CanBus::CAN_BUS1, 
+    //     false, 
+    //     "DJI Motor 1"
+    // );
+    // m_DjiMotor.initialize();
+
+
+    // motor.initialize(); // Don't forget to initialize it
+    // motor.setTargetVoltage(1.0f);
+
+    
+
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::resetMotorSims();
     // Blocking call, waits until Windows Simulator connects.

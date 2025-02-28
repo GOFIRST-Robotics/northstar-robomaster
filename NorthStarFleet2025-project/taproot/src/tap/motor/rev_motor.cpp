@@ -70,7 +70,7 @@ RevMotor::RevMotor(
 void RevMotor::initialize()
 {
     drivers->revMotorTxHandler.addMotorToManager(this);
-    attachSelfToRxHandler();
+    // attachSelfToRxHandler();
 }
 
 // void RevMotor::processMessage(const modm::can::Message& message)
@@ -136,7 +136,7 @@ uint32_t RevMotor::getMotorIdentifier() const { return motorIdentifier; }
 
 // int16_t RevMotor::getShaftRPM() const { return shaftRPM; }
 
-bool RevMotor::isMotorInverted() const { return motorInverted; }
+// bool RevMotor::isMotorInverted() const { return fas; }
 
 tap::can::CanBus RevMotor::getCanBus() const { return motorCanBus; }
 
