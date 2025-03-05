@@ -89,7 +89,9 @@ int main()
 
         if (sendMotorTimeout.execute())
         {
+            // drivers->bmi088_2.read();
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
+            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
@@ -109,6 +111,7 @@ static void initializeIo(src::Drivers *drivers)
     drivers->errorController.init();
     drivers->remote.initialize();
     drivers->bmi088.initialize(500, 0.5, 0);
+    drivers->turretMCBCanCommBus1.init();
     drivers->refSerial.initialize();
     drivers->terminalSerial.initialize();
     drivers->schedulerTerminalHandler.init();

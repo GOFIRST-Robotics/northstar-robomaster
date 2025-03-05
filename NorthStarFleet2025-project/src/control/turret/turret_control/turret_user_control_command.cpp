@@ -73,7 +73,7 @@ void TurretUserControlCommand::execute()
     pitchController->runController(dt, pitchSetpoint);
 
     
-    const float yawSetpoint = -(turretSubsystem->turretGyro.getYaw()-lastYaw) +
+    const float yawSetpoint = //-(turretSubsystem->turretGyro.getYaw()-lastYaw) +
         yawController->getSetpoint() +
         userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
     // angle = -turretSubsystem->turretGyro.getYaw();

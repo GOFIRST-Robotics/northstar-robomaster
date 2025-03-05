@@ -25,7 +25,7 @@
             "browse": { "limitSymbolsToIncludedHeaders": true }
         },
         {
-            "name": "Hardware",
+            "name": "standard",
             "includePath": [
                 "${default}",
                 "NorthStarFleet2025-project/taproot/modm/src",
@@ -35,7 +35,10 @@
             ],
             "compilerPath": "arm-none-eabi-g++",
             "intelliSenseMode": "gcc-arm",
-            "browse": { "limitSymbolsToIncludedHeaders": true }
+            "browse": { "limitSymbolsToIncludedHeaders": true },
+            "defines": [
+                "STANDARD"
+            ]
         }
     ],
     "version": 4

@@ -62,6 +62,7 @@
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
 #include "tap/control/command_scheduler.hpp"
+#include "../../src/communications/can/turret_mcb_can_comm.hpp"
 #endif
 
 namespace tap
@@ -93,6 +94,7 @@ protected:
           djiMotorTerminalSerialHandler(this),
           djiMotorTxHandler(this),
           bmi088(this),
+          turretMCBCanCommBus1(this, tap::can::CanBus::CAN_BUS1),
 #ifdef ENV_UNIT_TESTS
           commandScheduler(this)
 #else
@@ -138,6 +140,7 @@ public:
     motor::DjiMotorTerminalSerialHandler djiMotorTerminalSerialHandler;
     motor::DjiMotorTxHandler djiMotorTxHandler;
     communication::sensors::imu::bmi088::Bmi088 bmi088;
+    src::can::TurretMCBCanComm turretMCBCanCommBus1;
     control::CommandScheduler commandScheduler;
 #endif
 };  // class Drivers
