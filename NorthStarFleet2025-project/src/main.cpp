@@ -89,12 +89,15 @@ int main()
 
         if (sendMotorTimeout.execute())
         {
-            // drivers->bmi088_2.read();
-            PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
+            #ifdef GYRO
             PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
+            #else
+            PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
+            // PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            #endif
         }
         modm::delay_us(10);
     }

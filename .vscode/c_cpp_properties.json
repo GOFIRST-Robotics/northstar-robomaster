@@ -39,6 +39,22 @@
             "defines": [
                 "STANDARD"
             ]
+        },
+        {
+            "name": "gyro",
+            "includePath": [
+                "${default}",
+                "NorthStarFleet2025-project/taproot/modm/src",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/core",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/device",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/dsp"        
+            ],
+            "compilerPath": "arm-none-eabi-g++",
+            "intelliSenseMode": "gcc-arm",
+            "browse": { "limitSymbolsToIncludedHeaders": true },
+            "defines": [
+                "GYRO"
+            ]
         }
     ],
     "version": 4

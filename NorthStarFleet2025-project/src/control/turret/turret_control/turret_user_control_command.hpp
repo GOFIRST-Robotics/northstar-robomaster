@@ -82,7 +82,8 @@ private:
     tap::Drivers *drivers;
     ControlOperatorInterface &controlOperatorInterface;
     TurretSubsystem *turretSubsystem;
-
+    const src::can::TurretMCBCanComm &turretMCBCanComm;
+    
     uint32_t prevTime = 0;
 
     algorithms::TurretYawControllerInterface *yawController;
