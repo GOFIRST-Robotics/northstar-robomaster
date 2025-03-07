@@ -75,7 +75,9 @@ int main()
 
     Board::initialize();
     initializeIo(drivers);
+    #ifndef GYRO
     robot.initSubsystemCommands();
+    #endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::resetMotorSims();
     // Blocking call, waits until Windows Simulator connects.
@@ -91,6 +93,7 @@ int main()
         {
             #ifdef GYRO
             PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
+            drivers->bmi088.read();
             #else
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
             // PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
