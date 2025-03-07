@@ -28,6 +28,7 @@
 // #include "turret/turret_control/turret_user_control_command.hpp"
 // #include "turret/turret_components/chassis_frame_turret_controller.hpp"
 // #include "turret/turret_components/yaw_turret_motor.hpp"
+#include "communications/RevMotorTester.hpp"
 
 // #include "control/chassis/turret_orientated_drive_command.hpp"
 
@@ -58,9 +59,9 @@ private:
 
     src::Drivers &drivers;
 
-    control::chassis::ChassisSubsystem chassisSubsystem;
+    // control::chassis::ChassisSubsystem chassisSubsystem;
 
-    control::chassis::ChassisDriveCommand chassisDriveCommand;
+    // control::chassis::ChassisDriveCommand chassisDriveCommand;
     
     
     // control::agitator::VelocityAgitatorSubsystemConfig agitatorSubsystemConfig;
@@ -77,7 +78,7 @@ private:
 
 
 
-    control::ControlOperatorInterface m_ControlOperatorInterface;
+    // control::ControlOperatorInterface m_ControlOperatorInterface;
 
     // control::flyWheel::FlyWheelSubsystem m_FlyWheel;
 
@@ -93,6 +94,8 @@ private:
     // TurretUserControlCommand turretUserControlCommand;
 
     // control::chassis::ChassisTurretDriveCommand turretOrientedDriveCommand;
+
+    Communications::Rev::RevMotorTester revMotorTester;
 
     
 

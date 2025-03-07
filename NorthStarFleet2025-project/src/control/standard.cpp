@@ -21,17 +21,18 @@ namespace control
 {
 Robot::Robot(src::Drivers &drivers) 
     : drivers(drivers),
-      chassisSubsystem(
-          drivers,
-          chassis::ChassisConfig{
-              .leftFrontId = MotorId::MOTOR2,
-              .leftBackId = MotorId::MOTOR3,
-              .rightBackId = MotorId::MOTOR4,
-              .rightFrontId = MotorId::MOTOR1,
-              .canBus = CanBus::CAN_BUS1,
-              .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
-          }),
-          chassisDriveCommand(chassisSubsystem, m_ControlOperatorInterface),
+    revMotorTester(drivers)
+    //   chassisSubsystem(
+    //       drivers,
+    //       chassis::ChassisConfig{
+    //           .leftFrontId = MotorId::MOTOR2,
+    //           .leftBackId = MotorId::MOTOR3,
+    //           .rightBackId = MotorId::MOTOR4,
+    //           .rightFrontId = MotorId::MOTOR1,
+    //           .canBus = CanBus::CAN_BUS1,
+    //           .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
+    //       }),
+    //       chassisDriveCommand(chassisSubsystem, m_ControlOperatorInterface),
     //   agitatorSubsystemConfig{
     //     .gearRatio = 36.0f,
     //     .agitatorMotorId = tap::motor::MOTOR7,
@@ -98,7 +99,7 @@ Robot::Robot(src::Drivers &drivers)
     //     &drivers.pwm,
     //     tap::gpio::Pwm::C6,
     //     tap::gpio::Pwm::C7),
-    m_ControlOperatorInterface(drivers.remote)
+    // m_ControlOperatorInterface(drivers.remote)
     // m_FlyWheelCommand(m_FlyWheel, m_ControlOperatorInterface),
     //     leftSwitchUp(
     //     &drivers,
@@ -170,7 +171,8 @@ void Robot::initSubsystemCommands()
 
 void Robot::initializeSubsystems()
 {
-    chassisSubsystem.initialize();
+    revMotorTester.initialize();
+    // chassisSubsystem.initialize();
     // agitatorSubsystem.initialize();
     // m_FlyWheel.initialize();
     // turret.initialize();
@@ -178,7 +180,7 @@ void Robot::initializeSubsystems()
 
 void Robot::registerSoldierSubsystems()
 {
-    drivers.commandScheduler.registerSubsystem(&chassisSubsystem);
+    // drivers.commandScheduler.registerSubsystem(&chassisSubsystem);
     // drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
     // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
     // drivers.commandScheduler.registerSubsystem(&turret);
@@ -186,7 +188,7 @@ void Robot::registerSoldierSubsystems()
 
 void Robot::setDefaultSoldierCommands()
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
+    // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     // turret.setDefaultCommand(&turretUserControlCommand);
 }

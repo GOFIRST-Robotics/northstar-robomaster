@@ -78,7 +78,7 @@ int main()
     Board::initialize();
     initializeIo(drivers);
 
-    tap::motor::RevMotor motor(
+    tap::motor::RevMotor m_rev_motor(
         drivers, 
         tap::motor::REVMotorId::REV_MOTOR1, 
         tap::can::CanBus::CAN_BUS1, 

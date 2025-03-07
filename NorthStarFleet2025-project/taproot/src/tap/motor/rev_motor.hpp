@@ -251,6 +251,10 @@ private:
     // tap::arch::MilliTimeout motorDisconnectTimeout;
 
 
+    void resetEncoderValue() override {};
+    float getPositionUnwrapped() const override {return 0;};
+    float getPositionWrapped() const override {return 0;};
+
     
 };
 

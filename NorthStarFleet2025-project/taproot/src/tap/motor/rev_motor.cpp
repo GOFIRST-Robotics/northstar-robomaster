@@ -122,7 +122,18 @@ void RevMotor::setTargetVoltage(float targetVoltage)
 
 void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
 {
-    std::memcpy(txMessage->data, &targetVoltage, sizeof(targetVoltage));
+    // std::memcpy(txMessage->data, &targetVoltage, sizeof(targetVoltage));
+    uint32_t floatAsInt;
+    std::memcpy(&floatAsInt, &targetVoltage, sizeof(float));
+    txMessage->data[0] = 0;
+    txMessage->data[1] = 0;
+    txMessage->data[2] = 0;
+    txMessage->data[3] = 0;
+    txMessage->data[4] = static_cast<uint8_t>(floatAsInt & 0xFF);
+    txMessage->data[5] = static_cast<uint8_t>((floatAsInt >> 8) & 0xFF);
+    txMessage->data[6] = static_cast<uint8_t>((floatAsInt >> 16) & 0xFF);
+    txMessage->data[7] = static_cast<uint8_t>((floatAsInt >> 24) & 0xFF);
+    int debug = 0;
 }
 
 // getter functions

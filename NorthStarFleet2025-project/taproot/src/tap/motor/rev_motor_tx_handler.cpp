@@ -63,10 +63,10 @@ void RevMotorTxHandler::encodeAndSendCanData()
 {
     // set up new can messages to be sent via CAN bus 1 and 2
 
-    bool can1ValidMotorMessage = false;
-    bool can2ValidMotorMessage = false;
+    bool can1ValidMotorMessage = true;
+    bool can2ValidMotorMessage = true;
 
-    modm::can::Message can1Message = createRevCanMessage(0x2051080, can1MotorStore[0]);
+    modm::can::Message can1Message = createRevCanMessage(0x2051080, can1MotorStore[1]);
 
 
     serializeMotorStoreSendData(
@@ -74,7 +74,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
         &can1Message);
 
 
-    modm::can::Message can2Message = createRevCanMessage(0x2051080, can1MotorStore[0]);
+    modm::can::Message can2Message = createRevCanMessage(0x2051080, can1MotorStore[1]);
 
     serializeMotorStoreSendData(
         can2MotorStore,
