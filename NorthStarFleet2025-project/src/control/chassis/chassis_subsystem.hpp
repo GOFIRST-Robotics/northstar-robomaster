@@ -4,12 +4,12 @@
 
 #include "tap/control/subsystem.hpp"
 #include "tap/util_macros.hpp"
-#include "control/algorithms/slew_rate_limiter.hpp"
+#include "control/chassis/algorithms/slew_rate_limiter.hpp"
 
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
-//#define FIELD
+#define FIELD
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
@@ -99,7 +99,7 @@ private:
     /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
 
-    std::array<control::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
+    std::array<control::chassis::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
 
 protected:
     /// Motors.

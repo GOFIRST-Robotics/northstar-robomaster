@@ -100,7 +100,7 @@ public:
 
     bool isGKeyPressed();
 
-    bool isBeyblade();
+    void checkToggleBeyBlade();
 
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
@@ -125,11 +125,9 @@ private:
     uint32_t prevChassisXInputCalledTime = 0;
     uint32_t prevChassisYInputCalledTime = 0;
     uint32_t prevChassisRInputCalledTime = 0;
-    float beyBladeValue = 1;
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */
-    short count = 0;
 };
 }  // namespace control
 

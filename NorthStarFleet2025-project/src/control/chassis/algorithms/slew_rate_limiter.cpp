@@ -5,7 +5,7 @@
 namespace control::algorithms
 {
 
-float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
+float control::chassis::algorithms::SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
     float delta = desiredVelocity - currentVelocity; 
 
     // If stationary and should move, apply a boost

@@ -241,29 +241,35 @@ float ControlOperatorInterface::getDrivetrainRotation()
     }
 }
 
+int count = 250;
+float beyBladeValue = 1;
+
+bool beyBlade = false;
+bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
-    if (isBeyblade()) {
-        // count++;
-        // if (count >= 250) {
-        //     std::random_device rd;
-        //     std::mt19937 gen(rd());
-        //     std::uniform_int_distribution<int> distrib(0, 359);
-        //     beyBladeValue = distrib(gen) * M_PI / 180.0f;
-        //     count = 0;
-        // }
-        // return 0.2f * sin(beyBladeValue) + 0.8f;
-        return 1.0f;
+    RandomNumberGenerator::enable();
+    checkToggleBeyBlade();
+    if (beyBlade) {
+        count++;
+        if (count >= 250) {
+            if (RandomNumberGenerator::isReady()) {
+                beyBladeValue = RandomNumberGenerator::getValue() % 360;
+                count = 0;
+            }
+        }
+        return 0.1f * sin(beyBladeValue) + 0.8f;
+        // return 1.0f;
     }
 
     if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.8f;
+        return -0.6f;
     } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
-        return-0.48f;
+        return 0.6f;
     } else {
         return 0.0f;
     }
@@ -314,8 +320,13 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
         return (remote.keyPressed(Remote::Key::G));
     }
 
-    bool ControlOperatorInterface::isBeyblade(){
-        return (remote.keyPressed(Remote::Key::B));
+    void ControlOperatorInterface::checkToggleBeyBlade(){
+        if (remote.keyPressed(Remote::Key::B) && !isHeld) {
+            beyBlade = !beyBlade;
+            isHeld = true;
+        } else {
+            isHeld = false;
+        }
     }
     
 }  // namespace control
