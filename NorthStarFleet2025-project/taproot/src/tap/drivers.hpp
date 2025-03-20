@@ -62,7 +62,7 @@
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
 #include "tap/control/command_scheduler.hpp"
-#include "../../src/communications/can/turret_mcb_can_comm.hpp"
+#include "../../src/communications/can/turret/turret_mcb_can_comm.hpp"
 #endif
 
 namespace tap
@@ -140,8 +140,8 @@ public:
     motor::DjiMotorTerminalSerialHandler djiMotorTerminalSerialHandler;
     motor::DjiMotorTxHandler djiMotorTxHandler;
     communication::sensors::imu::bmi088::Bmi088 bmi088;
-    src::can::TurretMCBCanComm turretMCBCanCommBus1;
     control::CommandScheduler commandScheduler;
+    src::can::TurretMCBCanComm turretMCBCanCommBus1;
 #endif
 };  // class Drivers
 

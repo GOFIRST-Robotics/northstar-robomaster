@@ -53,7 +53,7 @@
             "intelliSenseMode": "gcc-arm",
             "browse": { "limitSymbolsToIncludedHeaders": true },
             "defines": [
-                "GYRO"
+                "TURRET"
             ]
         }
     ],

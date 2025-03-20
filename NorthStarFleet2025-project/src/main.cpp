@@ -51,6 +51,10 @@ tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 
 control::Robot robot(*src::DoNotUse_getDrivers());
 
+#include "communications/can/chassis/chassis_mcb_can_comm.hpp"
+
+ChassisMcbCanComm chassisMcbCanComm(src::DoNotUse_getDrivers());
+
 // Place any sort of input/output initialization here. For example, place
 // serial init stuff here.
 static void initializeIo(src::Drivers *drivers);
@@ -75,7 +79,7 @@ int main()
 
     Board::initialize();
     initializeIo(drivers);
-    #ifndef GYRO
+    #ifndef TURRET
     robot.initSubsystemCommands();
     #endif
 #ifdef PLATFORM_HOSTED
@@ -91,16 +95,17 @@ int main()
 
         if (sendMotorTimeout.execute())
         {
-            #ifdef GYRO
-            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
+            #ifdef TURRET
             drivers->bmi088.read();
+            PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
+            PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
             #else
-            PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
-            // PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
+            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             #endif
+            PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
         }
         modm::delay_us(10);
     }
@@ -117,11 +122,15 @@ static void initializeIo(src::Drivers *drivers)
     drivers->errorController.init();
     drivers->remote.initialize();
     drivers->bmi088.initialize(500, 0.5, 0);
-    drivers->turretMCBCanCommBus1.init();
     drivers->refSerial.initialize();
     drivers->terminalSerial.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
+    #ifdef TURRET
+    chassisMcbCanComm.init();
+    #else
+    drivers->turretMCBCanCommBus1.init();
+    #endif
 }
 
 static void updateIo(src::Drivers *drivers)
