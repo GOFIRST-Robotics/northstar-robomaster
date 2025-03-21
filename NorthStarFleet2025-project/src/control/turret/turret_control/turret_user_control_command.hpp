@@ -58,7 +58,7 @@ public:
      */
     TurretUserControlCommand(
         tap::Drivers *drivers,
-        ControlOperatorInterface &controlOperatorInterface,
+        src::control::ControlOperatorInterface* controlOperatorInterface,
         TurretSubsystem *turretSubsystem,
         algorithms::TurretYawControllerInterface *yawController,
         algorithms::TurretPitchControllerInterface *pitchController,
@@ -80,7 +80,7 @@ public:
 
 private:
     tap::Drivers *drivers;
-    ControlOperatorInterface &controlOperatorInterface;
+    src::control::ControlOperatorInterface* controlOperatorInterface;
     TurretSubsystem *turretSubsystem;
     const src::can::TurretMCBCanComm &turretMCBCanComm;
     

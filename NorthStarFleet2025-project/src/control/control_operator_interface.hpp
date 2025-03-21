@@ -23,11 +23,13 @@
 // mm tasty imports
 #include "tap/algorithms/linear_interpolation_predictor.hpp"
 #include "tap/algorithms/ramp.hpp"
+#include "tap/communication/serial/remote.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
-#include <tap/algorithms/linear_interpolation_predictor.hpp>
-#include <tap/algorithms/ramp.hpp>
 
+using namespace tap::communication::serial;
+namespace src
+{
 namespace control
 {
 /**
@@ -39,6 +41,7 @@ namespace control
 class ControlOperatorInterface
 {
 public:
+    static constexpr Remote::Key LOW_DPI_MODE_KEY = Remote::Key::G;
     static constexpr int16_t USER_MOUSE_YAW_MAX = 1000;
     static constexpr int16_t USER_MOUSE_PITCH_MAX = 1000;
     static constexpr float USER_MOUSE_YAW_SCALAR = (1.0f / USER_MOUSE_YAW_MAX);
@@ -46,9 +49,69 @@ public:
     static constexpr float SPEED_REDUCTION_SCALAR = (1.0f / 3.0f);
     static constexpr float USER_STICK_SENTRY_DRIVE_SCALAR = 5000.0f;
 
+#if defined(TARGET_HERO_PERSEUS) && not defined(PLATFORM_HOSTED) && not defined(ENV_UNIT_TESTS)
+    static constexpr float USER_MOUSE_SENSITIVITY_SCALAR_NORMAL = 2.0f;
+    static constexpr float USER_MOUSE_SENSITIVITY_SCALAR_LOW_DPI = 0.1f;
+    /**
+     * Max acceleration in rpm/s^2 of the chassis in the x direction
+     */
+    static constexpr float MAX_ACCELERATION_X = 7'000.0f;
+    static constexpr float MAX_DECELERATION_X = 20'000.0f;
 
-    ControlOperatorInterface(tap::communication::serial::Remote &remote) : remote(remote) {}
+    /**
+     * Max acceleration in rpm/s^2 of the chassis in the y direction
+     */
+    static constexpr float MAX_ACCELERATION_Y = MAX_ACCELERATION_X;
+    static constexpr float MAX_DECELERATION_Y = MAX_DECELERATION_X;
+#else  // TARGET_STANDARD, TARGET_ENGINEER (and other targets that don't use a traditional chassis)
+    static constexpr float USER_MOUSE_SENSITIVITY_SCALAR_NORMAL = 1.0f;
+    static constexpr float USER_MOUSE_SENSITIVITY_SCALAR_LOW_DPI = 1.0f;
+    /**
+     * Max acceleration in rpm/s^2 of the chassis in the x direction
+     */
+    static constexpr float MAX_ACCELERATION_X = 10'000.0f;
+    static constexpr float MAX_DECELERATION_X = 20'000.0f;
 
+    /**
+     * Max acceleration in rpm/s^2 of the chassis in the y direction
+     */
+    static constexpr float MAX_ACCELERATION_Y = 9'000.0f;
+    static constexpr float MAX_DECELERATION_Y = 20'000.0f;
+#endif
+
+    /**
+     * Max acceleration in rpm/s^2 of the chassis in the r direction
+     */
+    static constexpr float MAX_ACCELERATION_R = 40'000.0f;
+    static constexpr float MAX_DECELERATION_R = 50'000.0f;
+
+    ControlOperatorInterface(tap::Drivers *drivers) : drivers(drivers) {}
+    DISALLOW_COPY_AND_ASSIGN(ControlOperatorInterface)
+    mockable ~ControlOperatorInterface() = default;
+
+    /**
+     * @return The value used for chassis movement forward and backward, between
+     * `[-getMaxUserWheelSpeed, getMaxUserWheelSpeed]`. Acceleration is applied to this value
+     * controlled by `MAX_ACCELERATION_X` and `MAX_DECELERATION_X`. A linear combination of keyboard
+     * and remote joystick information.
+     */
+    mockable float getChassisXInput();
+
+    /**
+     * @return The value used for chassis movement side to side, between `[-getMaxUserWheelSpeed,
+     * getMaxUserWheelSpeed]`. Acceleration is applied to this value controlled by
+     * `MAX_ACCELERATION_Y` and `MAX_DECELERATION_Y`. A linear combination of keyboard and remote
+     * joystick information.
+     */
+    mockable float getChassisYInput();
+
+    /**
+     * @return The value used for chassis rotation, between `[-getMaxUserWheelSpeed,
+     * getMaxUserWheelSpeed]`. Acceleration is applied to this value controlled by
+     * `MAX_ACCELERATION_R` and `MAX_DECELERATION_R`. A linear combination of keyboard and remote
+     * joystick information.
+     */
+    mockable float getChassisRInput();
 
     /**
      * @return the value used for turret yaw rotation, between about -1 and 1
@@ -64,51 +127,24 @@ public:
      */
     mockable float getTurretPitchInput(uint8_t turretID);
 
-
- static constexpr float MAX_ACCELERATION_X = 10'000.0f;
-    static constexpr float MAX_DECELERATION_X = 20'000.0f;
-
-    static constexpr float MAX_ACCELERATION_Y = 9'000.0f;
-    static constexpr float MAX_DECELERATION_Y = 20'000.0f;
-
-    static constexpr float MAX_ACCELERATION_R = 40'000.0f;
-    static constexpr float MAX_DECELERATION_R = 50'000.0f;
-
-    // STEP 1 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
-    // declarations
-    float getDrivetrainHorizontalTranslation();
-
-    float getMecanumHorizontalTranslationKeyBoard();
-
-    float getDrivetrainVerticalTranslation();
-
-    float getMecanumVerticalTranslationKeyBoard();
-
-    float getDrivetrainRotation();
-
-    float getDrivetrainRotationalTranslation();
-
-    float getMecanumRotationKeyBoard();
+    /**
+     * @returns the value used to scale turret yaw movement from horizontal movement.
+     */
+    mockable float getUserMouseYawScalar();
 
     /**
-     * @returns whether or not the key to disable diagonal drive is pressed.
-     * The key is shared with the speed scaling key.
+     * @returns the value used to scale turret pitch movement from vertical movement.
      */
-    bool isSlowMode();
-
-    bool isRightSwitchUp();
-
-    bool isGKeyPressed();
-
-    bool isBeyblade();
+    mockable float getUserMousePitchScalar();
 
     /**
-     * Scales `value` when ctrl/shift are pressed and returns the scaled value.
+     * @returns the value used for sentiel drive speed, between
+     *      [-USER_STICK_SENTRY_DRIVE_SCALAR, USER_STICK_SENTRY_DRIVE_SCALAR].
      */
-    float applyChassisSpeedScaling(float value);
-    
+    mockable float getSentrySpeedInput();
+
 private:
-    tap::communication::serial::Remote &remote;
+    tap::Drivers *drivers;
 
     uint32_t prevUpdateCounterX = 0;
     uint32_t prevUpdateCounterY = 0;
@@ -125,13 +161,15 @@ private:
     uint32_t prevChassisXInputCalledTime = 0;
     uint32_t prevChassisYInputCalledTime = 0;
     uint32_t prevChassisRInputCalledTime = 0;
-    short beyBladeValue = 1;
+
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */
-    short count = 0;
-};
+    float applyChassisSpeedScaling(float value);
+};  // class ControlOperatorInterface
+
 }  // namespace control
 
+}  // namespace src
 
 #endif  // CONTROL_OPERATOR_INTERFACE_HPP_

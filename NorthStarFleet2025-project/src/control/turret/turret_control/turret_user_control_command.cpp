@@ -27,7 +27,7 @@ namespace control::turret::user
 {
 TurretUserControlCommand::TurretUserControlCommand(
     tap::Drivers *drivers,
-    ControlOperatorInterface &controlOperatorInterface,
+    src::control::ControlOperatorInterface* controlOperatorInterface,
     TurretSubsystem *turretSubsystem,
     algorithms::TurretYawControllerInterface *yawController,
     algorithms::TurretPitchControllerInterface *pitchController,
@@ -68,7 +68,7 @@ void TurretUserControlCommand::execute()
 
     const float pitchSetpoint =
         pitchController->getSetpoint() +
-        userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(turretID);
+        userPitchInputScalar * controlOperatorInterface->getTurretPitchInput(turretID);
     // pitchSetpointDebug = pitchSetpoint;
 
     pitchController->runController(dt, pitchSetpoint);
@@ -76,7 +76,7 @@ void TurretUserControlCommand::execute()
     
     const float yawSetpoint = -turretMCBCanComm.getYaw()+lastYaw +//-(turretSubsystem->turretGyro.getYaw()-lastYaw) +
         yawController->getSetpoint() +
-        userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
+        userYawInputScalar * controlOperatorInterface->getTurretYawInput(turretID);
     // angle = -turretSubsystem->turretGyro.getYaw();
     // const float yawSetpoint = yawController->getSetpoint() + angle;
     yawController->runController(dt, yawSetpoint);

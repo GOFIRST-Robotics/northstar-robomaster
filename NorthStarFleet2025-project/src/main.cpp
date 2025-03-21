@@ -34,7 +34,6 @@
 #include "tap/architecture/profiler.hpp"
 
 /* communication includes ---------------------------------------------------*/
-#include "drivers.hpp"
 #include "drivers_singleton.hpp"
 
 /* error handling includes --------------------------------------------------*/
@@ -43,26 +42,33 @@
 /* control includes ---------------------------------------------------------*/
 #include "tap/architecture/clock.hpp"
 
+#include "robot/robot_control.hpp"
+
 /* robot includes ---------------------------------------------------------*/
-#include "control/standard.hpp"
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 
-control::Robot robot(*src::DoNotUse_getDrivers());
+// control::Robot robot(*src::DoNotUse_getDrivers());
 
+
+#ifdef TARGET_STANDARD
+using namespace src::standard;
+#elif TURRET
 #include "communications/can/chassis/chassis_mcb_can_comm.hpp"
-
 ChassisMcbCanComm chassisMcbCanComm(src::DoNotUse_getDrivers());
+#endif
+
+// using namespace std::chrono_literals;
 
 // Place any sort of input/output initialization here. For example, place
 // serial init stuff here.
-static void initializeIo(src::Drivers *drivers);
+static void initializeIo(Drivers *drivers);
 
 // Anything that you would like to be called place here. It will be called
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
-static void updateIo(src::Drivers *drivers);
+static void updateIo(Drivers *drivers);
 
 int main()
 {
@@ -75,13 +81,13 @@ int main()
      *      robot loop we must access the singleton drivers to update
      *      IO states and run the scheduler.
      */
-    src::Drivers *drivers = src::DoNotUse_getDrivers();
+    Drivers *drivers = DoNotUse_getDrivers();
 
     Board::initialize();
     initializeIo(drivers);
-    #ifndef TURRET
-    robot.initSubsystemCommands();
-    #endif
+    // #ifndef TURRET
+    initSubsystemCommands(drivers);
+    // #endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::resetMotorSims();
     // Blocking call, waits until Windows Simulator connects.
@@ -112,7 +118,7 @@ int main()
     return 0;
 }
 
-static void initializeIo(src::Drivers *drivers)
+static void initializeIo(Drivers *drivers)
 {
     drivers->analog.init();
     drivers->pwm.init();
@@ -133,7 +139,7 @@ static void initializeIo(src::Drivers *drivers)
     #endif
 }
 
-static void updateIo(src::Drivers *drivers)
+static void updateIo(Drivers *drivers)
 {
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();

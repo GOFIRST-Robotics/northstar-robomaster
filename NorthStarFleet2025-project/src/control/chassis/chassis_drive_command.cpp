@@ -8,14 +8,16 @@
 
 using tap::algorithms::limitVal;
 
+// namespace src
+// {
 namespace control::chassis
 {
 // STEP 1 (Tank Drive): Constructor
-    ChassisDriveCommand::ChassisDriveCommand(ChassisSubsystem& chassis, ControlOperatorInterface& operatorInterface) :
+    ChassisDriveCommand::ChassisDriveCommand(ChassisSubsystem* chassis, src::control::ControlOperatorInterface* operatorInterface) :
     chassis(chassis),
     operatorInterface(operatorInterface)
     {
-        addSubsystemRequirement(&chassis);
+        addSubsystemRequirement(chassis);
     }
 // STEP 2 (Tank Drive): execute function
     void ChassisDriveCommand::execute() {
@@ -23,14 +25,16 @@ namespace control::chassis
             return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
         };
          
-        chassis.setVelocityDrive(
-            scale(operatorInterface.getDrivetrainVerticalTranslation()),
-            scale(operatorInterface.getDrivetrainHorizontalTranslation()),
-            scale(operatorInterface.getDrivetrainRotationalTranslation())
+        chassis->setVelocityDrive(
+            scale(operatorInterface->getChassisXInput()),
+            scale(operatorInterface->getChassisYInput()),
+            scale(operatorInterface->getChassisRInput())
         );
     }
 // STEP 3 (Tank Drive): end function
     void ChassisDriveCommand::end(bool interrupted) {
-        chassis.setVelocityDrive(0, 0, 0);
+        chassis->setVelocityDrive(0, 0, 0);
     }
 };  // namespace control::chassis
+
+// } //namespace src

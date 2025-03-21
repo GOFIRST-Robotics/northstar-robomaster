@@ -37,7 +37,7 @@
             "intelliSenseMode": "gcc-arm",
             "browse": { "limitSymbolsToIncludedHeaders": true },
             "defines": [
-                "STANDARD"
+                "TARGET_STANDARD"
             ]
         },
         {

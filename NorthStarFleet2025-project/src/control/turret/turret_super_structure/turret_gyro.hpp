@@ -46,7 +46,7 @@ namespace control::turret
 class TurretMCBCGryo
 {
 public:
-    TurretMCBCGryo(src::Drivers* drivers);
+    TurretMCBCGryo(tap::Drivers* drivers);
     /**
      * @return turret yaw angle in radians, normalized between [-pi, pi]
      */

@@ -25,7 +25,7 @@
 
 namespace control::turret 
 {
-    TurretMCBCGryo::TurretMCBCGryo(src::Drivers* drivers) : drivers(drivers) {}
+    TurretMCBCGryo::TurretMCBCGryo(tap::Drivers* drivers) : drivers(drivers) {}
 
     float TurretMCBCGryo::getRoll() { 
     prevRoll = currRoll;
