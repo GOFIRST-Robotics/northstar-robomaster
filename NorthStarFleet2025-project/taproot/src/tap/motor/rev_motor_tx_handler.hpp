@@ -69,6 +69,36 @@ namespace tap::motor
 class RevMotorTxHandler
 {
 public:
+
+    enum class APICommand : uint16_t
+    {
+    ClearFaults     = (6 << 4) | 14,
+    FactoryDefaults = (7 << 4) | 4,
+    FactoryReset    = (7 << 4) | 5,
+    Identify        = (7 << 4) | 6,
+    Heartbeat       = (11 << 4) | 2,
+    BurnFlash       = (63 << 4) | 2,
+    FirmwareVersion = (9 << 4) | 8,
+
+    Setpoint        = (0 << 4) | 1,
+    DutyCycle       = (0 << 4) | 2,
+    Velocity        = (1 << 4) | 2,
+    SmartVelocity   = (1 << 4) | 3,
+    Position        = (3 << 4) | 2,
+    Voltage         = (4 << 4) | 2,
+    Current         = (4 << 4) | 3,
+    SmartMotion     = (5 << 4) | 2,
+
+    Period0         = (6 << 4) | 0,
+    Period1         = (6 << 4) | 1,
+    Period2         = (6 << 4) | 2,
+    Period3         = (6 << 4) | 3,
+    Period4         = (6 << 4) | 4
+    };
+
+
+
+    
     /** Number of motors on each CAN bus. */
     static constexpr int REV_MOTORS_PER_CAN = 8;
     /** CAN message length of each motor control message. */
@@ -140,7 +170,16 @@ private:
      * there is then an operation done to merge the devices CAN ID with the Messgae ID to create a message for
      * a specific motor controller
      */
-    modm::can::Message createRevCanMessage(u_int32_t controlModeID, const RevMotor* motor);
+    modm::can::Message createRevCanMessage(APICommand cmd, const RevMotor* motor);
+
+    uint8_t GetAPIClass(APICommand cmd) const;
+    uint8_t GetAPIIndex(APICommand cmd) const;
+
+
+    uint32_t CreateArbitrationId(APICommand cmd, const RevMotor* motor) const;
+
+
+    void serializeRevMotorHeartBeat(modm::can::Message* message);
 
 };
 

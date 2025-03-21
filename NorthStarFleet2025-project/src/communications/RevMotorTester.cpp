@@ -22,12 +22,12 @@ namespace Communications::Rev
 // STEP 2 (Tank Drive): initialize function
     void RevMotorTester::initialize() {
         motor1.initialize();
-        motor1.setTargetVoltage(4.0f);
+        motor1.setTargetVoltage(0.5f);
     }
 
 
     void RevMotorTester::refresh() {
-        motor1.setTargetVoltage(4.0f);
+        motor1.setTargetVoltage(0.5f);
     }
 // STEP
 }  // namespace control::chassis

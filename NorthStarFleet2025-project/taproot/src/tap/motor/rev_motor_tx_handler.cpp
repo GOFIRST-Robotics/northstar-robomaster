@@ -66,7 +66,11 @@ void RevMotorTxHandler::encodeAndSendCanData()
     bool can1ValidMotorMessage = true;
     bool can2ValidMotorMessage = true;
 
-    modm::can::Message can1Message = createRevCanMessage(0x2051080, can1MotorStore[1]);
+
+    modm::can::Message heartBeatMessage = createRevCanMessage(APICommand::Heartbeat, can1MotorStore[1]);
+    
+
+    modm::can::Message can1Message = createRevCanMessage(APICommand::DutyCycle, can1MotorStore[1]);
 
 
     serializeMotorStoreSendData(
@@ -74,20 +78,31 @@ void RevMotorTxHandler::encodeAndSendCanData()
         &can1Message);
 
 
-    modm::can::Message can2Message = createRevCanMessage(0x2051080, can1MotorStore[1]);
+    modm::can::Message can2Message = createRevCanMessage(APICommand::DutyCycle, can1MotorStore[1]);
 
     serializeMotorStoreSendData(
         can2MotorStore,
         &can2Message);
 
 
+
+
+    serializeRevMotorHeartBeat(&heartBeatMessage);
+
+
     bool messageSuccess = true;
+
+    if(drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
+    {
+        messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartBeatMessage);
+    }
 
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
     {
         if (can1ValidMotorMessage)
         {
             messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, can1Message);
+
         }
     }
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS2))
@@ -97,6 +112,8 @@ void RevMotorTxHandler::encodeAndSendCanData()
             messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, can2Message);
         }
     }
+
+
 
     if (!messageSuccess)
     {
@@ -113,6 +130,11 @@ void RevMotorTxHandler::serializeMotorStoreSendData(
         const RevMotor* const motor = canMotorStore[i];
         motor->serializeCanSendData(message);
     }
+}
+
+void RevMotorTxHandler::serializeRevMotorHeartBeat(modm::can::Message* message)
+{
+    message->data[0] = 0xFF;
 }
 
 void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor)
@@ -164,17 +186,47 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(REVMotorId motorId)
  * use. the control modes can be found in a REV SW Spark Max google sheet which can be
  * obtained by emailing REV Robotics.
  */
-modm::can::Message RevMotorTxHandler::createRevCanMessage(u_int32_t controlModeID, const RevMotor* motor) {
-    uint32_t canVoltageArbitrationID = controlModeID | motor->getMotorIdentifier();
+modm::can::Message RevMotorTxHandler::createRevCanMessage(APICommand cmd, const RevMotor* motor) {
+    uint32_t RevArbitrationId = CreateArbitrationId(cmd, motor);
     //the number of bytes in the message
     uint8_t canRevIdLength = 8;
     modm::can::Message canMessage(
-        canVoltageArbitrationID,
+        RevArbitrationId,
         canRevIdLength,
         0,
         true);
     return canMessage;
 }
+
+
+
+
+uint8_t RevMotorTxHandler::GetAPIClass(APICommand cmd) const
+{
+  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) >> 4);
+}
+
+uint8_t RevMotorTxHandler::GetAPIIndex(APICommand cmd) const
+{
+  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) & 0x0F);
+}
+
+
+uint32_t RevMotorTxHandler::CreateArbitrationId(APICommand cmd, const RevMotor* motor) const
+{
+  uint8_t apiClass = GetAPIClass(cmd);
+  uint8_t apiIndex = GetAPIIndex(cmd);
+  uint8_t deviceId = motor->getMotorIdentifier();
+
+  
+
+  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+         (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
+         static_cast<uint32_t>(deviceId);
+}
+
+
+
 
 
 
