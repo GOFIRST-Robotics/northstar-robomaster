@@ -23,7 +23,7 @@ namespace control::chassis
             return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
         };
         #ifdef FIELD
-        chassis.setVelocityDrive(
+        chassis->setVelocityDrive(
             scale(operatorInterface->getDrivetrainVerticalTranslation()),
             scale(operatorInterface->getDrivetrainHorizontalTranslation()),
             scale(operatorInterface->getDrivetrainRotationalTranslation()),
@@ -41,6 +41,6 @@ namespace control::chassis
     }
 // STEP 3 (Tank Drive): end function
     void ChassisDriveCommand::end(bool interrupted) {
-        chassis->setVelocityDrive(0, 0, 0);
+        chassis->setVelocityDrive(0, 0, 0, 0);
     }
 };  // namespace control::chassis
