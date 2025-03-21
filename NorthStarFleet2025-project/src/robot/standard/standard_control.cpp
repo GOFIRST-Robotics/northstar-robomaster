@@ -1,3 +1,5 @@
+#ifdef TARGET_STANDARD
+
 #include "tap/drivers.hpp"
 #include "drivers_singleton.hpp"
 #include "../../robot-type/robot_type.hpp"
@@ -21,6 +23,7 @@ using tap::communication::serial::Remote;
 // using tap::control::RemoteMapState;
 using tap::motor::MotorId;
 using namespace control;
+using namespace control::chassis;
 using namespace src::standard;
 using namespace control::turret;
 using namespace control::turret::user;
@@ -36,19 +39,20 @@ driversFunc drivers = DoNotUse_getDrivers;
 
 namespace standard_control
 {
-    // control::chassis::ChassisSubsystem chassisSubsystem(
-    //               drivers(),
-    //               control::chassis::ChassisConfig{
-    //                   .leftFrontId = MotorId::MOTOR2,
-    //                   .leftBackId = MotorId::MOTOR3,
-    //                   .rightBackId = MotorId::MOTOR4,
-    //                   .rightFrontId = MotorId::MOTOR1,
-    //                   .canBus = CanBus::CAN_BUS1,
-    //                   .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
-    //               });
-    // control::chassis::ChassisDriveCommand chassisDriveCommand(
-    //     chassisSubsystem,
-    //     &drivers()->controlOperatorInterface);
+    ChassisSubsystem chassisSubsystem(
+                  drivers(),
+                  control::chassis::ChassisConfig{
+                      .leftFrontId = MotorId::MOTOR2,
+                      .leftBackId = MotorId::MOTOR3,
+                      .rightBackId = MotorId::MOTOR4,
+                      .rightFrontId = MotorId::MOTOR1,
+                      .canBus = CanBus::CAN_BUS1,
+                      .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
+                  });
+
+    ChassisDriveCommand chassisDriveCommand(
+        &chassisSubsystem,
+        &drivers()->controlOperatorInterface);
     //   agitatorSubsystemConfig{
     //     .gearRatio = 36.0f,
     //     .agitatorMotorId = tap::motor::MOTOR7,
@@ -166,6 +170,7 @@ namespace standard_control
     TurretUserControlCommand turretUserControlCommand(
         drivers(),
         &drivers()->controlOperatorInterface,
+        &drivers()->turretMCBCanCommBus1,
         &turret, 
         &yawController,
         &pitchController,
@@ -181,7 +186,7 @@ namespace standard_control
     
 void initializeSubsystems(Drivers *drivers)
 {
-    // chassisSubsystem.initialize();
+    chassisSubsystem.initialize();
     // agitatorSubsystem.initialize();
     // m_FlyWheel.initialize();
     turret.initialize();
@@ -189,7 +194,7 @@ void initializeSubsystems(Drivers *drivers)
 
 void registerSoldierSubsystems(Drivers *drivers)
 {
-    // drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
+    drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     // drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
     // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
     drivers->commandScheduler.registerSubsystem(&turret);
@@ -197,7 +202,7 @@ void registerSoldierSubsystems(Drivers *drivers)
 
 void setDefaultSoldierCommands(Drivers *drivers)
 {
-    // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     turret.setDefaultCommand(&turretUserControlCommand);
 }
@@ -224,3 +229,5 @@ void initSubsystemCommands(src::standard::Drivers *drivers)
     standard_control::registerSoldierIoMappings(drivers);
 }
 } //namespace src::standard
+
+#endif

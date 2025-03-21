@@ -50,7 +50,6 @@ namespace control::chassis
         float LBSpeed;
         float RFSpeed;
         float RBSpeed;
-        drivers->bmi088.read();
         float robotHeading = -modm::toRadian(drivers->bmi088.getYaw());
         #ifdef THING //TODO Make not THING 
         //Mecanum

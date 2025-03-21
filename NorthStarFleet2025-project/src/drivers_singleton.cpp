@@ -23,6 +23,8 @@
 
 #ifdef TARGET_STANDARD
 namespace src::standard
+#elif TURRET
+namespace src::turret
 #endif
 {
 /**

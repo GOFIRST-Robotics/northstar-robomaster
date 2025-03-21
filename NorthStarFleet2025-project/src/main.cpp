@@ -56,7 +56,8 @@ tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 using namespace src::standard;
 #elif TURRET
 #include "communications/can/chassis/chassis_mcb_can_comm.hpp"
-ChassisMcbCanComm chassisMcbCanComm(src::DoNotUse_getDrivers());
+using namespace src::turret;
+ChassisMcbCanComm chassisMcbCanComm(DoNotUse_getDrivers());
 #endif
 
 // using namespace std::chrono_literals;
@@ -85,9 +86,7 @@ int main()
 
     Board::initialize();
     initializeIo(drivers);
-    // #ifndef TURRET
     initSubsystemCommands(drivers);
-    // #endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::resetMotorSims();
     // Blocking call, waits until Windows Simulator connects.
@@ -102,7 +101,6 @@ int main()
         if (sendMotorTimeout.execute())
         {
             #ifdef TURRET
-            drivers->bmi088.read();
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
             #else
@@ -132,10 +130,11 @@ static void initializeIo(Drivers *drivers)
     drivers->terminalSerial.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
+    #ifdef TARGET_STANDARD
+    drivers->turretMCBCanCommBus1.init();
+    #endif
     #ifdef TURRET
     chassisMcbCanComm.init();
-    #else
-    drivers->turretMCBCanCommBus1.init();
     #endif
 }
 
@@ -148,4 +147,5 @@ static void updateIo(Drivers *drivers)
     drivers->canRxHandler.pollCanData();
     drivers->refSerial.updateSerial();
     drivers->remote.read();
+    drivers->bmi088.read();
 }

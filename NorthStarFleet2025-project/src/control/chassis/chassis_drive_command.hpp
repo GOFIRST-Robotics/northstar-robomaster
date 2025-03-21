@@ -12,8 +12,6 @@ class ControlOperatorInterface;
 }
 }  //
 
-// namespace src
-// {
 namespace control::chassis
 {
 class ChassisSubsystem;
@@ -51,5 +49,3 @@ private:
     src::control::ControlOperatorInterface* operatorInterface;
 };
 }  // namespace control::chassis
-
-// } //namespace src

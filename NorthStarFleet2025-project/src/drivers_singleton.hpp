@@ -27,6 +27,9 @@
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_drivers.hpp"
 namespace src::standard
+#elif TURRET
+#include "robot/turret/turret_drivers.hpp"
+namespace src::turret
 #endif
 {
 /**

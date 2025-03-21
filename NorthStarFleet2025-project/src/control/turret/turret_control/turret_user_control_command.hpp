@@ -24,7 +24,9 @@
 
 #include "../turret_components/turret_controller_interface.hpp"
 #include "../turret_super_structure/turret_subsystem.hpp"
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
+#include "../../src/communications/can/turret/turret_mcb_can_comm.hpp"
+
 
 namespace src
 {
@@ -59,6 +61,7 @@ public:
     TurretUserControlCommand(
         tap::Drivers *drivers,
         src::control::ControlOperatorInterface* controlOperatorInterface,
+        src::can::TurretMCBCanComm *turretMCBCanComm,
         TurretSubsystem *turretSubsystem,
         algorithms::TurretYawControllerInterface *yawController,
         algorithms::TurretPitchControllerInterface *pitchController,
@@ -82,7 +85,7 @@ private:
     tap::Drivers *drivers;
     src::control::ControlOperatorInterface* controlOperatorInterface;
     TurretSubsystem *turretSubsystem;
-    const src::can::TurretMCBCanComm &turretMCBCanComm;
+    const src::can::TurretMCBCanComm *turretMCBCanComm;
     
     uint32_t prevTime = 0;
 

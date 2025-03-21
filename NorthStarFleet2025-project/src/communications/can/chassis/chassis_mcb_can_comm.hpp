@@ -42,7 +42,7 @@
      };
      MODM_FLAGS8(RxCommandMsgBitmask);
  
-     ChassisMcbCanComm(src::Drivers* drivers);
+     ChassisMcbCanComm(tap::Drivers* drivers);
      DISALLOW_COPY_AND_ASSIGN(ChassisMcbCanComm);
  
      void init();
@@ -132,7 +132,7 @@
      {
      public:
          MainMcbRxHandler(
-             src::Drivers* drivers,
+             tap::Drivers* drivers,
              uint32_t id,
              tap::can::CanBus cB,
              ChassisMcbCanComm* msgHandler,
@@ -144,7 +144,7 @@
          CanCommListenerFunc funcToCall;
      };
  
-     src::Drivers* drivers;
+     tap::Drivers* drivers;
  
      RxCommandMsgBitmask_t commandMsgBitmask;
  

@@ -17,19 +17,41 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ROBOT_CONTROL_HPP_
-#define ROBOT_CONTROL_HPP_
-
-#include "robot/standard/standard_drivers.hpp"
-#include "robot/turret/turret_drivers.hpp"
-
-#ifdef TARGET_STANDARD
-namespace src::standard
-#elif TURRET
-namespace src::turret
+#ifndef TURRET_DRIVERS_HPP_
+#define TURRET_DRIVERS_HPP_
+ 
+#include "tap/drivers.hpp"
+ 
+#if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
+#include "tap/mock/imu_terminal_serial_handler_mock.hpp"
+#else
+#include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
+#include "../../src/communications/can/chassis/chassis_mcb_can_comm.hpp"
 #endif
-{
-void initSubsystemCommands(Drivers *drivers);
-}  // namespace tbh whatever you want it to be
 
-#endif  // ROBOT_CONTROL_HPP_
+namespace src::turret
+{
+class Drivers : public tap::Drivers
+{
+    friend class DriversSingleton;
+
+#ifdef ENV_UNIT_TESTS
+public:
+#endif
+    Drivers()
+        : tap::Drivers(),
+        chassisMcbCanComm(this)
+    {
+    }
+ 
+#if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
+
+#else
+public:
+    ChassisMcbCanComm chassisMcbCanComm;
+#endif
+};  // class src::TurretDrivers
+}  // namespace src::turret
+
+#endif  // TURRET_DRIVERS_HPP_
+ 

@@ -2,14 +2,12 @@
 
 #include "tap/algorithms/math_user_utils.hpp"
 
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
 
 #include "chassis_subsystem.hpp"
 
 using tap::algorithms::limitVal;
 
-// namespace src
-// {
 namespace control::chassis
 {
 // STEP 1 (Tank Drive): Constructor
@@ -26,9 +24,9 @@ namespace control::chassis
         };
          
         chassis->setVelocityDrive(
-            scale(operatorInterface->getChassisXInput()),
-            scale(operatorInterface->getChassisYInput()),
-            scale(operatorInterface->getChassisRInput())
+            scale(operatorInterface->getDrivetrainVerticalTranslation()),
+            scale(operatorInterface->getDrivetrainHorizontalTranslation()),
+            scale(operatorInterface->getDrivetrainRotationalTranslation())
         );
     }
 // STEP 3 (Tank Drive): end function
@@ -36,5 +34,3 @@ namespace control::chassis
         chassis->setVelocityDrive(0, 0, 0);
     }
 };  // namespace control::chassis
-
-// } //namespace src

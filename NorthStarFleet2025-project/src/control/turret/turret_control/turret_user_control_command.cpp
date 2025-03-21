@@ -21,13 +21,14 @@
 
 #include "tap/drivers.hpp"
 
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
 
 namespace control::turret::user
 {
 TurretUserControlCommand::TurretUserControlCommand(
     tap::Drivers *drivers,
     src::control::ControlOperatorInterface* controlOperatorInterface,
+    src::can::TurretMCBCanComm *turretMCBCanComm,
     TurretSubsystem *turretSubsystem,
     algorithms::TurretYawControllerInterface *yawController,
     algorithms::TurretPitchControllerInterface *pitchController,
@@ -42,7 +43,7 @@ TurretUserControlCommand::TurretUserControlCommand(
       userYawInputScalar(userYawInputScalar),
       userPitchInputScalar(userPitchInputScalar),
       turretID(turretID),
-      turretMCBCanComm(drivers->turretMCBCanCommBus1)
+      turretMCBCanComm(turretMCBCanComm)
 {
     addSubsystemRequirement(turretSubsystem);
 }
@@ -60,6 +61,7 @@ void TurretUserControlCommand::initialize()
 // float pitchSetpointDebug = 0;
 float angle = 6;
 float lastYaw;
+float debug = 0;
 void TurretUserControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -74,13 +76,14 @@ void TurretUserControlCommand::execute()
     pitchController->runController(dt, pitchSetpoint);
 
     
-    const float yawSetpoint = -turretMCBCanComm.getYaw()+lastYaw +//-(turretSubsystem->turretGyro.getYaw()-lastYaw) +
+    const float yawSetpoint = -drivers->bmi088.getYaw()+lastYaw +//-(turretSubsystem->turretGyro.getYaw()-lastYaw) +
         yawController->getSetpoint() +
         userYawInputScalar * controlOperatorInterface->getTurretYawInput(turretID);
     // angle = -turretSubsystem->turretGyro.getYaw();
     // const float yawSetpoint = yawController->getSetpoint() + angle;
     yawController->runController(dt, yawSetpoint);
-    lastYaw = turretMCBCanComm.getYaw();  //turretSubsystem->turretGyro.getYaw();
+    lastYaw = drivers->bmi088.getYaw();  //turretSubsystem->turretGyro.getYaw();
+    debug = turretMCBCanComm->getYaw();
 }
 
 bool TurretUserControlCommand::isFinished() const
