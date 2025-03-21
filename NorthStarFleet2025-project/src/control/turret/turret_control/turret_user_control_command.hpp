@@ -25,7 +25,7 @@
 #include "../turret_components/turret_controller_interface.hpp"
 #include "../turret_super_structure/turret_subsystem.hpp"
 #include "robot/control_operator_interface.hpp"
-#include "../../src/communications/can/turret/turret_mcb_can_comm.hpp"
+#include "communications/can/turret/turret_mcb_can_comm.hpp"
 
 
 namespace src
