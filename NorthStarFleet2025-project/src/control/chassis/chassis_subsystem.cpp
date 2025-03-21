@@ -27,10 +27,10 @@ namespace control::chassis
         Motor(&drivers, config.rightBackId, config.canBus, true, "RB"),
     },
     rateLimiters{
-        control::chassis::algorithms::SlewRateLimiter(35000, 10),
-        control::chassis::algorithms::SlewRateLimiter(35000, 10),
-        control::chassis::algorithms::SlewRateLimiter(35000, 10),
-        control::chassis::algorithms::SlewRateLimiter(35000, 10),
+        control::chassis::algorithms::SlewRateLimiter(55000, 10),
+        control::chassis::algorithms::SlewRateLimiter(55000, 10),
+        control::chassis::algorithms::SlewRateLimiter(55000, 10),
+        control::chassis::algorithms::SlewRateLimiter(55000, 10),
     }
     {
         for (auto &controller : pidControllers) {
