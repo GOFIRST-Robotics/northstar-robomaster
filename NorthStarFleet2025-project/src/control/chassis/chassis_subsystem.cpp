@@ -16,7 +16,7 @@ namespace control::chassis
 
     float stupidHead;
 
-    ChassisSubsystem::ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config) :
+    ChassisSubsystem::ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config, src::can::TurretMCBCanComm* turretMcbCanComm) :
     Subsystem(drivers), 
     desiredOutput{},
     pidControllers{},
@@ -31,7 +31,8 @@ namespace control::chassis
         control::chassis::algorithms::SlewRateLimiter(55000, 10),
         control::chassis::algorithms::SlewRateLimiter(55000, 10),
         control::chassis::algorithms::SlewRateLimiter(55000, 10),
-    }
+    },
+    turretMcbCanComm(turretMcbCanComm)
     {
         for (auto &controller : pidControllers) {
             controller.setParameter(config.wheelVelocityPidConfig);

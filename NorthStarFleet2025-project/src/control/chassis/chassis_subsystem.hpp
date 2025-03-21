@@ -10,6 +10,7 @@
 
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
+#include "communications/can/turret/turret_mcb_can_comm.hpp"
 
 #define FIELD
 
@@ -58,7 +59,7 @@ public:
 
     static constexpr float MAX_WHEELSPEED_RPM = 7000;
 
-    ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config);
+    ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config, src::can::TurretMCBCanComm* turretMCBCanComm);
 
     ///
     /// @brief Initializes the drive motors.
@@ -92,6 +93,8 @@ private:
 
         return (mps / WHEEL_CIRCUMFERANCE_M) * SEC_PER_M * GEAR_RATIO;
     }
+
+    src::can::TurretMCBCanComm* turretMcbCanComm;
 
     /// Desired wheel output for each motor
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
