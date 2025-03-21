@@ -147,5 +147,5 @@ static void updateIo(Drivers *drivers)
     drivers->canRxHandler.pollCanData();
     drivers->refSerial.updateSerial();
     drivers->remote.read();
-    drivers->bmi088.read();
+    // drivers->bmi088.read();
 }

@@ -34,7 +34,7 @@ namespace control::chassis
             scale(operatorInterface->getDrivetrainVerticalTranslation()),
             scale(operatorInterface->getDrivetrainHorizontalTranslation()),
             scale(operatorInterface->getDrivetrainRotationalTranslation()),
-            yawMotor->getHeadingOfTurret()
+            chassis->getYaw()
         );
         #endif
 

@@ -48,7 +48,8 @@ namespace standard_control
                       .rightFrontId = MotorId::MOTOR1,
                       .canBus = CanBus::CAN_BUS1,
                       .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
-                  });
+                  },
+                  &drivers()->turretMCBCanCommBus1);
 
     ChassisDriveCommand chassisDriveCommand(
         &chassisSubsystem,

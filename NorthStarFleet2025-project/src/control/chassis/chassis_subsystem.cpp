@@ -90,6 +90,10 @@ namespace control::chassis
         desiredOutput[RF] = limitVal<float>(rateLimiters[RF].runLimiter(RFSpeed, motors[RF].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[RB] = limitVal<float>(rateLimiters[RB].runLimiter(RBSpeed, motors[RB].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
     }
+
+    float ChassisSubsystem::getYaw(){
+        return turretMcbCanComm->getYaw();
+    }
     
     void ChassisSubsystem::refresh() {
         auto runPid = [](Pid &pid, Motor &motor, float desiredOutput) {
