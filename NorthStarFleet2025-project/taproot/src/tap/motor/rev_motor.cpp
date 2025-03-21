@@ -127,15 +127,14 @@ void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
     //TODO: is this little endian or big endian?
     uint32_t floatAsInt;
     std::memcpy(&floatAsInt, &targetVoltage, sizeof(float));
-    floatAsInt = 0.1f;
-    txMessage->data[4] = static_cast<uint8_t>(floatAsInt & 0xFF);
-    txMessage->data[5] = static_cast<uint8_t>((floatAsInt >> 8) & 0xFF);
-    txMessage->data[6] = static_cast<uint8_t>((floatAsInt >> 16) & 0xFF);
-    txMessage->data[7] = static_cast<uint8_t>((floatAsInt >> 24) & 0xFF);
-    txMessage->data[0] = 0;
-    txMessage->data[1] = 0;
-    txMessage->data[2] = 0;
-    txMessage->data[3] = 0;
+    txMessage->data[3] = static_cast<uint8_t>(floatAsInt & 0xFF);
+    txMessage->data[2] = static_cast<uint8_t>((floatAsInt >> 8) & 0xFF);
+    txMessage->data[1] = static_cast<uint8_t>((floatAsInt >> 16) & 0xFF);
+    txMessage->data[0] = static_cast<uint8_t>((floatAsInt >> 24) & 0xFF);
+    txMessage->data[4] = 0;
+    txMessage->data[5] = 0;
+    txMessage->data[6] = 0;
+    txMessage->data[7] = 0;
 
 
 
