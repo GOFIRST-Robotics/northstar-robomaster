@@ -2,7 +2,7 @@
 
 #include "tap/algorithms/math_user_utils.hpp"
 
-#include "drivers.hpp"
+#include "tap/drivers.hpp"
 
 //#define MECANUM
 
@@ -16,15 +16,15 @@ namespace control::chassis
 
     float stupidHead;
 
-    ChassisSubsystem::ChassisSubsystem(tap::Drivers& drivers, const ChassisConfig& config) :
-    Subsystem(&drivers), 
+    ChassisSubsystem::ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config) :
+    Subsystem(drivers), 
     desiredOutput{},
     pidControllers{},
     motors{
-        Motor(&drivers, config.leftFrontId, config.canBus, false, "LF"),
-        Motor(&drivers, config.leftBackId, config.canBus, false, "LB"),
-        Motor(&drivers, config.rightFrontId, config.canBus, true, "RF"),
-        Motor(&drivers, config.rightBackId, config.canBus, true, "RB"),
+        Motor(drivers, config.leftFrontId, config.canBus, false, "LF"),
+        Motor(drivers, config.leftBackId, config.canBus, false, "LB"),
+        Motor(drivers, config.rightFrontId, config.canBus, true, "RF"),
+        Motor(drivers, config.rightBackId, config.canBus, true, "RB"),
     },
     rateLimiters{
         control::chassis::algorithms::SlewRateLimiter(55000, 10),

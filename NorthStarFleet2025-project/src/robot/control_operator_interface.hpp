@@ -28,6 +28,8 @@
 #include <tap/algorithms/linear_interpolation_predictor.hpp>
 #include <tap/algorithms/ramp.hpp>
 
+namespace src
+{
 namespace control
 {
 /**
@@ -47,7 +49,7 @@ public:
     static constexpr float USER_STICK_SENTRY_DRIVE_SCALAR = 5000.0f;
 
 
-    ControlOperatorInterface(tap::communication::serial::Remote &remote) : remote(remote) {}
+    ControlOperatorInterface(tap::Drivers *drivers) : remote(drivers->remote) {}
 
 
     /**
@@ -131,5 +133,6 @@ private:
 };
 }  // namespace control
 
+} //namespace src
 
 #endif  // CONTROL_OPERATOR_INTERFACE_HPP_

@@ -2,12 +2,15 @@
 
 #include "tap/control/command.hpp"
 
-#include "control/turret/turret_components/yaw_turret_motor.hpp"
+namespace src
+{
+class Drivers;
 
 namespace control
 {
 class ControlOperatorInterface;
 }
+}  //
 
 namespace control::chassis
 {
@@ -28,7 +31,7 @@ public:
      *
      * @param chassis Chassis to control.
      */
-    ChassisDriveCommand(ChassisSubsystem &chassis, ControlOperatorInterface &operatorInterface, const control::turret::YawTurretMotor* yawMotor);
+    ChassisDriveCommand(ChassisSubsystem *chassis, src::control::ControlOperatorInterface* operatorInterface);
 
     const char *getName() const override { return "Chassis tank drive"; }
 
@@ -41,10 +44,8 @@ public:
     bool isFinished() const { return false; }
 
 private:
-    ChassisSubsystem &chassis;
+    control::chassis::ChassisSubsystem *chassis;
 
-    ControlOperatorInterface &operatorInterface;
-
-    const control::turret::YawTurretMotor* yawMotor;
+    src::control::ControlOperatorInterface* operatorInterface;
 };
 }  // namespace control::chassis

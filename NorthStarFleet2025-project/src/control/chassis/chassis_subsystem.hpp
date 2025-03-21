@@ -6,6 +6,8 @@
 #include "tap/util_macros.hpp"
 #include "control/chassis/algorithms/slew_rate_limiter.hpp"
 
+#include "tap/drivers.hpp"
+
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
@@ -16,8 +18,6 @@
 #else
 #include "tap/motor/dji_motor.hpp"
 #endif
-
-class Drivers;
 
 namespace control::chassis
 {
@@ -58,7 +58,7 @@ public:
 
     static constexpr float MAX_WHEELSPEED_RPM = 7000;
 
-    ChassisSubsystem(tap::Drivers& drivers, const ChassisConfig& config);
+    ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config);
 
     ///
     /// @brief Initializes the drive motors.

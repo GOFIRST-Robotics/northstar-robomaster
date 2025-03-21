@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2020-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
@@ -17,7 +18,7 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/architecture/clock.hpp"
@@ -29,6 +30,8 @@
 using namespace tap::algorithms;
 using namespace tap::communication::serial;
 
+namespace src
+{
 namespace control
 {
 
@@ -336,3 +339,5 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
     }
     
 }  // namespace control
+
+} //namespace src

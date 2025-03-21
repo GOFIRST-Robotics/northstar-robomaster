@@ -22,9 +22,15 @@
 
 #ifndef ENV_UNIT_TESTS
 
-#include "drivers.hpp"
+#include "tap/util_macros.hpp"
 
-namespace src
+#ifdef TARGET_STANDARD
+#include "robot/standard/standard_drivers.hpp"
+namespace src::standard
+#elif TURRET
+#include "robot/turret/turret_drivers.hpp"
+namespace src::turret
+#endif
 {
 /**
  * @return The singleton instance of the Drivers class. This is the only instance of the
@@ -33,8 +39,8 @@ namespace src
  *      should be calling this function from -- `main.cpp` and `*_control.cpp`, either to
  *      run I/O stuff and to add a Drivers pointer to an instance of a Subsystem or Command.
  */
-src::Drivers *DoNotUse_getDrivers();
-using driversFunc = src::Drivers *(*)();
+Drivers *DoNotUse_getDrivers();
+using driversFunc = Drivers *(*)();
 }  // namespace src
 
 #endif  // DRIVERS_SINGLETON_HPP_

@@ -21,13 +21,14 @@
 
 #include "tap/drivers.hpp"
 
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
 
 namespace control::turret::user
 {
 TurretUserControlCommand::TurretUserControlCommand(
     tap::Drivers *drivers,
-    ControlOperatorInterface &controlOperatorInterface,
+    src::control::ControlOperatorInterface* controlOperatorInterface,
+    src::can::TurretMCBCanComm *turretMCBCanComm,
     TurretSubsystem *turretSubsystem,
     algorithms::TurretYawControllerInterface *yawController,
     algorithms::TurretPitchControllerInterface *pitchController,
@@ -41,7 +42,8 @@ TurretUserControlCommand::TurretUserControlCommand(
       pitchController(pitchController),
       userYawInputScalar(userYawInputScalar),
       userPitchInputScalar(userPitchInputScalar),
-      turretID(turretID)
+      turretID(turretID),
+      turretMCBCanComm(turretMCBCanComm)
 {
     addSubsystemRequirement(turretSubsystem);
 }
@@ -59,6 +61,7 @@ void TurretUserControlCommand::initialize()
 // float pitchSetpointDebug = 0;
 float angle = 6;
 float lastYaw;
+float debug = 0;
 void TurretUserControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -67,19 +70,20 @@ void TurretUserControlCommand::execute()
 
     const float pitchSetpoint =
         pitchController->getSetpoint() +
-        userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(turretID);
+        userPitchInputScalar * controlOperatorInterface->getTurretPitchInput(turretID);
     // pitchSetpointDebug = pitchSetpoint;
 
     pitchController->runController(dt, pitchSetpoint);
 
     
-    const float yawSetpoint = /*turretSubsystem->turretGyro.getYaw()-lastYaw) +*/
+    const float yawSetpoint = -drivers->bmi088.getYaw()+lastYaw +//-(turretSubsystem->turretGyro.getYaw()-lastYaw) +
         yawController->getSetpoint() +
-        userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
+        userYawInputScalar * controlOperatorInterface->getTurretYawInput(turretID);
     // angle = -turretSubsystem->turretGyro.getYaw();
     // const float yawSetpoint = yawController->getSetpoint() + angle;
     yawController->runController(dt, yawSetpoint);
-    // lastYaw = turretSubsystem->turretGyro.getYaw();
+    lastYaw = drivers->bmi088.getYaw();  //turretSubsystem->turretGyro.getYaw();
+    debug = turretMCBCanComm->getYaw();
 }
 
 bool TurretUserControlCommand::isFinished() const
