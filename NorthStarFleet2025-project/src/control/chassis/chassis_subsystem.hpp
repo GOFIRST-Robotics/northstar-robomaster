@@ -12,7 +12,7 @@
 #include "modm/math/geometry/angle.hpp"
 #include "communications/can/turret/turret_mcb_can_comm.hpp"
 
-// #define FIELD
+#define FIELD
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"

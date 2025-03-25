@@ -25,16 +25,16 @@ namespace control::chassis
         #ifdef FIELD
         chassis->setVelocityDrive(
             scale(operatorInterface->getDrivetrainVerticalTranslation()),
-            scale(operatorInterface->getDrivetrainHorizontalTranslation()),
+            -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
             scale(operatorInterface->getDrivetrainRotationalTranslation()),
             0.0f
         );
         #else 
         chassis->setVelocityDrive(
             scale(operatorInterface->getDrivetrainVerticalTranslation()),
-            scale(operatorInterface->getDrivetrainHorizontalTranslation()),
+            -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
             scale(operatorInterface->getDrivetrainRotationalTranslation()),
-            chassis->getYaw()
+            0.0f
         );
         #endif
 
