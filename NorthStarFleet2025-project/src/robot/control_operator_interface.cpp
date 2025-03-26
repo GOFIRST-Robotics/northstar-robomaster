@@ -330,9 +330,11 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
     }
 
     void ControlOperatorInterface::checkToggleBeyBlade(){
-        if (remote.keyPressed(Remote::Key::B) && !isHeld) {
-            beyBlade = !beyBlade;
-            isHeld = true;
+        if (remote.keyPressed(Remote::Key::B)){
+            if (!isHeld) {
+                beyBlade = !beyBlade;
+                isHeld = true;
+            } 
         } else {
             isHeld = false;
         }

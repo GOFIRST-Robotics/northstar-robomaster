@@ -48,15 +48,11 @@ namespace control::chassis
     float LBSpeed;
     float RFSpeed;
     float RBSpeed;
-    float LFSpeeda;
-    float LBSpeeda;
-    float RFSpeeda;
-    float RBSpeeda;
 // STEP 3 (Tank Drive): setVelocityTankDrive function
     void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float turretRot = 0.0f) {
         float distToCenter;
         
-        drivers->bmi088.read();
+        // drivers->bmi088.read();
         #ifdef FIELD
         float robotHeading = modm::toRadian(turretMcbCanComm->getYaw());
         // robotHeading = fmod(robotHeading, 2 * M_PI);
@@ -88,12 +84,6 @@ namespace control::chassis
         RFSpeed = -mpsToRpm((-vx_local - vy_local) / sqrt2 + rotational * distToCenter * sqrt2); // Front-right wheel
         RBSpeed = -mpsToRpm((-vx_local + vy_local) / sqrt2 + rotational * distToCenter * sqrt2); // Rear-right wheel
         LBSpeed = mpsToRpm((vx_local + vy_local) / sqrt2 + rotational * distToCenter * sqrt2);  // Rear-left wheel
-
-
-        // LFSpeed = mpsToRpm(forward * cos(robotHeading) + sideways * sin(robotHeading) + modm::toRadian(rotational) * distToCenter);
-        // RFSpeed = -mpsToRpm(forward * cos(robotHeading + M_PI_2) + sideways * sin(robotHeading + M_PI_2) + modm::toRadian(rotational) * distToCenter);
-        // RBSpeed = -mpsToRpm(forward * cos(robotHeading + M_PI) + sideways * sin(robotHeading + M_PI) + modm::toRadian(rotational) * distToCenter);
-        // LBSpeed = mpsToRpm(forward * cos(robotHeading + 3 * M_PI / 2) + sideways * sin(robotHeading + 3 * M_PI / 2) + modm::toRadian(rotational) * distToCenter);
         #endif
         int LF = static_cast<int>(MotorId::LF);
         int LB = static_cast<int>(MotorId::LB);
@@ -103,20 +93,8 @@ namespace control::chassis
         desiredOutput[LB] = limitVal<float>(LBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[RF] = limitVal<float>(RFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[RB] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        // desiredOutput[LF] = limitVal<float>(rateLimiters[LF].runLimiter(LFSpeed, motors[LF].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        // desiredOutput[LB] = limitVal<float>(rateLimiters[LB].runLimiter(LBSpeed, motors[LB].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        // desiredOutput[RF] = limitVal<float>(rateLimiters[RF].runLimiter(RFSpeed, motors[RF].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        // desiredOutput[RB] = limitVal<float>(rateLimiters[RB].runLimiter(RBSpeed, motors[RB].getShaftRPM()), -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-        LFSpeeda = motors[LF].getShaftRPM();
-        LBSpeeda = motors[LB].getShaftRPM();   
-        RFSpeeda = motors[RF].getShaftRPM();
-        RBSpeeda = motors[RB].getShaftRPM();
     }
 
-    float ChassisSubsystem::getYaw(){
-        return turretMcbCanComm->getYaw();
-    }
-    
     void ChassisSubsystem::refresh() {
         auto runPid = [](Pid &pid, Motor &motor, float desiredOutput) {
             pid.update(desiredOutput - motor.getShaftRPM());
