@@ -35,7 +35,7 @@ Robot::Robot(src::Drivers &drivers)
         .gearRatio = 36.0f,
         .agitatorMotorId = tap::motor::MOTOR7,
         .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
-        .isAgitatorInverted = true,
+        .isAgitatorInverted = false,
         .jammingVelocityDifference = M_TWOPI,
         .jammingTime = 100,
         .jamLogicEnabled = true,
