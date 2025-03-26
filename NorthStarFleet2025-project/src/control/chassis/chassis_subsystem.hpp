@@ -4,12 +4,15 @@
 
 #include "tap/control/subsystem.hpp"
 #include "tap/util_macros.hpp"
-#include "control/algorithms/slew_rate_limiter.hpp"
+#include "control/chassis/algorithms/slew_rate_limiter.hpp"
 
 #include "tap/drivers.hpp"
 
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
+#include "communications/can/turret/turret_mcb_can_comm.hpp"
+
+#define FIELD
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
@@ -56,7 +59,7 @@ public:
 
     static constexpr float MAX_WHEELSPEED_RPM = 7000;
 
-    ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config);
+    ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config, src::can::TurretMCBCanComm* turretMCBCanComm);
 
     ///
     /// @brief Initializes the drive motors.
@@ -71,7 +74,7 @@ public:
     /// forward, negative is backwards.
     /// @param right Desired chassis speed in m/s of the right side of the chassis.
     ///
-    mockable void setVelocityDrive(float forward, float sideways, float rotational);
+    mockable void setVelocityDrive(float forward, float sideways, float rotational, float turretRot);
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.
@@ -79,6 +82,8 @@ public:
     void refresh() override;
 
     const char* getName() { return "Chassis"; }
+
+    float getYaw();
 
 private:
     inline float mpsToRpm(float mps)
@@ -91,13 +96,15 @@ private:
         return (mps / WHEEL_CIRCUMFERANCE_M) * SEC_PER_M * GEAR_RATIO;
     }
 
+    src::can::TurretMCBCanComm* turretMcbCanComm;
+
     /// Desired wheel output for each motor
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
 
     /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
 
-    std::array<control::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
+    std::array<control::chassis::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
 
 protected:
     /// Motors.

@@ -16,6 +16,8 @@
 #include "control/turret/turret_components/chassis_frame_turret_controller.hpp"
 #include "control/turret/turret_components/yaw_turret_motor.hpp"
 
+#include "control/chassis/constants/chassis_constants.hpp"
+
 
 
 using tap::can::CanBus;
@@ -28,6 +30,7 @@ using namespace src::standard;
 using namespace control::turret;
 using namespace control::turret::user;
 using namespace control::turret::algorithms;
+using namespace src::chassis;
 // using tap::control::setpoint::IntegrableSetpointSubsystem;
 // using tap::control::setpoint::MoveIntegralCommand;
 // using tap::control::setpoint::UnjamIntegralCommand;
@@ -42,13 +45,17 @@ namespace standard_control
     ChassisSubsystem chassisSubsystem(
                   drivers(),
                   control::chassis::ChassisConfig{
-                      .leftFrontId = MotorId::MOTOR2,
-                      .leftBackId = MotorId::MOTOR3,
-                      .rightBackId = MotorId::MOTOR4,
-                      .rightFrontId = MotorId::MOTOR1,
-                      .canBus = CanBus::CAN_BUS1,
-                      .wheelVelocityPidConfig = modm::Pid<float>::Parameter(14, 0, 0, 0, 16'000),
-                  });
+                    .leftFrontId = LEFT_FRONT_MOTOR_ID,
+                    .leftBackId = LEFT_BACK_MOTOR_ID,
+                    .rightBackId = RIGHT_BACK_MOTOR_ID,
+                    .rightFrontId = RIGHT_FRONT_MOTOR_ID,
+                    .canBus = CanBus::CAN_BUS1,
+                    .wheelVelocityPidConfig = modm::Pid<float>::Parameter(VELOCITY_PID_KP,
+                                                                          VELOCITY_PID_KI,
+                                                                          VELOCITY_PID_KD,
+                                                                          VELOCITY_PID_MAX_ERROR_SUM),
+                  },
+                  &drivers()->turretMCBCanCommBus1);
 
     ChassisDriveCommand chassisDriveCommand(
         &chassisSubsystem,

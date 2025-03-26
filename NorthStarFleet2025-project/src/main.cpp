@@ -100,16 +100,16 @@ int main()
 
         if (sendMotorTimeout.execute())
         {
+            PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
             #ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
             #else
-            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
+            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             #endif
-            PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
         }
         modm::delay_us(10);
     }

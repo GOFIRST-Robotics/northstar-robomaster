@@ -246,6 +246,8 @@ float ControlOperatorInterface::getDrivetrainRotation()
 
 int count = 250;
 float beyBladeValue = 1;
+float prevBeyBladeValue = 0.1f * sin(beyBladeValue) + 0.9f;
+float speed = 0;
 
 bool beyBlade = false;
 bool isHeld = false;
@@ -257,12 +259,16 @@ float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
         count++;
         if (count >= 250) {
             if (RandomNumberGenerator::isReady()) {
+                prevBeyBladeValue = beyBladeValue;
                 beyBladeValue = RandomNumberGenerator::getValue() % 360;
                 count = 0;
             }
         }
-        return 0.1f * sin(beyBladeValue) + 0.8f;
-        // return 1.0f;
+        if (count % 25 == 0) {
+            speed = (0.1f * sin(beyBladeValue) + 0.9f + prevBeyBladeValue) / 2;
+            prevBeyBladeValue = speed;
+        }
+        return speed;
     }
 
     if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
@@ -324,9 +330,11 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
     }
 
     void ControlOperatorInterface::checkToggleBeyBlade(){
-        if (remote.keyPressed(Remote::Key::B) && !isHeld) {
-            beyBlade = !beyBlade;
-            isHeld = true;
+        if (remote.keyPressed(Remote::Key::B)){
+            if (!isHeld) {
+                beyBlade = !beyBlade;
+                isHeld = true;
+            } 
         } else {
             isHeld = false;
         }

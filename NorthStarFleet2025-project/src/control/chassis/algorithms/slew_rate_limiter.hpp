@@ -1,4 +1,4 @@
-namespace control::algorithms
+namespace control::chassis::algorithms
 {
     
 class SlewRateLimiter
