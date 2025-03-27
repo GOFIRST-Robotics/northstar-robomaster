@@ -17,23 +17,22 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "standard_turret_subsystem.hpp"
-#include "tap/algorithms/wrapped_float.hpp"
+#ifndef ROBOT_TURRET_SUBSYSTEM_HPP_
+#define ROBOT_TURRET_SUBSYSTEM_HPP_
 
-using namespace tap::algorithms;
-namespace control::turret
+#include "control/turret/turret_orientation_interface.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
+namespace src::control::turret
 {
+/**
+ * Subsystem that must be extended. Extends both the TurretSubsystem and TurretOrientationInterface.
+ */
+class RobotTurretSubsystem : public src::control::turret::TurretSubsystem,
+                             public src::control::turret::TurretOrientationInterface
+{
+    using TurretSubsystem::TurretSubsystem;
+};
+}  // namespace src::control::turret
 
-float StandardTurretSubsystem::getTurretHeading() { return getTurretGyro()->getYaw(); }
-
-float StandardTurretSubsystem::getTurretPitch() { return getTurretGyro()->getPitch(); }
-// float StandardTurretSubsystem::getTurretPitch() { return 0.05; }
-
-float StandardTurretSubsystem::getChassisHeading() {
-    WrappedFloat turretHeading = WrappedFloat(getTurretHeading(), 0, M_TWOPI);
-    WrappedFloat yawMotorWrapped = yawMotor.getChassisFrameMeasuredAngle();
-    return turretHeading.minDifference(yawMotorWrapped);
-}
-
-}  // namespace aruwsrc::control::turret
+#endif  // ROBOT_TURRET_SUBSYSTEM_HPP_

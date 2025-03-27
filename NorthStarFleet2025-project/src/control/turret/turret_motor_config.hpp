@@ -23,7 +23,7 @@
 #include <cassert>
 #include <cstdint>
 
-namespace control::turret
+namespace src::control::turret
 {
 /**
  * Configuration struct for the TurretMotor object.
@@ -42,6 +42,6 @@ struct TurretMotorConfig
     bool limitMotorAngles = true;  /// true if the motor will be limited between [minAngle,
                                    /// maxAngle], false otherwise.
 };
-}  // namespace control::turret
+}  // namespace src::control::turret
 
 #endif  // TURRET_MOTOR_CONFIG_HPP_

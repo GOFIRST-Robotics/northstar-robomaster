@@ -17,22 +17,26 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ROBOT_TURRET_SUBSYSTEM_HPP_
-#define ROBOT_TURRET_SUBSYSTEM_HPP_
+#ifndef STANDARD_TURRET_SUBSYSTEM_HPP_
+#define STANDARD_TURRET_SUBSYSTEM_HPP_
 
-#include "../turret_components/turret_position_interface.hpp"
-#include "turret_subsystem.hpp"
+#include "control/turret/robot_turret_subsystem.hpp"
 
-namespace control::turret
+namespace src::control::turret
 {
 /**
- * Subsystem that must be extended. Extends both the TurretSubsystem and TurretOrientationInterface.
+ * Turret subsystem for the Standard.
  */
-class RobotTurretSubsystem : public control::turret::TurretSubsystem,
-                             public control::turret::TurretPositionInterface
+class StandardTurretSubsystem final : public RobotTurretSubsystem
 {
-    using TurretSubsystem::TurretSubsystem;
-};
-}  // namespace control::turret
+    using RobotTurretSubsystem::RobotTurretSubsystem;
+    float getWorldYaw() const override;
+    float getWorldPitch() const override;
+    uint32_t getLastMeasurementTimeMicros() const override;
+    modm::Vector3f getTurretOffset() const override { return modm::Vector3f(0, 0, 0); };
+    float getPitchOffset() const override { return 0; };
+};  // class StandardTurretSubsystem
 
-#endif  // ROBOT_TURRET_SUBSYSTEM_HPP_
+}  // namespace src::control::turret
+
+#endif  // STANDARD_TURRET_SUBSYSTEM_HPP_

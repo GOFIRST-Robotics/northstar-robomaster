@@ -5,16 +5,19 @@
 #include "../../robot-type/robot_type.hpp"
 
 #include "tap/util_macros.hpp"
-#include "control/turret/turret_constants/standard_turret_constants.hpp"
 #include "robot/standard/standard_drivers.hpp"
 
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 
-#include "control/turret/turret_super_structure/standard_turret_subsystem.hpp"
-#include "control/turret/turret_control/turret_user_control_command.hpp"
-#include "control/turret/turret_components/chassis_frame_turret_controller.hpp"
-#include "control/turret/turret_components/yaw_turret_motor.hpp"
+#include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
+#include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
+#include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
+#include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/user/turret_quick_turn_command.hpp"
+#include "control/turret/user/turret_user_world_relative_command.hpp"
+#include "control/turret/user/turret_user_control_command.hpp"
+#include "robot/standard/standard_turret_subsystem.hpp"
 
 #include "control/chassis/constants/chassis_constants.hpp"
 
@@ -24,25 +27,29 @@ using tap::can::CanBus;
 using tap::communication::serial::Remote;
 // using tap::control::RemoteMapState;
 using tap::motor::MotorId;
-using namespace control;
-using namespace control::chassis;
+// using namespace control;
+// using namespace control::chassis;
 using namespace src::standard;
-using namespace control::turret;
-using namespace control::turret::user;
-using namespace control::turret::algorithms;
+using namespace src::control::turret;
+// using namespace control::turret::user;
+// using namespace control::turret::algorithms;
 using namespace src::chassis;
 // using tap::control::setpoint::IntegrableSetpointSubsystem;
 // using tap::control::setpoint::MoveIntegralCommand;
 // using tap::control::setpoint::UnjamIntegralCommand;
 // using tap::control::setpoint::MoveUnjamIntegralComprisedCommand;
 
-using namespace control::turret;
-
 driversFunc drivers = DoNotUse_getDrivers;
 
 namespace standard_control
 {
-    ChassisSubsystem chassisSubsystem(
+
+    inline src::can::TurretMCBCanComm &getTurretMCBCanComm()
+    {
+        return drivers()->turretMCBCanCommBus1;
+    }
+
+    control::chassis::ChassisSubsystem chassisSubsystem(
                   drivers(),
                   control::chassis::ChassisConfig{
                     .leftFrontId = LEFT_FRONT_MOTOR_ID,
@@ -57,7 +64,7 @@ namespace standard_control
                   },
                   &drivers()->turretMCBCanCommBus1);
 
-    ChassisDriveCommand chassisDriveCommand(
+    control::chassis::ChassisDriveCommand chassisDriveCommand(
         &chassisSubsystem,
         &drivers()->controlOperatorInterface);
     //   agitatorSubsystemConfig{
@@ -136,54 +143,91 @@ namespace standard_control
     //         true ),
     tap::motor::DjiMotor pitchMotor(
         drivers(), 
-        MotorId::MOTOR5, 
-        CanBus::CAN_BUS1, 
-        true, "pitchMotor");
+        PITCH_MOTOR_ID, 
+        CAN_BUS_MOTORS, 
+        true, "PitchMotor");
 
-    TurretMotor turretPitchMotor(
-        &pitchMotor,
-        PITCH_MOTOR_CONFIG);
+    // TurretMotor turretPitchMotor(
+    //     &pitchMotor,
+    //     PITCH_MOTOR_CONFIG);
     
     tap::motor::DjiMotor yawMotor(
         drivers(), 
-        MotorId::MOTOR8, 
-        CanBus::CAN_BUS1, 
+        YAW_MOTOR_ID, 
+        CAN_BUS_MOTORS, 
         false, "YawMotor");
         
-    TurretMCBCGryo turretGyro(
-        drivers());
-
-    YawTurretMotor turretYawMotor(
-        &yawMotor,
-        YAW_MOTOR_CONFIG,
-        &turretGyro);
-
     StandardTurretSubsystem turret(
         drivers(),
         &pitchMotor,
-        &yawMotor, 
+        &yawMotor,
         PITCH_MOTOR_CONFIG,
-        YAW_MOTOR_CONFIG, 
-        turretGyro);
+        YAW_MOTOR_CONFIG,
+        &getTurretMCBCanComm());
 
-    ChassisFrameYawTurretController yawController(
-        turretYawMotor, 
-        YAW_PID_CONFIG);
-
-    ChassisFramePitchTurretController pitchController(
-        turretPitchMotor, 
-        PITCH_PID_CONFIG);
-
-    TurretUserControlCommand turretUserControlCommand(
+    algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
+        turret.pitchMotor,
+        chassis_rel::PITCH_PID_CONFIG);
+    
+    algorithms::ChassisFrameYawTurretController chassisFrameYawTurretController(
+        turret.yawMotor,
+        chassis_rel::YAW_PID_CONFIG);
+    
+    algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuController(
+        *drivers(),
+        turret.yawMotor,
+        world_rel_chassis_imu::YAW_PID_CONFIG);
+    
+    tap::algorithms::SmoothPid worldFramePitchTurretImuPosPid(
+        world_rel_turret_imu::PITCH_POS_PID_CONFIG);
+    // tap::algorithms::SmoothPid worldFramePitchTurretImuPosPidCv(
+    //     world_rel_turret_imu::PITCH_POS_PID_AUTO_AIM_CONFIG);
+    tap::algorithms::SmoothPid worldFramePitchTurretImuVelPid(
+        world_rel_turret_imu::PITCH_VEL_PID_CONFIG);
+    
+    algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuController(
+        getTurretMCBCanComm(),
+        turret.pitchMotor,
+        worldFramePitchTurretImuPosPid,
+        worldFramePitchTurretImuVelPid);
+    
+    // algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerCv(
+    //     getTurretMCBCanComm(),
+    //     turret.pitchMotor,
+    //     worldFramePitchTurretImuPosPidCv,
+    //     worldFramePitchTurretImuVelPid);
+    
+    tap::algorithms::SmoothPid worldFrameYawTurretImuPosPid(world_rel_turret_imu::YAW_POS_PID_CONFIG);
+    tap::algorithms::SmoothPid worldFrameYawTurretImuVelPid(world_rel_turret_imu::YAW_VEL_PID_CONFIG);
+    
+    algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuController(
+        getTurretMCBCanComm(),
+        turret.yawMotor,
+        worldFrameYawTurretImuPosPid,
+        worldFrameYawTurretImuVelPid);
+    
+    // tap::algorithms::SmoothPid worldFrameYawTurretImuPosPidCv(
+    //     world_rel_turret_imu::YAW_POS_PID_AUTO_AIM_CONFIG);
+    // tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidCv(world_rel_turret_imu::YAW_VEL_PID_CONFIG);
+    
+    // algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerCv(
+    //     getTurretMCBCanComm(),
+    //     turret.yawMotor,
+    //     worldFrameYawTurretImuPosPidCv,
+    //     worldFrameYawTurretImuVelPidCv);
+    
+    // turret commands
+    user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
         drivers(),
-        &drivers()->controlOperatorInterface,
-        &drivers()->turretMCBCanCommBus1,
-        &turret, 
-        &yawController,
-        &pitchController,
+        drivers()->controlOperatorInterface,
+        &turret,
+        &worldFrameYawChassisImuController,
+        &chassisFramePitchTurretController,
+        &worldFrameYawTurretImuController,
+        &worldFramePitchTurretImuController,
         USER_YAW_INPUT_SCALAR,
-        USER_PITCH_INPUT_SCALAR,
-        0);
+        USER_PITCH_INPUT_SCALAR);
+
     //     turretOrientedDriveCommand(
     //     &drivers,
     //     m_ControlOperatorInterface,
@@ -211,7 +255,7 @@ void setDefaultSoldierCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
-    turret.setDefaultCommand(&turretUserControlCommand);
+    turret.setDefaultCommand(&turretUserWorldRelativeCommand);
 }
 
 void startSoldierCommands(Drivers *drivers) {}

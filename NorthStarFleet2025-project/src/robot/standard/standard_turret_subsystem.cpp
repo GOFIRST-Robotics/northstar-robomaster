@@ -17,28 +17,19 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STANDARD_TURRET_SUBSYSTEM_HPP_
-#define STANDARD_TURRET_SUBSYSTEM_HPP_
+#include "standard_turret_subsystem.hpp"
 
-#include "robot_turret_subsystem.hpp"
-#include "turret_gyro.hpp"
+#include "communication/can/turret/turret_mcb_can_comm.hpp"
 
-namespace control::turret
+namespace src::control::turret
 {
-/**
- * Turret subsystem for the Standard.
- */
-class StandardTurretSubsystem final : public RobotTurretSubsystem
+float StandardTurretSubsystem::getWorldYaw() const { return getTurretMCB()->getYaw(); }
+
+float StandardTurretSubsystem::getWorldPitch() const { return getTurretMCB()->getPitch(); }
+
+uint32_t StandardTurretSubsystem::getLastMeasurementTimeMicros() const
 {
-    using RobotTurretSubsystem::RobotTurretSubsystem;
-    float getTurretHeading() override;
-    float getTurretPitch() override;
-    float getChassisHeading();
-    
+    return getTurretMCB()->getIMUDataTimestamp();
+}
 
-    
-};  // class StandardTurretSubsystem
-
-}  // namespace aruwsrc::control::turret
-
-#endif  // STANDARD_TURRET_SUBSYSTEM_HPP_
+}  // namespace src::control::turret

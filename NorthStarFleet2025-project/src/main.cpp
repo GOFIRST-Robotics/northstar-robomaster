@@ -55,7 +55,7 @@ tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 #ifdef TARGET_STANDARD
 using namespace src::standard;
 #elif TURRET
-#include "communications/can/chassis/chassis_mcb_can_comm.hpp"
+#include "communication/can/chassis/chassis_mcb_can_comm.hpp"
 using namespace src::turret;
 ChassisMcbCanComm chassisMcbCanComm(DoNotUse_getDrivers());
 #endif

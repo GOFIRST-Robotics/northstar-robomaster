@@ -10,7 +10,7 @@
 
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
-#include "communications/can/turret/turret_mcb_can_comm.hpp"
+#include "communication/can/turret/turret_mcb_can_comm.hpp"
 
 #define FIELD
 

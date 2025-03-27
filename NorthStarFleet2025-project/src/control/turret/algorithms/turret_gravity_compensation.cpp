@@ -22,7 +22,7 @@
 
 using namespace tap::algorithms;
 
-namespace control::turret::algorithms
+namespace src::control::turret::algorithms
 {
 float computeGravitationalForceOffset(
     const float cgX,
@@ -53,4 +53,4 @@ float computeGravitationalForceOffset(
 
     return gravityCompensatorMax * cosf(turretCGPolarTheta + pitchAngleFromCenter);
 }
-}  // namespace control::turret::algorithms
+}  // namespace src::control::turret::algorithms

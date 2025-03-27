@@ -27,20 +27,18 @@
 using namespace tap::motor;
 using namespace tap::algorithms;
 
-namespace control::turret
+namespace src::control::turret
 {
 TurretMotor::TurretMotor(tap::motor::MotorInterface *motor, const TurretMotorConfig &motorConfig)
     : config(motorConfig),
       motor(motor),
-      chassisFrameSetpoint(config.startAngle),
-      chassisFrameMeasuredAngle(config.startAngle, 0, M_TWOPI),
-      chassisFrameUnwrappedMeasurement(config.startAngle),
+      chassisFrameSetpoint(Angle(config.startAngle)),
+      chassisFrameMeasuredAngle(Angle(config.startAngle)),
       lastUpdatedEncoderValue(config.startEncoderValue)
 {
     assert(config.minAngle <= config.maxAngle);
     assert(motor != nullptr);
 }
-
 
 void TurretMotor::updateMotorAngle()
 {
@@ -79,7 +77,7 @@ void TurretMotor::updateMotorAngle()
         lastUpdatedEncoderValue = encoderUnwrapped;
 
         
-        chassisFrameUnwrappedMeasurement =
+        float chassisFrameUnwrappedMeasurement =
             static_cast<float>(
                 encoderUnwrapped - static_cast<int64_t>(config.startEncoderValue) +
                 startEncoderOffset) *
@@ -116,75 +114,55 @@ void TurretMotor::setMotorOutput(float out)
     }
 }
 
-
-void TurretMotor::setChassisFrameSetpoint(float setpoint)
+void TurretMotor::setChassisFrameSetpoint(WrappedFloat setpoint)
 {
     chassisFrameSetpoint = setpoint;
 
     if (config.limitMotorAngles)
     {
-        chassisFrameSetpoint = limitVal(chassisFrameSetpoint, config.minAngle, config.maxAngle);
+        int status;
+        chassisFrameSetpoint = Angle(WrappedFloat::limitValue(
+            chassisFrameSetpoint,
+            config.minAngle,
+            config.maxAngle,
+            &status));
     }
 }
-
 
 float TurretMotor::getValidChassisMeasurementError() const
 {
-    return getValidMinError(chassisFrameSetpoint, this->chassisFrameUnwrappedMeasurement);
+    return getValidMinError(chassisFrameSetpoint, chassisFrameMeasuredAngle);
 }
 
-float TurretMotor::getValidChassisMeasurementErrorWrapped() const
-{
-    // equivalent to this - other
-    return WrappedFloat(chassisFrameUnwrappedMeasurement, 0, M_TWOPI)
-        .minDifference(chassisFrameSetpoint);
-}
-
-float TurretMotor::getValidMinError(const float setpoint, const float measurement) const
+float TurretMotor::getValidMinError(const WrappedFloat setpoint, const WrappedFloat measurement)
+    const
 {
     if (config.limitMotorAngles)
     {
-        // the error is absolute
-        return setpoint - measurement;
-    }
-    else
-    {
-        // the error can be wrapped around the unit circle
-        // equivalent to this - other
-        return WrappedFloat(measurement, 0, M_TWOPI).minDifference(setpoint);
-    }
-}
+        float pos = WrappedFloat::rangeOverlap(
+            measurement,
+            setpoint,
+            Angle(config.maxAngle),
+            Angle(config.minAngle));
+        float neg = WrappedFloat::rangeOverlap(
+            setpoint,
+            measurement,
+            Angle(config.maxAngle),
+            Angle(config.minAngle));
 
-float TurretMotor::getClosestNonNormalizedSetpointToMeasurement(float measurement, float setpoint)
-{
-    return WrappedFloat(WrappedFloat(measurement, 0, M_TWOPI).minDifference(setpoint), -M_PI, M_PI)
-               .getWrappedValue() +
-           measurement;
-}
-
-float TurretMotor::getSetpointWithinTurretRange(float setpoint) const
-{
-    if (setpoint < config.minAngle)
-    {
-        float newSetpoint = setpoint;
-        while (newSetpoint < config.minAngle)
+        if (pos < neg)
         {
-            newSetpoint += M_TWOPI;
+            return (setpoint - measurement).getWrappedValue();
         }
-        return newSetpoint <= config.maxAngle ? newSetpoint : setpoint;
-    }
-
-    if (setpoint > config.maxAngle)
-    {
-        float newSetpoint = setpoint;
-        while (newSetpoint > config.maxAngle)
+        else if (pos > neg)
         {
-            newSetpoint -= M_TWOPI;
+            return (setpoint - measurement).getWrappedValue() - static_cast<float>(M_TWOPI);
         }
-        return newSetpoint >= config.minAngle ? newSetpoint : setpoint;
     }
 
-    return setpoint;
+    // the error can be wrapped around the unit circle
+    // equivalent to this - other
+    return measurement.minDifference(setpoint);
 }
 
-}  // namespace control::turret
+}  // namespace src::control::turret

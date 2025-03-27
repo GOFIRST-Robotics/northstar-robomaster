@@ -22,11 +22,8 @@
 
 #include "tap/control/command.hpp"
 
-#include "../turret_components/turret_controller_interface.hpp"
-#include "../turret_super_structure/turret_subsystem.hpp"
-#include "robot/control_operator_interface.hpp"
-#include "communications/can/turret/turret_mcb_can_comm.hpp"
-
+#include "../algorithms/turret_controller_interface.hpp"
+#include "../turret_subsystem.hpp"
 
 namespace src
 {
@@ -36,9 +33,9 @@ namespace control
 {
 class ControlOperatorInterface;
 }
-}  // 
+}  // namespace src
 
-namespace control::turret::user
+namespace src::control::turret::user
 {
 /**
  * Command that takes user input from the `ControlOperatorInterface` to control the pitch and yaw
@@ -60,8 +57,7 @@ public:
      */
     TurretUserControlCommand(
         tap::Drivers *drivers,
-        src::control::ControlOperatorInterface* controlOperatorInterface,
-        src::can::TurretMCBCanComm *turretMCBCanComm,
+        ControlOperatorInterface &controlOperatorInterface,
         TurretSubsystem *turretSubsystem,
         algorithms::TurretYawControllerInterface *yawController,
         algorithms::TurretPitchControllerInterface *pitchController,
@@ -83,10 +79,9 @@ public:
 
 private:
     tap::Drivers *drivers;
-    src::control::ControlOperatorInterface* controlOperatorInterface;
+    ControlOperatorInterface &controlOperatorInterface;
     TurretSubsystem *turretSubsystem;
-    const src::can::TurretMCBCanComm *turretMCBCanComm;
-    
+
     uint32_t prevTime = 0;
 
     algorithms::TurretYawControllerInterface *yawController;
@@ -97,6 +92,6 @@ private:
 
     const uint8_t turretID;
 };
-}  // namespace aruwsrc::control::turret::user
+}  // namespace src::control::turret::user
 
 #endif  // TURRET_USER_CONTROL_COMMAND_HPP_

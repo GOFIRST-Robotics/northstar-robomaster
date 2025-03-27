@@ -25,30 +25,31 @@
 #include "tap/control/subsystem.hpp"
 #include "tap/control/turret_subsystem_interface.hpp"
 #include "tap/motor/dji_motor.hpp"
-#include "turret_gyro.hpp"
 
-
-#include "../turret_components/turret_motor_config.hpp"
+#include "turret_motor_config.hpp"
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
-#include "aruwsrc/mock/turret_motor_mock.hpp"
+#include "src/mock/turret_motor_mock.hpp"
 #else
-#include "../turret_components/turret_motor.hpp"
+#include "turret_motor.hpp"
 #endif
 
 #include "tap/util_macros.hpp"
 
-
 #include "modm/math/filter/pid.hpp"
 
+namespace src::can
+{
+class TurretMCBCanComm;
+}
 
-namespace control::turret::algorithms
+namespace src::control::turret::algorithms
 {
 class TurretPitchControllerInterface;
 class TurretYawControllerInterface;
-}  // namespace control::turret::algorithms
+}  // namespace src::control::turret::algorithms
 
-namespace control::turret
+namespace src::control::turret
 {
 /**
  * Stores software necessary for interacting with two gimbals that control the pitch and
@@ -73,27 +74,23 @@ public:
         tap::motor::MotorInterface* yawMotor,
         const TurretMotorConfig& pitchMotorConfig,
         const TurretMotorConfig& yawMotorConfig,
-        TurretMCBCGryo turretGyro);
+        const src::can::TurretMCBCanComm* turretMCB);
 
     void initialize() override;
 
     void refresh() override;
 
-    // void refreshSafeDisconnect() override
-    // {
-    //     yawMotor.setMotorOutput(0);
-    //     pitchMotor.setMotorOutput(0);
-    // }
+    void refreshSafeDisconnect() override
+    {
+        yawMotor.setMotorOutput(0);
+        pitchMotor.setMotorOutput(0);
+    }
 
     const char* getName() const override { return "Turret"; }
 
-    // void onHardwareTestStart() override;
-
     mockable inline bool isOnline() const { return pitchMotor.isOnline() && yawMotor.isOnline(); }
 
-    // mockable inline bool isOnline() const { return pitchMotor.isOnline();}
-    //fetches the reference for the turretGyro
-    TurretMCBCGryo* getTurretGyro() { return &turretGyro; }
+    const inline src::can::TurretMCBCanComm* getTurretMCB() const { return turretMCB; }
 
 #ifdef ENV_UNIT_TESTS
     testing::NiceMock<mock::TurretMotorMock> pitchMotor;
@@ -103,13 +100,12 @@ public:
     TurretMotor pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
     TurretMotor yawMotor;
-
-    TurretMCBCGryo turretGyro;
 #endif
 
-
+protected:
+    const src::can::TurretMCBCanComm* turretMCB;
 };  // class TurretSubsystem
 
-}  // namespace control::turret
+}  // namespace src::control::turret
 
 #endif  // TURRET_SUBSYSTEM_HPP_
