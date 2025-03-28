@@ -94,7 +94,7 @@
      mockable inline float getRollVelocity() const
      {
          return modm::toRadian(
-             static_cast<float>(lastCompleteImuData.rawRollVelocity) /
+             static_cast<float>(lastCompleteImuData.rawRollVelocity) *
              tap::communication::sensors::imu::bmi088::Bmi088::GYRO_DS_PER_GYRO_COUNT);
      }
  
@@ -119,7 +119,7 @@
      mockable inline float getPitchVelocity() const
      {
          return modm::toRadian(
-             static_cast<float>(lastCompleteImuData.rawPitchVelocity) /
+             static_cast<float>(lastCompleteImuData.rawPitchVelocity) *
              tap::communication::sensors::imu::bmi088::Bmi088::GYRO_DS_PER_GYRO_COUNT);
      }
  
@@ -144,7 +144,7 @@
      mockable inline float getYawVelocity() const
      {
          return modm::toRadian(
-             static_cast<float>(lastCompleteImuData.rawYawVelocity) /
+             static_cast<float>(lastCompleteImuData.rawYawVelocity) *
              tap::communication::sensors::imu::bmi088::Bmi088::GYRO_DS_PER_GYRO_COUNT);
      }
  

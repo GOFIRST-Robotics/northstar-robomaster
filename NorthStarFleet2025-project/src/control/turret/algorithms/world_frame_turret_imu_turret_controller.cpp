@@ -62,11 +62,11 @@ static inline WrappedFloat transformChassisFrameToWorldFrame(
  * @return The transformed angle in the chassis frame.
  */
 static inline WrappedFloat transformWorldFrameValueToChassisFrame(
-    const WrappedFloat turretChassisFrameCurrAngle,
-    const WrappedFloat turretWorldFrameCurrAngle,
-    const WrappedFloat angleToTransform)
+    const WrappedFloat turretChassisFrameCurrAngle, //motor
+    const WrappedFloat turretWorldFrameCurrAngle, //IMU
+    const WrappedFloat angleToTransform) //world frame setpoint
 {
-    return turretChassisFrameCurrAngle + (angleToTransform - turretWorldFrameCurrAngle);
+    return turretChassisFrameCurrAngle + (angleToTransform - turretWorldFrameCurrAngle); //sets chassisFrameSetpoint
 }
 
 /**
@@ -121,10 +121,11 @@ static inline void initializeWorldFrameTurretImuController(
  * @param[out] turretMotor The turret subsystem whose chassis relative turret motor angle is
  * updated by this function.
  */
+float debugturretSetpoint;
 static inline void updateWorldFrameSetpoint(
     const WrappedFloat desiredSetpoint,
-    const WrappedFloat chassisFrameMeasurement,
-    const WrappedFloat worldFrameMeasurement,
+    const WrappedFloat chassisFrameMeasurement, //motor
+    const WrappedFloat worldFrameMeasurement, //IMU
     WrappedFloat &worldFrameSetpoint,
     TurretMotor &turretMotor)
 {
@@ -132,11 +133,12 @@ static inline void updateWorldFrameSetpoint(
 
     // transform target angle from turret imu relative to chassis relative
     // to keep turret/command setpoints synchronized
-
+    debugturretSetpoint = turretMotor.getChassisFrameSetpoint().getUnwrappedValue();
     turretMotor.setChassisFrameSetpoint(transformWorldFrameValueToChassisFrame(
         chassisFrameMeasurement,
         worldFrameMeasurement,
         worldFrameSetpoint));
+    debugturretSetpoint = turretMotor.getChassisFrameSetpoint().getUnwrappedValue();
 
     if (turretMotor.getConfig().limitMotorAngles)
     {
@@ -164,16 +166,20 @@ static inline void updateWorldFrameSetpoint(
  * @param[out] velocityPid Velocity PID controller.
  * @return desired PID output from running the position -> velocity cascade controller
  */
+float positionControllerError;
+WrappedFloat debugsum=Angle(0);
+float debugworldFrameAngleError;
 static inline float runWorldFrameTurretImuController(
-    const WrappedFloat worldFrameAngleError,
-    const WrappedFloat chassisFrameAngleMeasurement,
-    const float worldFrameVelocityMeasured,
+    const WrappedFloat worldFrameAngleError, //worldFrameSetpoint - worldFramePitchAngle
+    const WrappedFloat chassisFrameAngleMeasurement, //from motor
+    const float worldFrameVelocityMeasured, //velocity from IMU
     const uint32_t dt,
     const TurretMotor &turretMotor,
     tap::algorithms::SmoothPid &positionPid,
     tap::algorithms::SmoothPid &velocityPid)
 {
-    const float positionControllerError = turretMotor.getValidMinError(
+    debugworldFrameAngleError = worldFrameAngleError.getUnwrappedValue();
+    /*const float*/ positionControllerError = turretMotor.getValidMinError(
         chassisFrameAngleMeasurement + worldFrameAngleError,
         chassisFrameAngleMeasurement);
     const float positionPidOutput =
@@ -209,7 +215,8 @@ void WorldFrameYawTurretImuCascadePidTurretController::initialize()
         velocityPid,
         worldFrameSetpoint);
 }
-
+float pidOut;
+float debugworldFrameYawVelocity;
 void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
@@ -217,7 +224,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const WrappedFloat chassisFrameYaw = turretMotor.getChassisFrameMeasuredAngle();
     const WrappedFloat worldFrameYawAngle = Angle(turretMCBCanComm.getYawUnwrapped());
     const float worldFrameYawVelocity = turretMCBCanComm.getYawVelocity();
-
+    debugworldFrameYawVelocity = worldFrameYawVelocity;
     updateWorldFrameSetpoint(
         desiredSetpoint,
         chassisFrameYaw,
@@ -225,7 +232,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
         worldFrameSetpoint,
         turretMotor);
 
-    const float pidOut = runWorldFrameTurretImuController(
+    /*const float*/ pidOut = runWorldFrameTurretImuController(
         worldFrameSetpoint - worldFrameYawAngle,
         chassisFrameYaw,
         worldFrameYawVelocity,
@@ -311,16 +318,17 @@ float debugchassisFramePitch;
 float debugworldFramePitchAngle;
 float debugworldFramePitchVelocity;
 float debugworldFrameSetpoint;
-void WorldFramePitchTurretImuCascadePidTurretController::runController(
+float debugpidOut;
+void WorldFramePitchTurretImuCascadePidTurretController::runController(//TODO for actual use change back to pitch
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
     debugdesiredSetpoint = desiredSetpoint.getUnwrappedValue();
     const WrappedFloat chassisFramePitch = turretMotor.getChassisFrameMeasuredAngle();
     debugchassisFramePitch = chassisFramePitch.getUnwrappedValue();
-    const WrappedFloat worldFramePitchAngle = Angle(turretMCBCanComm.getPitchUnwrapped());
+    const WrappedFloat worldFramePitchAngle = Angle(-turretMCBCanComm.getYawUnwrapped());//Angle(turretMCBCanComm.getPitchUnwrapped());
     debugworldFramePitchAngle = worldFramePitchAngle.getUnwrappedValue();
-    const float worldFramePitchVelocity = turretMCBCanComm.getPitchVelocity();
+    const float worldFramePitchVelocity = -turretMCBCanComm.getYawVelocity();//turretMCBCanComm.getPitchVelocity();
     debugworldFramePitchVelocity = worldFramePitchVelocity;
 
     debugworldFrameSetpoint = worldFrameSetpoint.getUnwrappedValue();
@@ -330,7 +338,7 @@ void WorldFramePitchTurretImuCascadePidTurretController::runController(
         worldFramePitchAngle,
         worldFrameSetpoint,
         turretMotor);
-    debugworldFrameSetpoint = worldFrameSetpoint.getWrappedValue();
+    debugworldFrameSetpoint = worldFrameSetpoint.getUnwrappedValue();
 
     float pidOut = runWorldFrameTurretImuController(
         worldFrameSetpoint - worldFramePitchAngle,
@@ -340,13 +348,13 @@ void WorldFramePitchTurretImuCascadePidTurretController::runController(
         turretMotor,
         positionPid,
         velocityPid);
-
+    debugpidOut=pidOut;
     pidOut += computeGravitationalForceOffset(
         TURRET_CG_X,
         TURRET_CG_Z,
         -turretMotor.getChassisFrameMeasuredAngle().getWrappedValue(),
         GRAVITY_COMPENSATION_SCALAR);
-
+    debugpidOut=pidOut;
     turretMotor.setMotorOutput(pidOut);
 }
 

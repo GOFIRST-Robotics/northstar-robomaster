@@ -105,6 +105,61 @@ private:
     }
 };
 
+class WorldFramePitchChassisImuTurretController final : public TurretPitchControllerInterface
+{
+public:
+    /**
+     * @param[in] drivers A drivers object that will be queried for IMU information.
+     * @param[in] pitchMotor A `TurretMotor` object accessible for children objects to use.
+     * @param[in] pidConfig PID configuration struct for the controller.
+     */
+    WorldFramePitchChassisImuTurretController(
+        tap::Drivers &drivers,
+        TurretMotor &pitchMotor,
+        const tap::algorithms::SmoothPidConfig &pidConfig);
+
+    void initialize() final;
+
+    /**
+     * @see TurretControllerInterface for more details.
+     * @param[in] desiredSetpoint The pitch desired setpoint in the world frame.
+     */
+    void runController(const uint32_t dt, const WrappedFloat desiredSetpoint) final;
+
+    /// @return World frame pitch angle setpoint, refer to top level documentation for more details.
+    void setSetpoint(WrappedFloat desiredSetpoint) final;
+
+    /// @return world frame pitch angle measurement, refer to top level documentation for more
+    /// details.
+    WrappedFloat getMeasurement() const final;
+
+    /**
+     * @return The pitch setpoint, in the world frame.
+     */
+    inline WrappedFloat getSetpoint() const final { return worldFrameSetpoint; }
+
+    bool isOnline() const final;
+
+    WrappedFloat convertControllerAngleToChassisFrame(
+        WrappedFloat controllerFrameAngle) const final;
+
+    WrappedFloat convertChassisAngleToControllerFrame(WrappedFloat chassisFrameAngle) const final;
+
+private:
+    tap::Drivers &drivers;
+
+    tap::algorithms::SmoothPid pid;
+
+    WrappedFloat worldFrameSetpoint;
+
+    WrappedFloat chassisFrameInitImuPitchAngle;
+
+    inline WrappedFloat getBmi088Pitch() const
+    {
+        return Angle::fromDegrees(drivers.bmi088.getPitch());
+    }
+};
+
 }  // namespace src::control::turret::algorithms
 
 #endif  // WORLD_FRAME_CHASSIS_IMU_TURRET_CONTROLLER_HPP_

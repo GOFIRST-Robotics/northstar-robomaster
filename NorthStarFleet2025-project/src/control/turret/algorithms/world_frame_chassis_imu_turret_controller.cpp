@@ -36,7 +36,7 @@ namespace src::control::turret::algorithms
  *      in the chassis frame.
  * @return A turret yaw angle in radians. `angleToTransform` transformed into the world frame.
  */
-static inline WrappedFloat transformChassisFrameYawToWorldFrame(
+static inline WrappedFloat transformChassisFrameToWorldFrame(
     const WrappedFloat initChassisFrameImuAngle,
     const WrappedFloat currChassisFrameImuAngle,
     const WrappedFloat angleToTransform)
@@ -57,7 +57,7 @@ static inline WrappedFloat transformChassisFrameYawToWorldFrame(
  *      the world frame.
  * @return A turret yaw angle in radians. `angleToTransform` transformed into the chassis frame.
  */
-static inline WrappedFloat transformWorldFrameYawToChassisFrame(
+static inline WrappedFloat transformWorldFrameToChassisFrame(
     const WrappedFloat initChassisFrameImuAngle,
     const WrappedFloat currChassisFrameImuAngle,
     const WrappedFloat angleToTransform)
@@ -83,7 +83,7 @@ static inline WrappedFloat transformWorldFrameYawToChassisFrame(
  * @param[out] yawMotor The turret subsystem whose chassis relative turret yaw angle is
  *      updated by this function.
  */
-static inline void updateYawWorldFrameSetpoint(
+static inline void updateWorldFrameSetpoint(
     const WrappedFloat desiredSetpoint,
     const WrappedFloat chassisFrameInitImuYawAngle,
     const WrappedFloat chassisFrameImuYawAngle,
@@ -93,7 +93,7 @@ static inline void updateYawWorldFrameSetpoint(
     worldFrameYawSetpoint = desiredSetpoint;
 
     // project target angle in world relative to chassis relative to limit the value
-    yawMotor.setChassisFrameSetpoint(transformWorldFrameYawToChassisFrame(
+    yawMotor.setChassisFrameSetpoint(transformWorldFrameToChassisFrame(
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         worldFrameYawSetpoint));
@@ -102,7 +102,7 @@ static inline void updateYawWorldFrameSetpoint(
     {
         // project angle that is limited by the subsystem to world relative again to run the
         // controller. Otherwise use worldFrameYawSetpoint directly.
-        worldFrameYawSetpoint = transformChassisFrameYawToWorldFrame(
+        worldFrameYawSetpoint = transformChassisFrameToWorldFrame(
             chassisFrameInitImuYawAngle,
             chassisFrameImuYawAngle,
             yawMotor.getChassisFrameSetpoint());
@@ -140,14 +140,14 @@ void WorldFrameYawChassisImuTurretController::runController(
 {
     const WrappedFloat chassisFrameImuYawAngle = getBmi088Yaw();
 
-    updateYawWorldFrameSetpoint(
+    updateWorldFrameSetpoint(
         desiredSetpoint,
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         worldFrameSetpoint,
         turretMotor);
 
-    const WrappedFloat worldFrameYawAngle = transformChassisFrameYawToWorldFrame(
+    const WrappedFloat worldFrameYawAngle = transformChassisFrameToWorldFrame(
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         turretMotor.getChassisFrameMeasuredAngle());
@@ -165,7 +165,7 @@ void WorldFrameYawChassisImuTurretController::runController(
 
 void WorldFrameYawChassisImuTurretController::setSetpoint(WrappedFloat desiredSetpoint)
 {
-    updateYawWorldFrameSetpoint(
+    updateWorldFrameSetpoint(
         desiredSetpoint,
         chassisFrameInitImuYawAngle,
         chassisFrameInitImuYawAngle,
@@ -178,7 +178,7 @@ WrappedFloat WorldFrameYawChassisImuTurretController::getMeasurement() const
     const WrappedFloat chassisFrameImuYawAngle =
         getBmi088Yaw();  // NOTE THIS WAS NOT PREVIOUSLY IN RADIANS
 
-    return transformChassisFrameYawToWorldFrame(
+    return transformChassisFrameToWorldFrame(
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         turretMotor.getChassisFrameMeasuredAngle());
@@ -195,7 +195,7 @@ WrappedFloat WorldFrameYawChassisImuTurretController::convertControllerAngleToCh
 {
     const WrappedFloat chassisFrameImuYawAngle = getBmi088Yaw();
 
-    return transformWorldFrameYawToChassisFrame(
+    return transformWorldFrameToChassisFrame(
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         controllerFrameAngle);
@@ -206,9 +206,112 @@ WrappedFloat WorldFrameYawChassisImuTurretController::convertChassisAngleToContr
 {
     const WrappedFloat chassisFrameImuYawAngle = getBmi088Yaw();
 
-    return transformChassisFrameYawToWorldFrame(
+    return transformChassisFrameToWorldFrame(
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
+        chassisFrameAngle);
+}
+
+WorldFramePitchChassisImuTurretController::WorldFramePitchChassisImuTurretController(
+    tap::Drivers &drivers,
+    TurretMotor &PitchMotor,
+    const tap::algorithms::SmoothPidConfig &pidConfig)
+    : TurretPitchControllerInterface(PitchMotor),
+      drivers(drivers),
+      pid(pidConfig),
+      worldFrameSetpoint(Angle(0)),
+      chassisFrameInitImuPitchAngle(Angle(0))
+{
+}
+
+void WorldFramePitchChassisImuTurretController::initialize()
+{
+    if (turretMotor.getTurretController() != this)
+    {
+        pid.reset();
+
+        chassisFrameInitImuPitchAngle = getBmi088Pitch();
+        worldFrameSetpoint = turretMotor.getChassisFrameSetpoint();
+
+        turretMotor.attachTurretController(this);
+    }
+}
+float debugchassisFrameImuPitchAngle;
+void WorldFramePitchChassisImuTurretController::runController(
+    const uint32_t dt,
+    const WrappedFloat desiredSetpoint)
+{
+    const WrappedFloat chassisFrameImuPitchAngle = getBmi088Pitch();
+    debugchassisFrameImuPitchAngle = chassisFrameImuPitchAngle.getUnwrappedValue();
+    updateWorldFrameSetpoint(
+        desiredSetpoint,
+        chassisFrameInitImuPitchAngle,
+        chassisFrameImuPitchAngle,
+        worldFrameSetpoint,
+        turretMotor);
+
+    const WrappedFloat worldFramePitchAngle = transformChassisFrameToWorldFrame(
+        chassisFrameInitImuPitchAngle,
+        chassisFrameImuPitchAngle,
+        turretMotor.getChassisFrameMeasuredAngle());
+
+    // position controller based on imu and Pitch gimbal angle
+    const float positionControllerError =
+        turretMotor.getValidMinError(worldFrameSetpoint, worldFramePitchAngle);
+    const float pidOutput = pid.runController(
+        positionControllerError,
+        turretMotor.getChassisFrameVelocity() + modm::toRadian(drivers.bmi088.getGz()),
+        dt);
+
+    turretMotor.setMotorOutput(pidOutput);
+}
+
+void WorldFramePitchChassisImuTurretController::setSetpoint(WrappedFloat desiredSetpoint)
+{
+    updateWorldFrameSetpoint(
+        desiredSetpoint,
+        chassisFrameInitImuPitchAngle,
+        chassisFrameInitImuPitchAngle,
+        worldFrameSetpoint,
+        turretMotor);
+}
+
+WrappedFloat WorldFramePitchChassisImuTurretController::getMeasurement() const
+{
+    const WrappedFloat chassisFrameImuPitchAngle =
+        getBmi088Pitch();  // NOTE THIS WAS NOT PREVIOUSLY IN RADIANS
+
+    return transformChassisFrameToWorldFrame(
+        chassisFrameInitImuPitchAngle,
+        chassisFrameImuPitchAngle,
+        turretMotor.getChassisFrameMeasuredAngle());
+}
+
+bool WorldFramePitchChassisImuTurretController::isOnline() const
+{
+    return turretMotor.isOnline() && (drivers.bmi088.getImuState() == tap::communication::sensors::imu::ImuInterface::ImuState::IMU_CALIBRATED ||
+    drivers.bmi088.getImuState() == tap::communication::sensors::imu::ImuInterface::ImuState::IMU_NOT_CALIBRATED); //TODO not shure if this is valid, was drivers.mpu6500.isRunning();
+}
+
+WrappedFloat WorldFramePitchChassisImuTurretController::convertControllerAngleToChassisFrame(
+    WrappedFloat controllerFrameAngle) const
+{
+    const WrappedFloat chassisFrameImuPitchAngle = getBmi088Pitch();
+
+    return transformWorldFrameToChassisFrame(
+        chassisFrameInitImuPitchAngle,
+        chassisFrameImuPitchAngle,
+        controllerFrameAngle);
+}
+
+WrappedFloat WorldFramePitchChassisImuTurretController::convertChassisAngleToControllerFrame(
+    WrappedFloat chassisFrameAngle) const
+{
+    const WrappedFloat chassisFrameImuPitchAngle = getBmi088Pitch();
+
+    return transformChassisFrameToWorldFrame(
+        chassisFrameInitImuPitchAngle,
+        chassisFrameImuPitchAngle,
         chassisFrameAngle);
 }
 

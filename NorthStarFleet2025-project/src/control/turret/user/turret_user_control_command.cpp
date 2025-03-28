@@ -50,7 +50,7 @@ TurretUserControlCommand::TurretUserControlCommand(
     addSubsystemRequirement(turretSubsystem);
 }
 bool debug = true;
-bool TurretUserControlCommand::isReady() { debug = !isFinished();return debug; }
+bool TurretUserControlCommand::isReady() { debug = !isFinished() && this->yawController->isOnline(); return debug; }
 
 void TurretUserControlCommand::initialize()
 {

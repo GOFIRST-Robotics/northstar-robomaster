@@ -177,6 +177,11 @@ namespace standard_control
         *drivers(),
         turret.yawMotor,
         world_rel_chassis_imu::YAW_PID_CONFIG);
+
+    algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuController(
+        *drivers(),
+        turret.pitchMotor,
+        world_rel_chassis_imu::PITCH_PID_CONFIG);
     
     tap::algorithms::SmoothPid worldFramePitchTurretImuPosPid(
         world_rel_turret_imu::PITCH_POS_PID_CONFIG);
@@ -222,7 +227,7 @@ namespace standard_control
         drivers()->controlOperatorInterface,
         &turret,
         &worldFrameYawChassisImuController,
-        &chassisFramePitchTurretController,
+        &worldFramePitchChassisImuController,
         &worldFrameYawTurretImuController,
         &worldFramePitchTurretImuController,
         USER_YAW_INPUT_SCALAR,

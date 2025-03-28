@@ -23,8 +23,8 @@ namespace control::chassis
     motors{
         Motor(drivers, config.leftFrontId, config.canBus, false, "LF"),
         Motor(drivers, config.leftBackId, config.canBus, false, "LB"),
-        Motor(drivers, config.rightFrontId, config.canBus, true, "RF"),
-        Motor(drivers, config.rightBackId, config.canBus, true, "RB"),
+        Motor(drivers, config.rightFrontId, config.canBus, false, "RF"),
+        Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
     },
     rateLimiters{
         control::chassis::algorithms::SlewRateLimiter(1000, 10),
@@ -44,13 +44,13 @@ namespace control::chassis
             i.initialize();
         }
     }
-    float LFSpeed;
-    float LBSpeed;
-    float RFSpeed;
-    float RBSpeed;
+    float debugLB;
+    float debugdesiredOutput;
+    float debugpid;
 // STEP 3 (Tank Drive): setVelocityTankDrive function
     void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float turretRot = 0.0f) {
         float distToCenter;
+        forward = 1.0;
         
         // drivers->bmi088.read();
         #ifdef FIELD
@@ -80,10 +80,10 @@ namespace control::chassis
         double vy_local = -forward * sin_theta + sideways * cos_theta;
         double sqrt2 = sqrt(2.0);
         rotational=modm::toRadian(rotational);
-        LFSpeed = mpsToRpm((vx_local - vy_local) / sqrt2 + rotational * distToCenter * sqrt2);  // Front-left wheel
-        RFSpeed = -mpsToRpm((-vx_local - vy_local) / sqrt2 + rotational * distToCenter * sqrt2); // Front-right wheel
-        RBSpeed = -mpsToRpm((-vx_local + vy_local) / sqrt2 + rotational * distToCenter * sqrt2); // Rear-right wheel
-        LBSpeed = mpsToRpm((vx_local + vy_local) / sqrt2 + rotational * distToCenter * sqrt2);  // Rear-left wheel
+        float LFSpeed = mpsToRpm((vx_local - vy_local) / sqrt2 + rotational * distToCenter * sqrt2);  // Front-left wheel
+        float RFSpeed = mpsToRpm((-vx_local - vy_local) / sqrt2 + rotational * distToCenter * sqrt2); // Front-right wheel
+        float RBSpeed = mpsToRpm((-vx_local + vy_local) / sqrt2 + rotational * distToCenter * sqrt2); // Rear-right wheel
+        float LBSpeed = mpsToRpm((vx_local + vy_local) / sqrt2 + rotational * distToCenter * sqrt2);  // Rear-left wheel
         #endif
         int LF = static_cast<int>(MotorId::LF);
         int LB = static_cast<int>(MotorId::LB);
@@ -93,11 +93,14 @@ namespace control::chassis
         desiredOutput[LB] = limitVal<float>(LBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[RF] = limitVal<float>(RFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
         desiredOutput[RB] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
+        debugLB = desiredOutput[LB];
     }
 
     void ChassisSubsystem::refresh() {
         auto runPid = [](Pid &pid, Motor &motor, float desiredOutput) {
+            debugdesiredOutput = desiredOutput;
             pid.update(desiredOutput - motor.getShaftRPM());
+            debugpid = pid.getValue();
             motor.setDesiredOutput(pid.getValue());
         };
 

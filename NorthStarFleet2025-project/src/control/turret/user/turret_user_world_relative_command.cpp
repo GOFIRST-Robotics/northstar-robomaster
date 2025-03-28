@@ -51,7 +51,7 @@ TurretUserWorldRelativeCommand::TurretUserWorldRelativeCommand(
           controlOperatorInterface,
           turretSubsystem,
           turretImuYawController,
-          turretImuPitchController,
+          chassisImuPitchController,//turretImuPitchController, //TODO for actual use change back to pitch
           userYawInputScalar,
           userPitchInputScalar,
           turretID)
@@ -82,11 +82,15 @@ void TurretUserWorldRelativeCommand::execute()
 {
     // Re-initialize if no commands scheduled or if the turret WR Turret IMU command
     // is ready and isn't scheduled
-    if (comprisedCommandScheduler.getAddedCommandBitmap() == 0 ||
-        (!comprisedCommandScheduler.isCommandScheduled(&turretWRTurretImuCommand) &&
-         turretWRTurretImuCommand.isReady()))
-    {
+    if(!comprisedCommandScheduler.isCommandScheduled(&turretWRChassisImuCommand) && !turretWRTurretImuCommand.isReady()){
         initialize();
+    } else {
+        if (comprisedCommandScheduler.getAddedCommandBitmap() == 0 ||
+            (!comprisedCommandScheduler.isCommandScheduled(&turretWRTurretImuCommand) &&
+            turretWRTurretImuCommand.isReady()))
+        {
+            initialize();
+        }
     }
 
     comprisedCommandScheduler.run();
