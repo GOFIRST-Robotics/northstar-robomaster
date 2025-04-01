@@ -50,6 +50,8 @@
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
+// tap::arch::PeriodicMilliTimer sendMotorTimeoutREV(20);
+
 
 control::Robot robot(*src::DoNotUse_getDrivers());
 
@@ -122,6 +124,12 @@ int main()
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ()); //todo figuer out if this causes issues
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
         }
+        // if(sendMotorTimeoutREV.execute())
+        // {
+            
+        //     PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ()); //todo figuer out if this causes issues
+        // }
+
         modm::delay_us(10);
     }
     return 0;

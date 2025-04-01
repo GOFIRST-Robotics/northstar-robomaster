@@ -125,16 +125,35 @@ void RevMotorTxHandler::serializeMotorStoreSendData(
     RevMotor** canMotorStore, modm::can::Message* message)
 {
 
-    for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
-    {
+    //TODO: add functionality for multiple motors
+    // for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
+    // {
+        // const RevMotor* const motor = canMotorStore[i];
+        // motor->serializeCanSendData(message);
+        // canMotorStore[1]->serializeCanSendData(message);
+    // }
+
+
+    for (int i = 0; i < REV_MOTORS_PER_CAN; i++) {
         const RevMotor* const motor = canMotorStore[i];
-        motor->serializeCanSendData(message);
+        if (motor != nullptr) {
+            motor->serializeCanSendData(message);
+        }
     }
 }
 
 void RevMotorTxHandler::serializeRevMotorHeartBeat(modm::can::Message* message)
 {
     message->data[0] = 0xFF;
+    message->data[1] = 0xFF;
+    message->data[2] = 0xFF;
+    message->data[3] = 0xFF;
+    message->data[4] = 0xFF;
+    message->data[5] = 0xFF;
+    message->data[6] = 0xFF;
+    message->data[7] = 0xFF;
+
+    
 }
 
 void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor)

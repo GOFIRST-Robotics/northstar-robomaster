@@ -125,16 +125,20 @@ void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
     //target speed 8000
     // std::memcpy(txMessage->data, &targetVoltage, sizeof(targetVoltage));
     //TODO: is this little endian or big endian?
-    uint32_t floatAsInt;
-    std::memcpy(&floatAsInt, &targetVoltage, sizeof(float));
-    txMessage->data[3] = static_cast<uint8_t>(floatAsInt & 0xFF);
-    txMessage->data[2] = static_cast<uint8_t>((floatAsInt >> 8) & 0xFF);
-    txMessage->data[1] = static_cast<uint8_t>((floatAsInt >> 16) & 0xFF);
-    txMessage->data[0] = static_cast<uint8_t>((floatAsInt >> 24) & 0xFF);
-    txMessage->data[4] = 0;
-    txMessage->data[5] = 0;
-    txMessage->data[6] = 0;
-    txMessage->data[7] = 0;
+    // uint32_t floatAsInt;
+    // std::memcpy(&floatAsInt, &targetVoltage, sizeof(float));
+    // txMessage->data[3] = static_cast<uint8_t>(floatAsInt & 0xFF);
+    // txMessage->data[2] = static_cast<uint8_t>((floatAsInt >> 8) & 0xFF);
+    // txMessage->data[1] = static_cast<uint8_t>((floatAsInt >> 16) & 0xFF);
+    // txMessage->data[0] = static_cast<uint8_t>((floatAsInt >> 24) & 0xFF);
+    // txMessage->data[4] = 0;
+    // txMessage->data[5] = 0;
+    // txMessage->data[6] = 0;
+    // txMessage->data[7] = 0;
+
+
+    std::memcpy(&txMessage->data[0], &targetVoltage, sizeof(targetVoltage));
+    int debug = txMessage->data[0];
 
 
 
@@ -177,7 +181,6 @@ void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
     // txMessage->data[5] = 0;
     // txMessage->data[6] = 0;
     // txMessage->data[7] = 0;
-    int debug = 0;
 }
 
 // getter functions
