@@ -22,25 +22,14 @@ namespace control::chassis
         auto scale = [](float raw) -> float {
             return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
         };
-        #ifdef FIELD
-        chassis->setVelocityDrive(
+        chassis->setVelocityTurretDrive(
             scale(operatorInterface->getDrivetrainVerticalTranslation()),
             -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
-            scale(operatorInterface->getDrivetrainRotationalTranslation()),
-            0.0f
+            scale(operatorInterface->getDrivetrainRotationalTranslation())
         );
-        #else 
-        chassis->setVelocityDrive(
-            scale(operatorInterface->getDrivetrainVerticalTranslation()),
-            -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
-            scale(operatorInterface->getDrivetrainRotationalTranslation()),
-            0.0f
-        );
-        #endif
-
     }
 // STEP 3 (Tank Drive): end function
     void ChassisDriveCommand::end(bool interrupted) {
-        chassis->setVelocityDrive(0, 0, 0, 0);
+        chassis->setVelocityTurretDrive(0, 0, 0);
     }
 };  // namespace control::chassis

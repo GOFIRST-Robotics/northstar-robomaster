@@ -74,7 +74,13 @@ public:
     /// forward, negative is backwards.
     /// @param right Desired chassis speed in m/s of the right side of the chassis.
     ///
-    mockable void setVelocityDrive(float forward, float sideways, float rotational, float turretRot);
+    mockable void setVelocityTurretDrive(float forward, float sideways, float rotational);
+
+    mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
+
+    void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
+
+    void updateBeyBladeRotationSpeed(float speed, float dt);
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.
@@ -98,13 +104,13 @@ private:
 
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
+    float beyBladeRotationSpeed = 0.0f;
+
     /// Desired wheel output for each motor
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
 
     /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
-
-    std::array<control::chassis::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
 
 protected:
     /// Motors.

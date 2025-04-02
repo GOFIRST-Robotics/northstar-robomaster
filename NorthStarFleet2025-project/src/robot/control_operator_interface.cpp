@@ -253,23 +253,7 @@ bool beyBlade = false;
 bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
-    RandomNumberGenerator::enable();
-    checkToggleBeyBlade();
-    if (beyBlade) {
-        count++;
-        if (count >= 250) {
-            if (RandomNumberGenerator::isReady()) {
-                prevBeyBladeValue = beyBladeValue;
-                beyBladeValue = RandomNumberGenerator::getValue() % 360;
-                count = 0;
-            }
-        }
-        if (count % 25 == 0) {
-            speed = (0.1f * sin(beyBladeValue) + 0.9f + prevBeyBladeValue) / 2;
-            prevBeyBladeValue = speed;
-        }
-        return speed;
-    }
+
 
     if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
         return -0.3f;
