@@ -59,101 +59,92 @@ void RevMotorTxHandler::addMotorToManager(RevMotor* motor)
     }
 }
 
+
+/**
+ * Encodes and sends control and heartbeat messages for all connected REV motors on both CAN buses.
+ * 
+ * This method iterates through each motor store (CAN1 and CAN2) and for each valid motor:
+ * 1. Sends a heartbeat message to maintain connection with the motor controller
+ * 2. Sends a control message with the motor's current target values
+ * 
+ * The heartbeat messages prevent timeout disconnections, while the control messages 
+ * provide the actual motor commands. Each message is properly formatted with the 
+ * correct arbitration ID based on the motor's ID and message type.
+ * 
+ * If any send operation fails, an error will be raised.
+ * 
+ * @note This method should be called periodically to maintain motor control.
+ */
 void RevMotorTxHandler::encodeAndSendCanData()
 {
-    // set up new can messages to be sent via CAN bus 1 and 2
-
-    bool can1ValidMotorMessage = true;
-    bool can2ValidMotorMessage = true;
-
-
-    modm::can::Message heartBeatMessage = createRevCanMessage(APICommand::Heartbeat, can1MotorStore[1]);
-    
-
-    modm::can::Message can1Message = createRevCanMessage(APICommand::DutyCycle, can1MotorStore[1]);
-
-
-    serializeMotorStoreSendData(
-        can1MotorStore,
-        &can1Message);
-
-
-    modm::can::Message can2Message = createRevCanMessage(APICommand::DutyCycle, can1MotorStore[1]);
-
-    serializeMotorStoreSendData(
-        can2MotorStore,
-        &can2Message);
-
-
-
-
-    serializeRevMotorHeartBeat(&heartBeatMessage);
-
-
     bool messageSuccess = true;
-
-    if(drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
-    {
-        messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartBeatMessage);
-    }
-
+    
+    // Process CAN bus 1 motors
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
     {
-        if (can1ValidMotorMessage)
+        for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
         {
-            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, can1Message);
-
+            RevMotor* motor = can1MotorStore[i];
+            if (motor != nullptr)
+            {
+                // Create and send heartbeat for this motor
+                modm::can::Message heartbeatMsg = createRevCanMessage(APICommand::Heartbeat, motor);
+                serializeRevMotorHeartBeat(&heartbeatMsg);
+                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
+                
+                // Create and send control message for this motor
+                modm::can::Message controlMsg = createRevCanMessage(APICommand::DutyCycle, motor);
+                motor->serializeCanSendData(&controlMsg);
+                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, controlMsg);
+            }
         }
     }
+    
+    // Process CAN bus 2 motors
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS2))
     {
-        if (can2ValidMotorMessage)
+        // Then do the same for CAN2
+        for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
         {
-            messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, can2Message);
+            RevMotor* motor = can2MotorStore[i];
+            if (motor != nullptr)
+            {
+                // Create and send heartbeat for this motor
+                modm::can::Message heartbeatMsg = createRevCanMessage(APICommand::Heartbeat, motor);
+                serializeRevMotorHeartBeat(&heartbeatMsg);
+                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, heartbeatMsg);
+                
+                // Create and send control message for this motor
+                modm::can::Message controlMsg = createRevCanMessage(APICommand::DutyCycle, motor);
+                motor->serializeCanSendData(&controlMsg);
+                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, controlMsg);
+            }
         }
     }
-
-
-
+    
     if (!messageSuccess)
     {
         RAISE_ERROR(drivers, "sendMessage failure");
     }
 }
 
-void RevMotorTxHandler::serializeMotorStoreSendData(
-    RevMotor** canMotorStore, modm::can::Message* message)
-{
-
-    //TODO: add functionality for multiple motors
-    // for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
-    // {
-        // const RevMotor* const motor = canMotorStore[i];
-        // motor->serializeCanSendData(message);
-        // canMotorStore[1]->serializeCanSendData(message);
-    // }
-
-
-    for (int i = 0; i < REV_MOTORS_PER_CAN; i++) {
-        const RevMotor* const motor = canMotorStore[i];
-        if (motor != nullptr) {
-            motor->serializeCanSendData(message);
-        }
-    }
-}
-
+/**
+ * Sets all bytes in the CAN message data field to 0xFF (255 decimal),
+ * which serves as a heartbeat signal for REV motors.
+ * 
+ * Heartbeat messages are sent periodically to maintain connection with
+ * the motor controllers and prevent timeout disconnections. When a REV motor
+ * controller receives this specific pattern (all 0xFF), it recognizes it as 
+ * a "still alive" signal from the control system.
+ * 
+ * @param message Pointer to the CAN message whose data field will be filled with 0xFF values
+ */
 void RevMotorTxHandler::serializeRevMotorHeartBeat(modm::can::Message* message)
 {
-    message->data[0] = 0xFF;
-    message->data[1] = 0xFF;
-    message->data[2] = 0xFF;
-    message->data[3] = 0xFF;
-    message->data[4] = 0xFF;
-    message->data[5] = 0xFF;
-    message->data[6] = 0xFF;
-    message->data[7] = 0xFF;
-
-    
+    for (int i = 0; i < 8; i++)
+    {
+        message->data[i] = 0xFF;
+    }
 }
 
 void RevMotorTxHandler::removeFromMotorManager(const RevMotor& motor)

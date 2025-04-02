@@ -142,14 +142,6 @@ private:
 
     void addMotorToManager(RevMotor** canMotorStore, RevMotor* const motor);
 
-    void serializeMotorStoreSendData(
-        RevMotor** canMotorStore,
-        modm::can::Message* message
-        // modm::can::Message* messageHigh,
-        // bool* validMotorMessageLow,
-        // bool* validMotorMessageHigh
-        );
-
     void removeFromMotorManager(const RevMotor& motor, RevMotor** motorStore);
 
 

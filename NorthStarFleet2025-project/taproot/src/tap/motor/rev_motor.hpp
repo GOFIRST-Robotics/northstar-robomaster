@@ -72,7 +72,7 @@ enum REVMotorId : uint32_t
  * @note Currently there is no error handling for using a motor without having it be properly
  * initialize. You must call the `initialize` function in order for this class to work properly.
  */
-class RevMotor : public can::CanRxListener, public MotorInterface
+class RevMotor : public can::CanRxListener
 {
 public:
     // 0 - 8191 for dji motors
@@ -103,11 +103,7 @@ public:
 
     mockable ~RevMotor();
 
-    void initialize() override;
-
-    int64_t getEncoderUnwrapped() const override {return 0;};
-
-    uint16_t getEncoderWrapped() const override {return 0;};
+    void initialize();
 
     DISALLOW_COPY_AND_ASSIGN(RevMotor)
 
@@ -120,23 +116,7 @@ public:
     //  */
     void processMessage(const modm::can::Message& message) override {};
 
-    /**
-     * Set the desired output for the motor. The meaning of this value is motor
-     * controller specific.
-     *
-     * @param[in] desiredOutput the desired motor output. Limited to the range of a 16-bit int.
-     *
-     * @note: `desiredOutput` is cast to an int16_t and limited to an int16_t's range! The
-     *      user should make sure their value is in range. The declaration takes an int32_t
-     *      in hopes to mitigate overflow.
-     */
-    void setDesiredOutput(int32_t desiredOutput) override;
 
-    // /**
-    //  * @return `true` if a CAN message has been received from the motor within the last
-    //  *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
-    //  */
-    bool isMotorOnline() const override {return false;};
 
     /**
      * Serializes send data and deposits it in a message to be sent.
@@ -147,66 +127,70 @@ public:
      * @return the raw `desiredOutput` value which will be sent to the motor controller
      *      (specified via `setDesiredOutput()`)
      */
-    int16_t getOutputDesired() const override;
 
     mockable uint32_t getMotorIdentifier() const;
 
-    /**
-     * @return the temperature of the motor as reported by the motor in degrees Celsius
-     */
-    int8_t getTemperature() const override { return 0; };
-
-    int16_t getTorque() const override { return 0; };
-
-    /// For interpreting the sign of return value see class comment
-    int16_t getShaftRPM() const override { return 0; };
-
-    mockable bool isMotorInverted() const { return false; };
+    mockable bool isMotorInverted() const { return motorInverted; };
 
     mockable tap::can::CanBus getCanBus() const;
 
     mockable const char* getName() const;
 
-    // template <typename T>
-    // static void assertEncoderType()
-    // {
-    //     constexpr bool good_type =
-    //         std::is_same<typename std::decay<T>::type, std::int64_t>::value ||
-    //         std::is_same<typename std::decay<T>::type, std::uint16_t>::value;
-    //     static_assert(good_type, "x is not of the correct type");
-    // }
-
-    // template <typename T>
-    // static T degreesToEncoder(float angle)
-    // {
-    //     assertEncoderType<T>();
-    //     return static_cast<T>((ENC_RESOLUTION * angle) / 360);
-    // }
-
-    // template <typename T>
-    // static float encoderToDegrees(T encoder)
-    // {
-    //     assertEncoderType<T>();
-    //     return (360.0f * static_cast<float>(encoder)) / ENC_RESOLUTION;
-    // }
-
-
-
-
 
     void setTargetVoltage(float targetVoltage);
 
-private:
-    // wait time before the motor is considered disconnected, in milliseconds
-    static const uint32_t MOTOR_DISCONNECT_TIME = 100;
 
-    const char* motorName;
+
+
+
+
+
+
+
+
+
 
     /**
-     * Updates the stored encoder value given a newly received encoder value
-     * special logic necessary for keeping track of unwrapped encoder value.
+     * Control modes available for RevMotor operation
      */
-    void updateEncoderValue(uint16_t newEncWrapped);
+    enum class ControlMode
+    {
+        DUTY_CYCLE,     // Direct duty cycle control (0.0 to 1.0)
+        VELOCITY,       // Velocity control in RPM
+        POSITION,       // Position control in rotations
+        VOLTAGE,        // Voltage control in volts
+        CURRENT,        // Current control in amps
+        SMART_MOTION,   // Smart motion with acceleration and velocity limits
+        SMART_VELOCITY  // Smart velocity with acceleration limits
+    };
+
+    /**
+     * Set the control mode for this motor
+     * @param mode The desired control mode
+     */
+    void setControlMode(ControlMode mode);
+
+    /**
+     * Get the current control mode for this motor
+     * @return The active control mode
+     */
+    ControlMode getControlMode() const;
+
+    /**
+     * Set the control value based on the current control mode
+     * @param value The control value in appropriate units for the current mode
+     */
+    void setControlValue(float value);
+
+    /**
+     * Get the current control value
+     * @return The control value in the units of the current mode
+     */
+    float getControlValue() const;
+
+private:
+
+    const char* motorName;
 
     Drivers* drivers;
 
@@ -218,44 +202,13 @@ private:
 
     float targetVoltage;
 
-    
-
-    // int16_t shaftRPM;
-
-    // int8_t temperature;
-
-    // int16_t torque;
-
-    /**
-     * If `false` the positive rotation direction of the shaft is counter-clockwise when
-     * looking at the shaft from the side opposite the motor. If `true` then the positive
-     * rotation direction will be clockwise.
-     */
     bool motorInverted;
 
-    // /**
-    //  * The raw encoder value reported by the motor controller. It wraps around from
-    //  * {0..8191}, hence "Wrapped"
-    //  */
-    // uint16_t encoderWrapped;
-
-    // /**
-    //  * Absolute unwrapped encoder position =
-    //  *      encoderRevolutions * ENCODER_RESOLUTION + encoderWrapped
-    //  * This lets us keep track of some sense of absolute position even while
-    //  * raw encoderValue continuosly loops within {0..8191}. Origin value is
-    //  * arbitrary.
-    //  */
-    // int64_t encoderRevolutions;
-
-    // tap::arch::MilliTimeout motorDisconnectTimeout;
 
 
-    void resetEncoderValue() override {};
-    float getPositionUnwrapped() const override {return 0;};
-    float getPositionWrapped() const override {return 0;};
 
-    
+    ControlMode currentControlMode = ControlMode::VOLTAGE;
+    float controlValue = 0.0f;
 
 
 };
