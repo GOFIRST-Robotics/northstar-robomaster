@@ -8,7 +8,7 @@
 
 using tap::algorithms::limitVal;
 
-namespace control::chassis
+namespace src::chassis
 {
 // STEP 1 (Tank Drive): Constructor
     ChassisDriveCommand::ChassisDriveCommand(ChassisSubsystem* chassis, src::control::ControlOperatorInterface* operatorInterface) :

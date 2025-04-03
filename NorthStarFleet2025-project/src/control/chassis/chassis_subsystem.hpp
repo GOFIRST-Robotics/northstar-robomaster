@@ -12,6 +12,8 @@
 #include "modm/math/geometry/angle.hpp"
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
 
+#include "control/chassis/constants/chassis_constants.hpp"
+
 #define FIELD
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
@@ -20,7 +22,7 @@
 #include "tap/motor/dji_motor.hpp"
 #endif
 
-namespace control::chassis
+namespace src::chassis
 {
 
 struct ChassisConfig
@@ -104,7 +106,7 @@ private:
     /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
 
-    std::array<control::chassis::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
+    std::array<src::chassis::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rateLimiters;
 
 protected:
     /// Motors.

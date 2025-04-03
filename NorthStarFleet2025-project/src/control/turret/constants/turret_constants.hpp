@@ -26,7 +26,9 @@
 
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_turret_constants.hpp"
-// #elif 
+#elif TURRET
+#include "robot/standard/standard_turret_constants.hpp"
+
 
 #endif
 

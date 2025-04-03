@@ -12,7 +12,7 @@ class ControlOperatorInterface;
 }
 }  //
 
-namespace control::chassis
+namespace src::chassis
 {
 class ChassisSubsystem;
 
@@ -44,7 +44,7 @@ public:
     bool isFinished() const { return false; }
 
 private:
-    control::chassis::ChassisSubsystem *chassis;
+    src::chassis::ChassisSubsystem *chassis;
 
     src::control::ControlOperatorInterface* operatorInterface;
 };

@@ -29,7 +29,7 @@
 namespace src::standard
 #elif TURRET
 #include "robot/turret/turret_drivers.hpp"
-namespace src::turret
+namespace src::gyro
 #endif
 {
 /**

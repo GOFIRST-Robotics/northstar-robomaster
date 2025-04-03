@@ -2,10 +2,10 @@
 
 #include "tap/algorithms/math_user_utils.hpp"
 
-namespace control::chassis::algorithms
+namespace src::chassis::algorithms
 {
 
-float control::chassis::algorithms::SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
+float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
     float delta = desiredVelocity - currentVelocity; 
 
     // If stationary and should move, apply a boost

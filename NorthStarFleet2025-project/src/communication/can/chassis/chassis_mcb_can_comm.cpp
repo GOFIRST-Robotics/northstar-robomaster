@@ -191,6 +191,8 @@
  #endif
  
          imuDataSeq++;
+     } else {
+        std::cout<<"opopopo";
      }
  }
  

@@ -5,6 +5,8 @@
 
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_chassis_constants.hpp"
+#elif TURRET
+#include "robot/standard/standard_chassis_constants.hpp"
 #endif
 
 namespace src::chassis

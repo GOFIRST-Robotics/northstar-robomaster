@@ -217,6 +217,8 @@ void WorldFrameYawTurretImuCascadePidTurretController::initialize()
 }
 float pidOut;
 float debugworldFrameYawVelocity;
+float debugworldFrameYawAngle;
+bool debugonline;
 void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
@@ -225,6 +227,8 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const WrappedFloat worldFrameYawAngle = Angle(turretMCBCanComm.getYawUnwrapped());
     const float worldFrameYawVelocity = turretMCBCanComm.getYawVelocity();
     debugworldFrameYawVelocity = worldFrameYawVelocity;
+    debugworldFrameYawAngle = turretMCBCanComm.getYawUnwrapped();
+    debugonline = turretMCBCanComm.isConnected();
     updateWorldFrameSetpoint(
         desiredSetpoint,
         chassisFrameYaw,

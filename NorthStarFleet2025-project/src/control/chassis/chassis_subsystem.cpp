@@ -10,7 +10,7 @@
 
 using tap::algorithms::limitVal;
 
-namespace control::chassis
+namespace src::chassis
 {
 // STEP 1 (Tank Drive): create constructor
 
@@ -19,7 +19,32 @@ namespace control::chassis
     ChassisSubsystem::ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config, src::can::TurretMCBCanComm* turretMcbCanComm) :
     Subsystem(drivers), 
     desiredOutput{},
-    pidControllers{},
+    // pidControllers{},
+    pidControllers{
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT),
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT),
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT),
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT)},
     motors{
         Motor(drivers, config.leftFrontId, config.canBus, false, "LF"),
         Motor(drivers, config.leftBackId, config.canBus, false, "LB"),
@@ -27,16 +52,16 @@ namespace control::chassis
         Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
     },
     rateLimiters{
-        control::chassis::algorithms::SlewRateLimiter(1000, 10),
-        control::chassis::algorithms::SlewRateLimiter(1000, 10),
-        control::chassis::algorithms::SlewRateLimiter(1000, 10),
-        control::chassis::algorithms::SlewRateLimiter(1000, 10),
+        src::chassis::algorithms::SlewRateLimiter(1000, 10),
+        src::chassis::algorithms::SlewRateLimiter(1000, 10),
+        src::chassis::algorithms::SlewRateLimiter(1000, 10),
+        src::chassis::algorithms::SlewRateLimiter(1000, 10),
     },
     turretMcbCanComm(turretMcbCanComm)
     {
-        for (auto &controller : pidControllers) {
-            controller.setParameter(config.wheelVelocityPidConfig);
-        }
+        // for (auto &controller : pidControllers) {
+        //     controller.setParameter(config.wheelVelocityPidConfig);
+        // }
     }
 // STEP 2 (Tank Drive): initialize function
     void ChassisSubsystem::initialize() {
@@ -50,7 +75,6 @@ namespace control::chassis
 // STEP 3 (Tank Drive): setVelocityTankDrive function
     void ChassisSubsystem::setVelocityDrive(float forward, float sideways, float rotational, float turretRot = 0.0f) {
         float distToCenter;
-        forward = 1.0;
         
         // drivers->bmi088.read();
         #ifdef FIELD

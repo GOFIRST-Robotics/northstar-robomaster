@@ -29,7 +29,7 @@
 #include "../../src/communication/can/chassis/chassis_mcb_can_comm.hpp"
 #endif
 
-namespace src::turret
+namespace src::gyro
 {
 class Drivers : public tap::Drivers
 {
