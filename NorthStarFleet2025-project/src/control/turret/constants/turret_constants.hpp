@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Advanced Robotics at the University of Washington <robomstr@uw.edu>
+ * Copyright (c) 2020-2024 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
  * This file is part of aruw-mcb.
  *
@@ -17,19 +17,19 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ROBOT_CONTROL_HPP_
-#define ROBOT_CONTROL_HPP_
+#ifndef TURRET_CONSTANTS_HPP_
+#define TURRET_CONSTANTS_HPP_
 
-#include "robot/standard/standard_drivers.hpp"
-#include "robot/turret/turret_drivers.hpp"
+#include <stdint.h>
+
+#include "tap/util_macros.hpp"
 
 #ifdef TARGET_STANDARD
-namespace src::standard
+#include "robot/standard/standard_turret_constants.hpp"
 #elif TURRET
-namespace src::gyro
-#endif
-{
-void initSubsystemCommands(Drivers *drivers);
-}  // namespace tbh whatever you want it to be
+#include "robot/standard/standard_turret_constants.hpp"
 
-#endif  // ROBOT_CONTROL_HPP_
+
+#endif
+
+#endif  // TURRET_CONSTANTS_HPP_

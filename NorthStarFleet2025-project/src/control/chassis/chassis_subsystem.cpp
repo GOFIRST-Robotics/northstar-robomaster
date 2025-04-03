@@ -10,34 +10,50 @@
 
 using tap::algorithms::limitVal;
 
-namespace control::chassis
+namespace src::chassis
 {
 // STEP 1 (Tank Drive): create constructor
-
-    float stupidHead;
-    control::chassis::ChassisSubsystem::Pid firstPid;
 
     ChassisSubsystem::ChassisSubsystem(tap::Drivers* drivers, const ChassisConfig& config, src::can::TurretMCBCanComm* turretMcbCanComm) :
     Subsystem(drivers), 
     desiredOutput{},
+    // pidControllers{},
     pidControllers{
-        Pid(),
-        Pid(),
-        Pid(),
-        Pid()
-    },
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT),
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT),
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT),
+        modm::Pid<float>(
+            VELOCITY_PID_KP,
+            VELOCITY_PID_KI,
+            VELOCITY_PID_KD,
+            VELOCITY_PID_MAX_ERROR_SUM,
+            VELOCITY_PID_MAX_OUTPUT)},
     motors{
         Motor(drivers, config.leftFrontId, config.canBus, false, "LF"),
         Motor(drivers, config.leftBackId, config.canBus, false, "LB"),
-        Motor(drivers, config.rightFrontId, config.canBus, true, "RF"),
-        Motor(drivers, config.rightBackId, config.canBus, true, "RB"),
+        Motor(drivers, config.rightFrontId, config.canBus, false, "RF"),
+        Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
     },
     turretMcbCanComm(turretMcbCanComm)
     {
-        for (auto &controller : pidControllers) {
-            controller.setParameter(config.wheelVelocityPidConfig);
-        }
-        firstPid = pidControllers[0];
+        // for (auto &controller : pidControllers) {
+        //     controller.setParameter(config.wheelVelocityPidConfig);
+        // }
     }
 // STEP 2 (Tank Drive): initialize function
     void ChassisSubsystem::initialize() {

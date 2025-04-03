@@ -55,8 +55,8 @@ tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 #ifdef TARGET_STANDARD
 using namespace src::standard;
 #elif TURRET
-#include "communications/can/chassis/chassis_mcb_can_comm.hpp"
-using namespace src::turret;
+#include "communication/can/chassis/chassis_mcb_can_comm.hpp"
+using namespace src::gyro;
 ChassisMcbCanComm chassisMcbCanComm(DoNotUse_getDrivers());
 #endif
 
@@ -111,6 +111,9 @@ int main()
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             #endif
         }
+        // if(!drivers->turretMCBCanCommBus1.isConnected()){
+        //     std::cout<<"poop";
+        // }
         modm::delay_us(10);
     }
     return 0;

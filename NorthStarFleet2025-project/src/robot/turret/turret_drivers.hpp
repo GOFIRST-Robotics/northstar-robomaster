@@ -26,10 +26,10 @@
 #include "tap/mock/imu_terminal_serial_handler_mock.hpp"
 #else
 #include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
-#include "../../src/communications/can/chassis/chassis_mcb_can_comm.hpp"
+#include "../../src/communication/can/chassis/chassis_mcb_can_comm.hpp"
 #endif
 
-namespace src::turret
+namespace src::gyro
 {
 class Drivers : public tap::Drivers
 {

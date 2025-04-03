@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Advanced Robotics at the University of Washington <robomstr@uw.edu>
+ * Copyright (c) 2021-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
  * This file is part of aruw-mcb.
  *
@@ -17,19 +17,19 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ROBOT_CONTROL_HPP_
-#define ROBOT_CONTROL_HPP_
+#include "standard_turret_subsystem.hpp"
 
-#include "robot/standard/standard_drivers.hpp"
-#include "robot/turret/turret_drivers.hpp"
+#include "communication/can/turret/turret_mcb_can_comm.hpp"
 
-#ifdef TARGET_STANDARD
-namespace src::standard
-#elif TURRET
-namespace src::gyro
-#endif
+namespace src::control::turret
 {
-void initSubsystemCommands(Drivers *drivers);
-}  // namespace tbh whatever you want it to be
+float StandardTurretSubsystem::getWorldYaw() const { return getTurretMCB()->getYaw(); }
 
-#endif  // ROBOT_CONTROL_HPP_
+float StandardTurretSubsystem::getWorldPitch() const { return getTurretMCB()->getPitch(); }
+
+uint32_t StandardTurretSubsystem::getLastMeasurementTimeMicros() const
+{
+    return getTurretMCB()->getIMUDataTimestamp();
+}
+
+}  // namespace src::control::turret

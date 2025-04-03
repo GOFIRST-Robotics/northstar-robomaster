@@ -38,7 +38,7 @@
 //  #include "src/communication/serial/vision_coprocessor.hpp"
 //  #include "src/display/oled_display.hpp"
 #include "robot/control_operator_interface.hpp"
-#include "../../src/communications/can/turret/turret_mcb_can_comm.hpp"
+#include "../../src/communication/can/turret/turret_mcb_can_comm.hpp"
 #endif
  
 namespace src::standard
