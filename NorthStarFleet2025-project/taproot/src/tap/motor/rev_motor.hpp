@@ -164,6 +164,8 @@ public:
         SMART_VELOCITY  // Smart velocity with acceleration limits
     };
 
+    RevMotorTxHandler::APICommand controlModeToAPI(ControlMode mode);
+
     /**
      * Set the control mode for this motor
      * @param mode The desired control mode
@@ -199,6 +201,16 @@ private:
     tap::can::CanBus motorCanBus;
 
     int16_t desiredOutput;
+
+    float dutyCycle;
+
+    float voltage;
+
+    float current;
+
+    float velocity;
+
+    float position;
 
     float targetVoltage;
 

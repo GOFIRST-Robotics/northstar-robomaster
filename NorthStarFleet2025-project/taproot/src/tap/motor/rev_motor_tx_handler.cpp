@@ -88,12 +88,12 @@ void RevMotorTxHandler::encodeAndSendCanData()
             if (motor != nullptr)
             {
                 // Create and send heartbeat for this motor
-                modm::can::Message heartbeatMsg = createRevCanMessage(APICommand::Heartbeat, motor);
+                modm::can::Message heartbeatMsg = createRevCanControlMessage(APICommand::Heartbeat, motor);
                 serializeRevMotorHeartBeat(&heartbeatMsg);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
                 
                 // Create and send control message for this motor
-                modm::can::Message controlMsg = createRevCanMessage(APICommand::DutyCycle, motor);
+                modm::can::Message controlMsg = createRevCanControlMessage(APICommand::DutyCycle, motor);
                 motor->serializeCanSendData(&controlMsg);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, controlMsg);
             }
@@ -110,12 +110,12 @@ void RevMotorTxHandler::encodeAndSendCanData()
             if (motor != nullptr)
             {
                 // Create and send heartbeat for this motor
-                modm::can::Message heartbeatMsg = createRevCanMessage(APICommand::Heartbeat, motor);
+                modm::can::Message heartbeatMsg = createRevCanControlMessage(APICommand::Heartbeat, motor);
                 serializeRevMotorHeartBeat(&heartbeatMsg);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, heartbeatMsg);
                 
                 // Create and send control message for this motor
-                modm::can::Message controlMsg = createRevCanMessage(APICommand::DutyCycle, motor);
+                modm::can::Message controlMsg = createRevCanControlMessage(APICommand::DutyCycle, motor);
                 motor->serializeCanSendData(&controlMsg);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, controlMsg);
             }
@@ -196,8 +196,20 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(REVMotorId motorId)
  * use. the control modes can be found in a REV SW Spark Max google sheet which can be
  * obtained by emailing REV Robotics.
  */
-modm::can::Message RevMotorTxHandler::createRevCanMessage(APICommand cmd, const RevMotor* motor) {
-    uint32_t RevArbitrationId = CreateArbitrationId(cmd, motor);
+modm::can::Message RevMotorTxHandler::createRevCanControlMessage(APICommand cmd, const RevMotor* motor) {
+    uint32_t RevArbitrationId = CreateArbitrationControlId(cmd, motor);
+    //the number of bytes in the message
+    uint8_t canRevIdLength = 8;
+    modm::can::Message canMessage(
+        RevArbitrationId,
+        canRevIdLength,
+        0,
+        true);
+    return canMessage;
+}
+
+modm::can::Message RevMotorTxHandler::createRevCanParameterMessage(Parameter param, const RevMotor* motor) {
+    uint32_t RevArbitrationId = CreateArbitrationParameterId(param, motor);
     //the number of bytes in the message
     uint8_t canRevIdLength = 8;
     modm::can::Message canMessage(
@@ -222,7 +234,7 @@ uint8_t RevMotorTxHandler::GetAPIIndex(APICommand cmd) const
 }
 
 
-uint32_t RevMotorTxHandler::CreateArbitrationId(APICommand cmd, const RevMotor* motor) const
+uint32_t RevMotorTxHandler::CreateArbitrationControlId(APICommand cmd, const RevMotor* motor) const
 {
   uint8_t apiClass = GetAPIClass(cmd);
   uint8_t apiIndex = GetAPIIndex(cmd);
@@ -233,6 +245,17 @@ uint32_t RevMotorTxHandler::CreateArbitrationId(APICommand cmd, const RevMotor* 
   return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
          (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
          static_cast<uint32_t>(deviceId);
+}
+
+uint32_t RevMotorTxHandler::CreateArbitrationParameterId(Parameter param, const RevMotor* motor) const
+{
+  uint8_t deviceId = motor->getMotorIdentifier();
+
+  
+
+  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+         (static_cast<uint32_t>(48) <<
+         10) | (static_cast<uint32_t>(param) << 6) | static_cast<uint32_t>(deviceId);
 }
 
 

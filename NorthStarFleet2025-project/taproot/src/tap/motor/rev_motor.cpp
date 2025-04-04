@@ -65,7 +65,38 @@ void RevMotor::initialize()
     drivers->revMotorTxHandler.addMotorToManager(this);
 }
 
+void RevMotor::processMessage(const modm::can::Message& message)
+{
+    if (message.getIdentifier() != RevMotor::getMotorIdentifier())
+    {
+        return;
+    }
+    uint16_t encoderActual =
+        static_cast<uint16_t>(message.data[0] << 8 | message.data[1]);        // encoder value
+    // shaftRPM = static_cast<int16_t>(message.data[2] << 8 | message.data[3]);  // rpm
+    // shaftRPM = motorInverted ? -shaftRPM : shaftRPM;
+    // torque = static_cast<int16_t>(message.data[4] << 8 | message.data[5]);  // torque
+    // torque = motorInverted ? -torque : torque;
+    // temperature = static_cast<int8_t>(message.data[6]);  // temperature
+
+    //TODO: Reimplement encoder functionality
+}
+
 // Add these implementations to rev_motor.cpp
+RevMotorTxHandler::APICommand RevMotor::controlModeToAPI(ControlMode mode){
+    if(mode == ControlMode::DUTY_CYCLE){
+        return RevMotorTxHandler::APICommand::DutyCycle;
+    } else if(mode == ControlMode::VELOCITY){
+        return RevMotorTxHandler::APICommand::Velocity;
+    } else if(mode == ControlMode::POSITION){
+        return RevMotorTxHandler::APICommand::Position;
+    } else if(mode == ControlMode::VOLTAGE){
+        return RevMotorTxHandler::APICommand::Voltage;
+    } else if(mode == ControlMode::CURRENT){
+        return RevMotorTxHandler::APICommand::Current;
+    }
+  
+}
 
 void RevMotor::setControlMode(ControlMode mode)
 {
