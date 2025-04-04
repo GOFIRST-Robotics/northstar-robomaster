@@ -82,7 +82,9 @@ public:
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    void updateBeyBladeRotationSpeed(float speed, float dt);
+    void updateBeyBladeRotationSpeed(float speed, double dt);
+
+    float getBeyBlade();
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.

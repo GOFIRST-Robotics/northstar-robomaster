@@ -9,6 +9,8 @@
 
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_beyblade_command.hpp"
+#include "tap/control/toggle_command_mapping.hpp"
 
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
@@ -25,7 +27,7 @@
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
-// using tap::control::RemoteMapState;
+using tap::control::RemoteMapState;
 using tap::motor::MotorId;
 // using namespace control;
 // using namespace control::chassis;
@@ -67,6 +69,10 @@ namespace standard_control
     src::chassis::ChassisDriveCommand chassisDriveCommand(
         &chassisSubsystem,
         &drivers()->controlOperatorInterface);
+    src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
+        &chassisSubsystem,
+        &drivers()->controlOperatorInterface
+    );
     //   agitatorSubsystemConfig{
     //     .gearRatio = 36.0f,
     //     .agitatorMotorId = tap::motor::MOTOR7,
@@ -239,6 +245,11 @@ namespace standard_control
     //     &m_ChassisSubsystem,
     //     &turretYawMotor
     // )
+    tap::control::ToggleCommandMapping beyBlade(
+        drivers(),
+        {&chassisBeyBladeCommand},
+        RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B}))
+    );
     
 void initializeSubsystems(Drivers *drivers)
 {
@@ -270,6 +281,7 @@ void registerSoldierIoMappings(Drivers *drivers)
     // drivers.commandMapper.addMap(&leftMousePressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
+    drivers->commandMapper.addMap(&beyBlade);
 
 }
 }  // namespace standard_control

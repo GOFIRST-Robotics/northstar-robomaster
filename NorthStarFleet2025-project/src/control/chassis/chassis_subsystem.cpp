@@ -78,15 +78,14 @@ namespace src::chassis
     }
 
     void ChassisSubsystem::driveBasedOnHeading(float forward, float sideways, float rotational, float heading) {
-        MotorId::LF;
-        float distToCenter = 30.48f;
+        float distToCenter = 0.3048f;
         float rotationVal;
-        if (abs(beyBladeRotationSpeed) > 0.0f) {
-            rotationVal = beyBladeRotationSpeed;
+        if (abs(beyBladeRotationSpeed) > 0.5f) {
+            rotationVal = rotational/*beyBladeRotationSpeed*/;
         } else if (abs(rotational) > 0) {
             rotationVal = rotational;
         } else {
-            rotationVal = fmod(modm::toDegree(turretMcbCanComm->getYaw()+modm::toRadian(drivers->bmi088.getYaw())), 360.0f) / (360.0f * 2);
+            rotationVal = 0;/*fmod(modm::toDegree(turretMcbCanComm->getYaw()+modm::toRadian(drivers->bmi088.getYaw())), 360.0f) / (360.0f * 2);*/
         }
         double cos_theta = cos(heading);
         double sin_theta = sin(heading);
@@ -95,8 +94,8 @@ namespace src::chassis
         double sqrt2 = sqrt(2.0);
         rotational=modm::toRadian(rotational);
         LFSpeed = mpsToRpm((vx_local - vy_local) / sqrt2 + (rotationVal) * distToCenter * sqrt2);  // Front-left wheel
-        RFSpeed = -mpsToRpm((-vx_local - vy_local) / sqrt2 + (rotationVal) * distToCenter * sqrt2); // Front-right wheel
-        RBSpeed = -mpsToRpm((-vx_local + vy_local) / sqrt2 + (rotationVal) * distToCenter * sqrt2); // Rear-right wheel
+        RFSpeed = mpsToRpm((-vx_local - vy_local) / sqrt2 + (rotationVal) * distToCenter * sqrt2); // Front-right wheel
+        RBSpeed = mpsToRpm((-vx_local + vy_local) / sqrt2 + (rotationVal) * distToCenter * sqrt2); // Rear-right wheel
         LBSpeed = mpsToRpm((vx_local + vy_local) / sqrt2 + (rotationVal) * distToCenter * sqrt2);  // Rear-left wheel
         int LF = static_cast<int>(MotorId::LF);
         int LB = static_cast<int>(MotorId::LB);
@@ -108,20 +107,29 @@ namespace src::chassis
         desiredOutput[RB] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
     }
 
-    void ChassisSubsystem::updateBeyBladeRotationSpeed(float distance, float dt) {
+    float accumTime = 0.0f;
+
+    void ChassisSubsystem::updateBeyBladeRotationSpeed(float distance, double dt) {
+        accumTime += dt;
         float scaleFactor = 1;
         short direction = -1;
         RandomNumberGenerator::enable();
-        if (dt > 50) {
+        if (accumTime > 500) {
             float calcSpeed = limitVal<float>(scaleFactor / distance, 0.0f, 0.9f) * direction;
             if (RandomNumberGenerator::isReady()) {
                 calcSpeed = limitVal<float>(0.1 * sin(RandomNumberGenerator::getValue() + calcSpeed), 0.0f, 1.0f);
             }
             beyBladeRotationSpeed = calcSpeed;
+            accumTime = 0;
         }
         else if (distance == 0) {
-            beyBladeRotationSpeed = 0.1f * direction;
+            beyBladeRotationSpeed = 0.0f;
         }
+        // beyBladeRotationSpeed = 0.0f; //Delete after debyg
+    }
+
+    float ChassisSubsystem::getBeyBlade() {
+        return beyBladeRotationSpeed;
     }
 
     void ChassisSubsystem::refresh() {
