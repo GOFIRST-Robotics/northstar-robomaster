@@ -44,7 +44,7 @@ namespace src::control::turret
 {
 static constexpr uint8_t NUM_TURRETS = 1;
 
-static constexpr float USER_YAW_INPUT_SCALAR = -0.02f;
+static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = -0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS1;
@@ -53,17 +53,17 @@ static constexpr tap::motor::MotorId YAW_MOTOR_ID = tap::motor::MOTOR8;
 
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
-    .startEncoderValue = 3959,
+    .startEncoderValue = 2700, //enc res 8191
     .minAngle = 0,
-    .maxAngle = M_2_PI,
+    .maxAngle = M_PI/4,
     .limitMotorAngles = false,  
 };
 
 static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
     .startAngle = 0,
-    .startEncoderValue = 0,
+    .startEncoderValue = 5700,
     .minAngle = 0,
-    .maxAngle = 3.14,
+    .maxAngle = M_PI/2,
     .limitMotorAngles = true,
 };
 

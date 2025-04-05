@@ -128,8 +128,8 @@
       * when the data was measured on the turret mcb.
       */
  
-     currProcessingImuData.seq = xAxisMessage->seq;
-     currProcessingImuData.turretDataTimestamp = tap::arch::clock::getTimeMicroseconds();
+      currProcessingImuData.seq = xAxisMessage->seq;
+      currProcessingImuData.turretDataTimestamp = tap::arch::clock::getTimeMicroseconds();
  }
  
  void TurretMCBCanComm::handleYAxisMessage(const modm::can::Message& message)
@@ -153,16 +153,16 @@
      currProcessingImuData.yAcceleration =
          static_cast<float>(yAxisMessage->linearAcceleration) * CMPS2_TO_MPS2;
  }
- 
+ uint8_t debugseq;
  void TurretMCBCanComm::handleZAxisMessage(const modm::can::Message& message)
  {
      const AxisMessageData* zAxisMessage = reinterpret_cast<const AxisMessageData*>(message.data);
- 
-     if (zAxisMessage->seq != currProcessingImuData.seq)
-     {
-         RAISE_ERROR(drivers, "seq # mismatch when handling z-axis data");
-         return;
-     }
+     debugseq = zAxisMessage->seq;
+    //  if (zAxisMessage->seq != currProcessingImuData.seq)
+    //  {
+    //      RAISE_ERROR(drivers, "seq # mismatch when handling z-axis data");
+    //      return;
+    //  }
  
      currProcessingImuData.yaw = modm::toRadian(
          static_cast<float>(zAxisMessage->angleFixedPoint) * ANGLE_FIXED_POINT_PRECISION);

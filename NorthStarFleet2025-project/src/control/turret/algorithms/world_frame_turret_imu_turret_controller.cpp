@@ -219,10 +219,12 @@ float pidOut;
 float debugworldFrameYawVelocity;
 float debugworldFrameYawAngle;
 bool debugonline;
+int debugRunCount =0;
 void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
+    debugRunCount++;
     const WrappedFloat chassisFrameYaw = turretMotor.getChassisFrameMeasuredAngle();
     const WrappedFloat worldFrameYawAngle = Angle(turretMCBCanComm.getYawUnwrapped());
     const float worldFrameYawVelocity = turretMCBCanComm.getYawVelocity();

@@ -21,7 +21,7 @@
 
 #include "control/chassis/constants/chassis_constants.hpp"
 
-
+#include "control/imu/imu_calibrate_command.hpp"
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
@@ -31,6 +31,7 @@ using tap::motor::MotorId;
 // using namespace control::chassis;
 using namespace src::standard;
 using namespace src::control::turret;
+using namespace src::control;
 // using namespace control::turret::user;
 // using namespace control::turret::algorithms;
 // using namespace src::chassis;
@@ -239,6 +240,17 @@ namespace standard_control
     //     &m_ChassisSubsystem,
     //     &turretYawMotor
     // )
+
+    imu::ImuCalibrateCommand imuCalibrateCommand(
+        drivers(),
+        {{
+            &getTurretMCBCanComm(),
+            &turret,
+            &chassisFrameYawTurretController,
+            &chassisFramePitchTurretController,
+            true,
+        }},
+        &chassisSubsystem);
     
 void initializeSubsystems(Drivers *drivers)
 {
@@ -248,7 +260,7 @@ void initializeSubsystems(Drivers *drivers)
     turret.initialize();
 }
 
-void registerSoldierSubsystems(Drivers *drivers)
+void registerStandardSubsystems(Drivers *drivers)
 {
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     // drivers.commandScheduler.registerSubsystem(&agitatorSubsystem);
@@ -256,16 +268,18 @@ void registerSoldierSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
 }
 
-void setDefaultSoldierCommands(Drivers *drivers)
+void setDefaultStandardCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     turret.setDefaultCommand(&turretUserWorldRelativeCommand);
 }
 
-void startSoldierCommands(Drivers *drivers) {}
+void startStandardCommands(Drivers *drivers) {
+    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+}
 
-void registerSoldierIoMappings(Drivers *drivers)
+void registerStandardIoMappings(Drivers *drivers)
 {
     // drivers.commandMapper.addMap(&leftMousePressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
@@ -279,10 +293,10 @@ namespace src::standard
 void initSubsystemCommands(src::standard::Drivers *drivers)
 {
     standard_control::initializeSubsystems(drivers);
-    standard_control::registerSoldierSubsystems(drivers);
-    standard_control::setDefaultSoldierCommands(drivers);
-    standard_control::startSoldierCommands(drivers);
-    standard_control::registerSoldierIoMappings(drivers);
+    standard_control::registerStandardSubsystems(drivers);
+    standard_control::setDefaultStandardCommands(drivers);
+    standard_control::startStandardCommands(drivers);
+    standard_control::registerStandardIoMappings(drivers);
 }
 } //namespace src::standard
 
