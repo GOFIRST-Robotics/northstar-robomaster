@@ -2,12 +2,17 @@
 
 #include "tap/control/command.hpp"
 
+namespace src
+{
+class Drivers;
+
 namespace control
 {
 class ControlOperatorInterface;
 }
+}  //
 
-namespace control::chassis
+namespace src::chassis
 {
 class ChassisSubsystem;
 
@@ -26,7 +31,7 @@ public:
      *
      * @param chassis Chassis to control.
      */
-    ChassisDriveCommand(ChassisSubsystem &chassis, ControlOperatorInterface &operatorInterface);
+    ChassisDriveCommand(ChassisSubsystem *chassis, src::control::ControlOperatorInterface* operatorInterface);
 
     const char *getName() const override { return "Chassis tank drive"; }
 
@@ -39,8 +44,8 @@ public:
     bool isFinished() const { return false; }
 
 private:
-    ChassisSubsystem &chassis;
+    src::chassis::ChassisSubsystem *chassis;
 
-    ControlOperatorInterface &operatorInterface;
+    src::control::ControlOperatorInterface* operatorInterface;
 };
 }  // namespace control::chassis
