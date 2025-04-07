@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2020-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
@@ -17,17 +18,20 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/architecture/clock.hpp"
 #include "tap/drivers.hpp"
 #include <tap/architecture/clock.hpp>
+#include <random>
 
 
 using namespace tap::algorithms;
 using namespace tap::communication::serial;
 
+namespace src
+{
 namespace control
 {
 
@@ -132,15 +136,15 @@ static inline void applyAccelerationToRamp(
 // STEP 2 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
 // definitions
 
-float ControlOperatorInterface::getMecanumHorizontalTranslation() {
+float ControlOperatorInterface::getDrivetrainHorizontalTranslation() {
     if(remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.6f;
     } else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.6f;
     } else {
         return 0.0f;
     }
@@ -183,15 +187,15 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
     return outputDebug;
 }
 
-float ControlOperatorInterface::getMecanumVerticalTranslation() {
+float ControlOperatorInterface::getDrivetrainVerticalTranslation() {
     if(remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.2f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.6f;
     } else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.2f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.6f;
     } else {
         return 0.0f;
     }
@@ -231,12 +235,52 @@ uint32_t updateCounter = remote.getUpdateCounter();
     return chassisYInputRamp.getValue();
 }
 
-float ControlOperatorInterface::getMecanumRotation()
+float ControlOperatorInterface::getDrivetrainRotation()
 {
     if(remote.keyPressed(Remote::Key::CTRL)){
         return 0.2f;
     } else {
         return 0;
+    }
+}
+
+int count = 250;
+float beyBladeValue = 1;
+float prevBeyBladeValue = 0.1f * sin(beyBladeValue) + 0.9f;
+float speed = 0;
+
+bool beyBlade = false;
+bool isHeld = false;
+
+float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
+    RandomNumberGenerator::enable();
+    checkToggleBeyBlade();
+    if (beyBlade) {
+        count++;
+        if (count >= 250) {
+            if (RandomNumberGenerator::isReady()) {
+                prevBeyBladeValue = beyBladeValue;
+                beyBladeValue = RandomNumberGenerator::getValue() % 360;
+                count = 0;
+            }
+        }
+        if (count % 25 == 0) {
+            speed = (0.1f * sin(beyBladeValue) + 0.9f + prevBeyBladeValue) / 2;
+            prevBeyBladeValue = speed;
+        }
+        return speed;
+    }
+
+    if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.3f;
+    } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
+        return -0.6f;
+    } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
+        return 0.3f;
+    } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
+        return 0.6f;
+    } else {
+        return 0.0f;
     }
 }
 
@@ -284,5 +328,18 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
     bool ControlOperatorInterface::isGKeyPressed(){
         return (remote.keyPressed(Remote::Key::G));
     }
+
+    void ControlOperatorInterface::checkToggleBeyBlade(){
+        if (remote.keyPressed(Remote::Key::B)){
+            if (!isHeld) {
+                beyBlade = !beyBlade;
+                isHeld = true;
+            } 
+        } else {
+            isHeld = false;
+        }
+    }
     
 }  // namespace control
+
+} //namespace src

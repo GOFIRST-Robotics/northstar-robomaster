@@ -28,6 +28,8 @@
 #include <tap/algorithms/linear_interpolation_predictor.hpp>
 #include <tap/algorithms/ramp.hpp>
 
+namespace src
+{
 namespace control
 {
 /**
@@ -47,7 +49,7 @@ public:
     static constexpr float USER_STICK_SENTRY_DRIVE_SCALAR = 5000.0f;
 
 
-    ControlOperatorInterface(tap::communication::serial::Remote &remote) : remote(remote) {}
+    ControlOperatorInterface(tap::Drivers *drivers) : remote(drivers->remote) {}
 
 
     /**
@@ -76,15 +78,17 @@ public:
 
     // STEP 1 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
     // declarations
-    float getMecanumHorizontalTranslation();
+    float getDrivetrainHorizontalTranslation();
 
     float getMecanumHorizontalTranslationKeyBoard();
 
-    float getMecanumVerticalTranslation();
+    float getDrivetrainVerticalTranslation();
 
     float getMecanumVerticalTranslationKeyBoard();
 
-    float getMecanumRotation();
+    float getDrivetrainRotation();
+
+    float getDrivetrainRotationalTranslation();
 
     float getMecanumRotationKeyBoard();
 
@@ -97,6 +101,8 @@ public:
     bool isRightSwitchUp();
 
     bool isGKeyPressed();
+
+    void checkToggleBeyBlade();
 
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
@@ -121,13 +127,12 @@ private:
     uint32_t prevChassisXInputCalledTime = 0;
     uint32_t prevChassisYInputCalledTime = 0;
     uint32_t prevChassisRInputCalledTime = 0;
-
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */
-
 };
 }  // namespace control
 
+} //namespace src
 
 #endif  // CONTROL_OPERATOR_INTERFACE_HPP_
