@@ -28,6 +28,8 @@
 #include <tap/algorithms/linear_interpolation_predictor.hpp>
 #include <tap/algorithms/ramp.hpp>
 
+namespace src
+{
 namespace control
 {
 /**
@@ -47,7 +49,7 @@ public:
     static constexpr float USER_STICK_SENTRY_DRIVE_SCALAR = 5000.0f;
 
 
-    ControlOperatorInterface(tap::communication::serial::Remote &remote) : remote(remote) {}
+    ControlOperatorInterface(tap::Drivers *drivers) : remote(drivers->remote) {}
 
 
     /**
@@ -100,7 +102,7 @@ public:
 
     bool isGKeyPressed();
 
-    bool isBeyblade();
+    void checkToggleBeyBlade();
 
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
@@ -125,13 +127,12 @@ private:
     uint32_t prevChassisXInputCalledTime = 0;
     uint32_t prevChassisYInputCalledTime = 0;
     uint32_t prevChassisRInputCalledTime = 0;
-    short beyBladeValue = 1;
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */
-    short count = 0;
 };
 }  // namespace control
 
+} //namespace src
 
 #endif  // CONTROL_OPERATOR_INTERFACE_HPP_

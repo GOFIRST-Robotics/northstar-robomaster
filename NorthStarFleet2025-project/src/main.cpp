@@ -36,7 +36,6 @@
 #include "tap/architecture/profiler.hpp"
 
 /* communication includes ---------------------------------------------------*/
-#include "drivers.hpp"
 #include "drivers_singleton.hpp"
 
 /* error handling includes --------------------------------------------------*/
@@ -45,24 +44,34 @@
 /* control includes ---------------------------------------------------------*/
 #include "tap/architecture/clock.hpp"
 
+#include "robot/robot_control.hpp"
+
 /* robot includes ---------------------------------------------------------*/
-#include "control/standard.hpp"
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
-// tap::arch::PeriodicMilliTimer sendMotorTimeoutREV(20);
+
+// control::Robot robot(*src::DoNotUse_getDrivers());
 
 
-control::Robot robot(*src::DoNotUse_getDrivers());
+#ifdef TARGET_STANDARD
+using namespace src::standard;
+#elif TURRET
+#include "communication/can/chassis/chassis_mcb_can_comm.hpp"
+using namespace src::gyro;
+ChassisMcbCanComm chassisMcbCanComm(DoNotUse_getDrivers());
+#endif
+
+// using namespace std::chrono_literals;
 
 // Place any sort of input/output initialization here. For example, place
 // serial init stuff here.
-static void initializeIo(src::Drivers *drivers);
+static void initializeIo(Drivers *drivers);
 
 // Anything that you would like to be called place here. It will be called
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
-static void updateIo(src::Drivers *drivers);
+static void updateIo(Drivers *drivers);
 
 int main()
 {
@@ -75,36 +84,11 @@ int main()
      *      robot loop we must access the singleton drivers to update
      *      IO states and run the scheduler.
      */
-    src::Drivers *drivers = src::DoNotUse_getDrivers();
+    Drivers *drivers = DoNotUse_getDrivers();
 
     Board::initialize();
     initializeIo(drivers);
-
-    tap::motor::RevMotor m_rev_motor(
-        drivers, 
-        tap::motor::REVMotorId::REV_MOTOR1, 
-        tap::can::CanBus::CAN_BUS1, 
-        false, 
-        "REV Motor 1"
-    );
-
-
-    // tap::motor::DjiMotor m_DjiMotor(
-    //     drivers, 
-    //     tap::motor::MotorId::MOTOR1, 
-    //     tap::can::CanBus::CAN_BUS1, 
-    //     false, 
-    //     "DJI Motor 1"
-    // );
-    // m_DjiMotor.initialize();
-
-
-    // motor.initialize(); // Don't forget to initialize it
-    // motor.setTargetVoltage(1.0f);
-
-    
-
-    robot.initSubsystemCommands();
+    initSubsystemCommands(drivers);
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::resetMotorSims();
     // Blocking call, waits until Windows Simulator connects.
@@ -119,10 +103,16 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
+            #ifdef TURRET
+            PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
+            PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
+            #else
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
+            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ()); //todo figuer out if this causes issues
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            #endif
         }
         // if(sendMotorTimeoutREV.execute())
         // {
@@ -135,7 +125,7 @@ int main()
     return 0;
 }
 
-static void initializeIo(src::Drivers *drivers)
+static void initializeIo(Drivers *drivers)
 {
     drivers->analog.init();
     drivers->pwm.init();
@@ -149,9 +139,15 @@ static void initializeIo(src::Drivers *drivers)
     drivers->terminalSerial.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
+    #ifdef TARGET_STANDARD
+    drivers->turretMCBCanCommBus1.init();
+    #endif
+    #ifdef TURRET
+    chassisMcbCanComm.init();
+    #endif
 }
 
-static void updateIo(src::Drivers *drivers)
+static void updateIo(Drivers *drivers)
 {
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
@@ -160,4 +156,5 @@ static void updateIo(src::Drivers *drivers)
     drivers->canRxHandler.pollCanData();
     drivers->refSerial.updateSerial();
     drivers->remote.read();
+    drivers->bmi088.read();
 }
