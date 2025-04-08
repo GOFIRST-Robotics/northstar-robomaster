@@ -101,14 +101,14 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
+            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
             #ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
             #else
-            PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
             PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
-            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             #endif
         }
         // if(!drivers->turretMCBCanCommBus1.isConnected()){
@@ -121,24 +121,26 @@ int main()
 
 static void initializeIo(Drivers *drivers)
 {
-    drivers->analog.init();
-    drivers->pwm.init();
-    drivers->digital.init();
-    drivers->leds.init();
     drivers->can.initialize();
+    drivers->leds.init();
+    drivers->digital.init();
+    drivers->pwm.init();
+    drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
-    drivers->remote.initialize();
-    drivers->bmi088.initialize(500, 0.5, 0);
-    drivers->refSerial.initialize();
     drivers->terminalSerial.initialize();
-    drivers->schedulerTerminalHandler.init();
-    drivers->djiMotorTerminalSerialHandler.init();
     #ifdef TARGET_STANDARD
     drivers->turretMCBCanCommBus1.init();
     #endif
     #ifdef TURRET
     chassisMcbCanComm.init();
+    #else
+    drivers->analog.init();
+    drivers->remote.initialize();
+    drivers->refSerial.initialize();
+    drivers->schedulerTerminalHandler.init();
+    drivers->djiMotorTerminalSerialHandler.init();
     #endif
+    
 }
 
 static void updateIo(Drivers *drivers)
@@ -148,7 +150,9 @@ static void updateIo(Drivers *drivers)
 #endif
 
     drivers->canRxHandler.pollCanData();
+    drivers->bmi088.read();
+    #ifndef TURRET
     drivers->refSerial.updateSerial();
     drivers->remote.read();
-    drivers->bmi088.read();
+    #endif
 }

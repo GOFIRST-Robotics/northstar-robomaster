@@ -142,11 +142,11 @@ namespace standard_control
     tap::algorithms::SmoothPid worldFramePitchTurretImuVelPid(
         world_rel_turret_imu::PITCH_VEL_PID_CONFIG);
     
-    // algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuController(
-    //     getTurretMCBCanComm(),
-    //     turret.pitchMotor,
-    //     worldFramePitchTurretImuPosPid,
-    //     worldFramePitchTurretImuVelPid);
+    algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuController(
+        getTurretMCBCanComm(),
+        turret.pitchMotor,
+        worldFramePitchTurretImuPosPid,
+        worldFramePitchTurretImuVelPid);
     
     // algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerCv(
     //     getTurretMCBCanComm(),
@@ -170,10 +170,8 @@ namespace standard_control
         &turret,
         &worldFrameYawChassisImuController,
         &worldFramePitchChassisImuController,
-        &worldFrameYawChassisImuController,
-        &worldFramePitchChassisImuController,
-        // &worldFrameYawTurretImuController,
-        // &worldFramePitchTurretImuController,
+        &worldFrameYawTurretImuController,
+        &worldFramePitchTurretImuController,
         USER_YAW_INPUT_SCALAR,
         USER_PITCH_INPUT_SCALAR);
 

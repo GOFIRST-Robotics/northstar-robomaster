@@ -53,7 +53,7 @@ public:
     Drivers()
         : tap::Drivers(),
           controlOperatorInterface(this),
-          turretMCBCanCommBus1(this, tap::can::CanBus::CAN_BUS1)
+          turretMCBCanCommBus1(this, tap::can::CanBus::CAN_BUS2)
     {
     }
  
