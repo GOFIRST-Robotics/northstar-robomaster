@@ -27,6 +27,12 @@
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_drivers.hpp"
 namespace src::standard
+#elif TARGET_SENTRY
+#include "robot/sentry/sentry_drivers.hpp"
+namespace src::sentry
+#elif TARGET_HERO
+#include "robot/hero/hero_drivers.hpp"
+namespace src::hero
 #elif TURRET
 #include "robot/turret/turret_drivers.hpp"
 namespace src::gyro

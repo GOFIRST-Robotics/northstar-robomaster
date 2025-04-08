@@ -48,7 +48,6 @@ void ChassisFrameYawTurretController::initialize()
         turretMotor.attachTurretController(this);
     }
 }
-
 void ChassisFrameYawTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
@@ -58,7 +57,6 @@ void ChassisFrameYawTurretController::runController(
 
     // position controller based on turret yaw gimbal
     float positionControllerError = turretMotor.getValidChassisMeasurementError();
-
     float pidOutput =
         pid.runController(positionControllerError, turretMotor.getChassisFrameVelocity(), dt);
 

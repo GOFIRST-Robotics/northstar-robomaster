@@ -42,32 +42,9 @@ TurretMotor::TurretMotor(tap::motor::MotorInterface *motor, const TurretMotorCon
 
 void TurretMotor::updateMotorAngle()
 {
-
     if (isOnline())
     {
         int64_t encoderUnwrapped = motor->getEncoderUnwrapped();
-
-        if (startEncoderOffset == INT16_MIN)
-        {
-            int encoderDiff =
-                static_cast<int>(config.startEncoderValue) - static_cast<int>(encoderUnwrapped);
-
-            if (encoderDiff < -static_cast<int>(DjiMotor::ENC_RESOLUTION / 2))
-            {
-                // encoder offset by 1 rev in negative direction
-                startEncoderOffset = -DjiMotor::ENC_RESOLUTION;
-            }
-            else if (encoderDiff > DjiMotor::ENC_RESOLUTION / 2)
-            {
-                // offset by 1 rev in positive direction
-                startEncoderOffset = DjiMotor::ENC_RESOLUTION;
-            }
-            else
-            {
-                // no offset necessary
-                startEncoderOffset = 0;
-            }
-        }
 
         if (lastUpdatedEncoderValue == encoderUnwrapped)
         {
@@ -76,12 +53,9 @@ void TurretMotor::updateMotorAngle()
 
         lastUpdatedEncoderValue = encoderUnwrapped;
 
-        
         float chassisFrameUnwrappedMeasurement =
-            static_cast<float>(
-                encoderUnwrapped - static_cast<int64_t>(config.startEncoderValue) +
-                startEncoderOffset) *
-                M_TWOPI / static_cast<float>(DjiMotor::ENC_RESOLUTION) +
+            static_cast<float>(encoderUnwrapped - config.startEncoderValue) *
+                static_cast<float>(M_TWOPI) / static_cast<float>(DjiMotor::ENC_RESOLUTION) +
             config.startAngle;
 
         chassisFrameMeasuredAngle.setUnwrappedValue(chassisFrameUnwrappedMeasurement);
@@ -94,7 +68,6 @@ void TurretMotor::updateMotorAngle()
         }
 
         lastUpdatedEncoderValue = config.startEncoderValue;
-        startEncoderOffset = INT16_MIN;
 
         chassisFrameMeasuredAngle.setUnwrappedValue(config.startAngle);
     }
@@ -113,13 +86,11 @@ void TurretMotor::setMotorOutput(float out)
         motor->setDesiredOutput(0);
     }
 }
-float debugchassisFrameSetpoint;
-float debugsetpoint;
+
 void TurretMotor::setChassisFrameSetpoint(WrappedFloat setpoint)
 {
     chassisFrameSetpoint = setpoint;
-    debugchassisFrameSetpoint = chassisFrameSetpoint.getUnwrappedValue();
-    debugsetpoint = setpoint.getUnwrappedValue();
+
     if (config.limitMotorAngles)
     {
         int status;
@@ -129,7 +100,6 @@ void TurretMotor::setChassisFrameSetpoint(WrappedFloat setpoint)
             config.maxAngle,
             &status));
     }
-    debugchassisFrameSetpoint = chassisFrameSetpoint.getUnwrappedValue();
 }
 
 float TurretMotor::getValidChassisMeasurementError() const

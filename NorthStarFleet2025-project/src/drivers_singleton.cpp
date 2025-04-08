@@ -23,6 +23,10 @@
 
 #ifdef TARGET_STANDARD
 namespace src::standard
+#elif TARGET_SENTRY
+namespace src::sentry
+#elif TARRGET_HERO
+namespace src::hero
 #elif TURRET
 namespace src::gyro
 #endif
