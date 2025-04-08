@@ -80,11 +80,11 @@ public:
 
     mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
 
+    mockable void setVelocityBeyBladeDrive(float forward, float sideways, float distance, double dt);
+
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    void updateBeyBladeRotationSpeed(float speed, double dt);
-
-    float getBeyBlade();
+    float calculateBeyBladeRotationSpeed(float speed, uint32_t dt);
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.

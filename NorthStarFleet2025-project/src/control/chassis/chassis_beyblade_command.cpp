@@ -21,27 +21,25 @@ ChassisBeybladeCommand::ChassisBeybladeCommand(ChassisSubsystem* chassis, src::c
 
     void ChassisBeybladeCommand::initialize() {
         prevTime = tap::arch::clock::getTimeMilliseconds();
-    }
-
-    double prevTime;    
+    }   
 
     void ChassisBeybladeCommand::execute() {
-        double currTime = tap::arch::clock::getTimeMilliseconds();
-        double dt = currTime - prevTime;
+        uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
+        uint32_t dt = currTime - prevTime;
         prevTime = currTime;
 
-        chassis->updateBeyBladeRotationSpeed(1, dt);
         auto scale = [](float raw) -> float {
             return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
         };
-        chassis->setVelocityTurretDrive(
+        chassis->setVelocityBeyBladeDrive(
             scale(operatorInterface->getDrivetrainVerticalTranslation()),
             -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
-            scale(chassis->getBeyBlade())
+            1,
+            dt
         );
     }
 // STEP 3 (Tank Drive): end function
     void ChassisBeybladeCommand::end(bool interrupted) {
-        chassis->updateBeyBladeRotationSpeed(0, 0);
+        chassis->setVelocityBeyBladeDrive(0, 0, 0, 0);
     }
 };  // namespace control::chassis

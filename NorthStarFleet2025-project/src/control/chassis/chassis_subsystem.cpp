@@ -77,16 +77,19 @@ namespace src::chassis
         driveBasedOnHeading(forward, sideways, rotational, robotHeading);
     }
 
+    void ChassisSubsystem::setVelocityBeyBladeDrive(float forward, float sideways, float distance, double dt) {
+        float turretRot=-turretMcbCanComm->getYaw()+modm::toRadian(drivers->bmi088.getYaw());
+        driveBasedOnHeading(forward, sideways, calculateBeyBladeRotationSpeed(distance, dt), turretRot);
+    }
+
     void ChassisSubsystem::driveBasedOnHeading(float forward, float sideways, float rotational, float heading) {
         float distToCenter = 0.3048f;
         float rotationVal;
-        if (abs(beyBladeRotationSpeed) > 0.5f) {
-            rotationVal = rotational/*beyBladeRotationSpeed*/;
-        } else if (abs(rotational) > 0) {
+        // if (abs(rotational) > 0.1f) {
             rotationVal = rotational;
-        } else {
-            rotationVal = 0;/*fmod(modm::toDegree(turretMcbCanComm->getYaw()+modm::toRadian(drivers->bmi088.getYaw())), 360.0f) / (360.0f * 2);*/
-        }
+        // } else {
+        //     rotationVal = fmod((turretMcbCanComm->getYaw()+drivers->bmi088.getYaw()), M_PI_2) / 1;
+        // }
         double cos_theta = cos(heading);
         double sin_theta = sin(heading);
         double vx_local = forward * cos_theta + sideways * sin_theta;
@@ -107,29 +110,26 @@ namespace src::chassis
         desiredOutput[RB] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
     }
 
-    float accumTime = 0.0f;
+    u_int32_t accumTime = 0.0f;
 
-    void ChassisSubsystem::updateBeyBladeRotationSpeed(float distance, double dt) {
+    float ChassisSubsystem::calculateBeyBladeRotationSpeed(float distance, uint32_t dt) {
         accumTime += dt;
         float scaleFactor = 1;
         short direction = -1;
+        if (distance < 0.1f) {
+            return 0.0f;
+        }
         RandomNumberGenerator::enable();
         if (accumTime > 500) {
             float calcSpeed = limitVal<float>(scaleFactor / distance, 0.0f, 0.9f) * direction;
             if (RandomNumberGenerator::isReady()) {
-                calcSpeed = limitVal<float>(0.1 * sin(RandomNumberGenerator::getValue() + calcSpeed), 0.0f, 1.0f);
+                calcSpeed = limitVal<float>(0.1 * sin(RandomNumberGenerator::getValue()) + calcSpeed, 0.0f, 1.0f);
             }
-            beyBladeRotationSpeed = calcSpeed;
             accumTime = 0;
+            return calcSpeed;
         }
-        else if (distance == 0) {
-            beyBladeRotationSpeed = 0.0f;
-        }
+    
         // beyBladeRotationSpeed = 0.0f; //Delete after debyg
-    }
-
-    float ChassisSubsystem::getBeyBlade() {
-        return beyBladeRotationSpeed;
     }
 
     void ChassisSubsystem::refresh() {

@@ -35,7 +35,7 @@ public:
 
     const char *getName() const override { return "Chassis tank drive"; }
 
-    void initialize() override {}
+    void initialize() override;
 
     void execute() override;
 
@@ -47,5 +47,7 @@ private:
     src::chassis::ChassisSubsystem *chassis;
 
     src::control::ControlOperatorInterface* operatorInterface;
+
+    uint32_t prevTime; 
 };
 }  // namespace control::chassis
