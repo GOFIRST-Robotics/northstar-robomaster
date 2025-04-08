@@ -17,49 +17,48 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include "turret_subsystem.hpp"
+#include "turret_subsystem.hpp"
 
- #include <algorithm>
- #include <cfloat>
- #include <random>
- 
- #include "tap/algorithms/math_user_utils.hpp"
- #include "tap/architecture/clock.hpp"
- #include "tap/control/command_mapper.hpp"
- #include "tap/errors/create_errors.hpp"
- 
- using namespace tap::motor;
- using namespace tap::algorithms;
- 
- namespace src::control::turret
- {
- TurretSubsystem::TurretSubsystem(
-     tap::Drivers *drivers,
-     MotorInterface *pitchMotor,
-     MotorInterface *yawMotor,
-     const TurretMotorConfig &pitchMotorConfig,
-     const TurretMotorConfig &yawMotorConfig,
-     const src::can::TurretMCBCanComm *turretMCB)
-     : tap::control::Subsystem(drivers),
-       pitchMotor(pitchMotor, pitchMotorConfig),
-       yawMotor(yawMotor, yawMotorConfig),
-       turretMCB(turretMCB)
- {
-     assert(drivers != nullptr);
-     assert(pitchMotor != nullptr);
-     assert(yawMotor != nullptr);
- }
- 
- void TurretSubsystem::initialize()
- {
-     yawMotor.initialize();
-     pitchMotor.initialize();
- }
- 
- void TurretSubsystem::refresh()
- {
-     yawMotor.updateMotorAngle();
-     pitchMotor.updateMotorAngle();
- }
- }  // namespace src::control::turret
- 
+#include <algorithm>
+#include <cfloat>
+#include <random>
+
+#include "tap/algorithms/math_user_utils.hpp"
+#include "tap/architecture/clock.hpp"
+#include "tap/control/command_mapper.hpp"
+#include "tap/errors/create_errors.hpp"
+
+using namespace tap::motor;
+using namespace tap::algorithms;
+
+namespace src::control::turret
+{
+TurretSubsystem::TurretSubsystem(
+    tap::Drivers *drivers,
+    MotorInterface *pitchMotor,
+    MotorInterface *yawMotor,
+    const TurretMotorConfig &pitchMotorConfig,
+    const TurretMotorConfig &yawMotorConfig,
+    const src::can::TurretMCBCanComm *turretMCB)
+    : tap::control::Subsystem(drivers),
+      pitchMotor(pitchMotor, pitchMotorConfig),
+      yawMotor(yawMotor, yawMotorConfig),
+      turretMCB(turretMCB)
+{
+    assert(drivers != nullptr);
+    assert(pitchMotor != nullptr);
+    assert(yawMotor != nullptr);
+}
+
+void TurretSubsystem::initialize()
+{
+    yawMotor.initialize();
+    pitchMotor.initialize();
+}
+
+void TurretSubsystem::refresh()
+{
+    yawMotor.updateMotorAngle();
+    pitchMotor.updateMotorAngle();
+}
+}  // namespace src::control::turret

@@ -133,42 +133,23 @@ void WorldFrameYawChassisImuTurretController::initialize()
         turretMotor.attachTurretController(this);
     }
 }
-// float debugchassisFrameImuYawAngle;
-// float debugworldFrameSetpoint;
-// float debugpositionControllerError;
-// float debugworldFrameYawAngle;
-// float debugchassisFrameInitImuYawAngle;
-// float debugturretMotorgetChassisFrameMeasuredAngle;
-int runCountControler=0;
-int timefor100;
-int timecount;
+
 void WorldFrameYawChassisImuTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
-    runCountControler++;
-    if(runCountControler>=100){
-        timefor100=timecount;
-        timecount=0;
-        runCountControler=0;
-    }
-    timecount+=dt;
     const WrappedFloat chassisFrameImuYawAngle = getBmi088Yaw();
-    // debugchassisFrameImuYawAngle = chassisFrameImuYawAngle.getUnwrappedValue();
-    // debugchassisFrameInitImuYawAngle = chassisFrameInitImuYawAngle.getUnwrappedValue();
+
     updateWorldFrameSetpoint(
         desiredSetpoint,
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         worldFrameSetpoint,
         turretMotor);
-    // debugworldFrameSetpoint = worldFrameSetpoint.getUnwrappedValue();
-    // debugturretMotorgetChassisFrameMeasuredAngle = turretMotor.getChassisFrameMeasuredAngle().getUnwrappedValue();
     const WrappedFloat worldFrameYawAngle = transformChassisFrameToWorldFrame(
         chassisFrameInitImuYawAngle,
         chassisFrameImuYawAngle,
         turretMotor.getChassisFrameMeasuredAngle());
-    // debugworldFrameYawAngle = worldFrameYawAngle.getUnwrappedValue();
 
     // position controller based on imu and yaw gimbal angle
     const float positionControllerError =
@@ -177,7 +158,6 @@ void WorldFrameYawChassisImuTurretController::runController(
         positionControllerError,
         turretMotor.getChassisFrameVelocity() + modm::toRadian(drivers.bmi088.getGz()),
         dt);
-    // debugpositionControllerError = positionControllerError;
 
     turretMotor.setMotorOutput(pidOutput);
 }
@@ -205,8 +185,13 @@ WrappedFloat WorldFrameYawChassisImuTurretController::getMeasurement() const
 
 bool WorldFrameYawChassisImuTurretController::isOnline() const
 {
-    return turretMotor.isOnline() && (drivers.bmi088.getImuState() == tap::communication::sensors::imu::ImuInterface::ImuState::IMU_CALIBRATED ||
-    drivers.bmi088.getImuState() == tap::communication::sensors::imu::ImuInterface::ImuState::IMU_NOT_CALIBRATED); //TODO not shure if this is valid, was drivers.mpu6500.isRunning();
+    return turretMotor.isOnline() &&
+           (drivers.bmi088.getImuState() ==
+                tap::communication::sensors::imu::ImuInterface::ImuState::IMU_CALIBRATED ||
+            drivers.bmi088.getImuState() ==
+                tap::communication::sensors::imu::ImuInterface::ImuState::
+                    IMU_NOT_CALIBRATED);  // TODO not shure if this is valid, was
+                                          // drivers.mpu6500.isRunning(); NOTE this is working now
 }
 
 WrappedFloat WorldFrameYawChassisImuTurretController::convertControllerAngleToChassisFrame(
@@ -255,13 +240,13 @@ void WorldFramePitchChassisImuTurretController::initialize()
         turretMotor.attachTurretController(this);
     }
 }
-float debugchassisFrameImuPitchAngle;
+
 void WorldFramePitchChassisImuTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
     const WrappedFloat chassisFrameImuPitchAngle = getBmi088Pitch();
-    debugchassisFrameImuPitchAngle = chassisFrameImuPitchAngle.getUnwrappedValue();
+
     updateWorldFrameSetpoint(
         desiredSetpoint,
         chassisFrameInitImuPitchAngle,
@@ -308,8 +293,13 @@ WrappedFloat WorldFramePitchChassisImuTurretController::getMeasurement() const
 
 bool WorldFramePitchChassisImuTurretController::isOnline() const
 {
-    return turretMotor.isOnline() && (drivers.bmi088.getImuState() == tap::communication::sensors::imu::ImuInterface::ImuState::IMU_CALIBRATED ||
-    drivers.bmi088.getImuState() == tap::communication::sensors::imu::ImuInterface::ImuState::IMU_NOT_CALIBRATED); //TODO not shure if this is valid, was drivers.mpu6500.isRunning();
+    return turretMotor.isOnline() &&
+           (drivers.bmi088.getImuState() ==
+                tap::communication::sensors::imu::ImuInterface::ImuState::IMU_CALIBRATED ||
+            drivers.bmi088.getImuState() ==
+                tap::communication::sensors::imu::ImuInterface::ImuState::
+                    IMU_NOT_CALIBRATED);  // TODO not shure if this is valid, was
+                                          // drivers.mpu6500.isRunning();
 }
 
 WrappedFloat WorldFramePitchChassisImuTurretController::convertControllerAngleToChassisFrame(

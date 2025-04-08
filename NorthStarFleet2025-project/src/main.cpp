@@ -49,11 +49,12 @@
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 
-// control::Robot robot(*src::DoNotUse_getDrivers());
-
-
 #ifdef TARGET_STANDARD
 using namespace src::standard;
+#elif TARGET_SENTRY
+using namespace src::sentry;
+#elif TARGET_HERO
+using namespace src::hero;
 #elif TURRET
 #include "communication/can/chassis/chassis_mcb_can_comm.hpp"
 using namespace src::gyro;
@@ -103,13 +104,13 @@ int main()
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
             PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
-            #ifdef TURRET
+#ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
-            #else
+#else
             PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
-            #endif
+#endif
         }
         // if(!drivers->turretMCBCanCommBus1.isConnected()){
         //     std::cout<<"poop";
@@ -128,19 +129,18 @@ static void initializeIo(Drivers *drivers)
     drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
     drivers->terminalSerial.initialize();
-    #ifdef TARGET_STANDARD
+#ifdef TARGET_STANDARD
     drivers->turretMCBCanCommBus1.init();
-    #endif
-    #ifdef TURRET
+#endif
+#ifdef TURRET
     chassisMcbCanComm.init();
-    #else
+#else
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
-    #endif
-    
+#endif
 }
 
 static void updateIo(Drivers *drivers)
@@ -151,8 +151,8 @@ static void updateIo(Drivers *drivers)
 
     drivers->canRxHandler.pollCanData();
     drivers->bmi088.read();
-    #ifndef TURRET
+#ifndef TURRET
     drivers->refSerial.updateSerial();
     drivers->remote.read();
-    #endif
+#endif
 }

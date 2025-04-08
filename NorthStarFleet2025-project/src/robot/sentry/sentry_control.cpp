@@ -1,4 +1,4 @@
-#ifdef TARGET_STANDARD
+#ifdef TARGET_SENTRY
 
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
@@ -8,7 +8,7 @@
 #include "tap/util_macros.hpp"
 
 #include "../../robot-type/robot_type.hpp"
-#include "robot/standard/standard_drivers.hpp"
+#include "robot/sentry/sentry_drivers.hpp"
 
 #include "drivers_singleton.hpp"
 
@@ -31,7 +31,7 @@
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
-#include "robot/standard/standard_turret_subsystem.hpp"
+// #include "robot/standard/standard_turret_subsystem.hpp"  //will need to change
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -42,7 +42,7 @@ using tap::motor::MotorId;
 
 using namespace tap::control::setpoint;
 using namespace tap::control;
-using namespace src::standard;
+using namespace src::sentry;
 using namespace src::control::turret;
 using namespace src::control;
 using namespace src::agitator;
@@ -50,7 +50,7 @@ using namespace src::control::agitator;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
-namespace standard_control
+namespace sentry_control
 {
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus1; }
 // chassis subsystem
@@ -99,17 +99,17 @@ HoldRepeatCommandMapping leftMousePressed(
     false);
 
 // turret subsystem
-tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true, "PitchMotor");
-
-tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, false, "YawMotor");
-
-StandardTurretSubsystem turret(
+TurretSubsystem turret(
     drivers(),
     &pitchMotor,
     &yawMotor,
     PITCH_MOTOR_CONFIG,
     YAW_MOTOR_CONFIG,
     &getTurretMCBCanComm());
+
+tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true, "PitchMotor");
+
+tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, false, "YawMotor");
 
 // turret controlers
 algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
@@ -184,7 +184,7 @@ void initializeSubsystems(Drivers *drivers)
     turret.initialize();
 }
 
-void registerStandardSubsystems(Drivers *drivers)
+void registerSentrySubsystems(Drivers *drivers)
 {
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
@@ -192,36 +192,36 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     turret.setDefaultCommand(&turretUserWorldRelativeCommand);
 }
 
-void startStandardCommands(Drivers *drivers)
+void startSentryCommands(Drivers *drivers)
 {
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
-void registerStandardIoMappings(Drivers *drivers)
+void registerSentryIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
 }
-}  // namespace standard_control
+}  // namespace sentry_control
 
-namespace src::standard
+namespace src::sentry
 {
-void initSubsystemCommands(src::standard::Drivers *drivers)
+void initSubsystemCommands(src::sentry::Drivers *drivers)
 {
-    standard_control::initializeSubsystems(drivers);
-    standard_control::registerStandardSubsystems(drivers);
-    standard_control::setDefaultStandardCommands(drivers);
-    standard_control::startStandardCommands(drivers);
-    standard_control::registerStandardIoMappings(drivers);
+    sentry_control::initializeSubsystems(drivers);
+    sentry_control::registerSentrySubsystems(drivers);
+    sentry_control::setDefaultSentryCommands(drivers);
+    sentry_control::startSentryCommands(drivers);
+    sentry_control::registerSentryIoMappings(drivers);
 }
-}  // namespace src::standard
+}  // namespace src::sentry
 
 #endif
