@@ -13,21 +13,21 @@ using tap::algorithms::limitVal;
 namespace Communications::Rev
 {
 // STEP 1 (Tank Drive): create constructor
-    RevMotorTester::RevMotorTester(tap::Drivers& drivers)
-        : Subsystem(&drivers),
-        motor1(&drivers, tap::motor::REVMotorId::REV_MOTOR1, tap::can::CanBus::CAN_BUS1, false, "REV Motor 1")
+    RevMotorTester::RevMotorTester(tap::Drivers* drivers)
+        : Subsystem(drivers),
+        motor1(drivers, tap::motor::REVMotorId::REV_MOTOR1, tap::can::CanBus::CAN_BUS1, false, "REV Motor 1")
     {
     }
    
 // STEP 2 (Tank Drive): initialize function
     void RevMotorTester::initialize() {
         motor1.initialize();
-        motor1.setTargetVoltage(0.1f);
+        // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
     }
 
 
     void RevMotorTester::refresh() {
-        motor1.setTargetVoltage(0.1f);
+        // motor1.setTargetVoltage(0.1f);
     }
 // STEP
 }  // namespace control::chassis

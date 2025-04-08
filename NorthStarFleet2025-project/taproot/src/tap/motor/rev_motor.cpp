@@ -114,7 +114,7 @@ void RevMotor::setControlValue(float value)
     
     // If you want backward compatibility with existing voltage control:
     if (currentControlMode == ControlMode::VOLTAGE) {
-        setTargetVoltage(value);
+        // setTargetVoltage(value);
     }
 }
 

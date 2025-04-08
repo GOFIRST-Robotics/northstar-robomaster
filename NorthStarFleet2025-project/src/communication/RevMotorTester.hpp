@@ -11,7 +11,7 @@
 #include "tap/motor/rev_motor.hpp"
 #endif
 
-class Drivers;
+// class Drivers;
 
 namespace Communications::Rev
 {
@@ -30,7 +30,7 @@ public:
     using Motor = tap::motor::RevMotor;
 #endif
 
-    RevMotorTester(tap::Drivers& drivers);
+    RevMotorTester(tap::Drivers* drivers);
 
     ///
     /// @brief Initializes the drive motors.

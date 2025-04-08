@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2020-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
@@ -17,7 +18,7 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "control/control_operator_interface.hpp"
+#include "robot/control_operator_interface.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/architecture/clock.hpp"
@@ -29,6 +30,8 @@
 using namespace tap::algorithms;
 using namespace tap::communication::serial;
 
+namespace src
+{
 namespace control
 {
 
@@ -241,28 +244,41 @@ float ControlOperatorInterface::getDrivetrainRotation()
     }
 }
 
+int count = 250;
+float beyBladeValue = 1;
+float prevBeyBladeValue = 0.1f * sin(beyBladeValue) + 0.9f;
+float speed = 0;
+
+bool beyBlade = false;
+bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
-    if (isBeyblade()) {
-        // if (count >= 250) {
-        //     std::random_device rd;
-        //     std::mt19937 gen(rd());
-        //     std::uniform_int_distribution<> dist(1, 9);
-        //     beyBladeValue = dist(gen);
-        //     count = 0;
-        // }
-        // return 0.1f * static_cast<float>(sin(beyBladeValue)) + 0.9f;
-        return 1.0f;
+    RandomNumberGenerator::enable();
+    checkToggleBeyBlade();
+    if (beyBlade) {
+        count++;
+        if (count >= 250) {
+            if (RandomNumberGenerator::isReady()) {
+                prevBeyBladeValue = beyBladeValue;
+                beyBladeValue = RandomNumberGenerator::getValue() % 360;
+                count = 0;
+            }
+        }
+        if (count % 25 == 0) {
+            speed = (0.1f * sin(beyBladeValue) + 0.9f + prevBeyBladeValue) / 2;
+            prevBeyBladeValue = speed;
+        }
+        return speed;
     }
 
     if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.4f;
+        return -0.3f;
     } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
-        return -0.8f;
+        return -0.6f;
     } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
-        return 0.4f;
+        return 0.3f;
     } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
-        return-0.48f;
+        return 0.6f;
     } else {
         return 0.0f;
     }
@@ -313,8 +329,17 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
         return (remote.keyPressed(Remote::Key::G));
     }
 
-    bool ControlOperatorInterface::isBeyblade(){
-        return (remote.keyPressed(Remote::Key::B));
+    void ControlOperatorInterface::checkToggleBeyBlade(){
+        if (remote.keyPressed(Remote::Key::B)){
+            if (!isHeld) {
+                beyBlade = !beyBlade;
+                isHeld = true;
+            } 
+        } else {
+            isHeld = false;
+        }
     }
     
 }  // namespace control
+
+} //namespace src

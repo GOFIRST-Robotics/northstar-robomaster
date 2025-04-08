@@ -24,8 +24,7 @@
 #ifndef TAPROOT_TURRET_SUBSYSTEM_INTERFACE_HPP_
 #define TAPROOT_TURRET_SUBSYSTEM_INTERFACE_HPP_
 
-// #include "tap/algorithms/wrapped_float.hpp" TODO: fix
-#include "additionalTapResources/wrapped_float.hpp"
+#include "tap/algorithms/wrapped_float.hpp"
 
 #include "subsystem.hpp"
 
