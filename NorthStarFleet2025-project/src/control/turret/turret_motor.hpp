@@ -164,6 +164,9 @@ private:
     /// Associated turret controller interface that is being used by a command to control this motor
     const algorithms::TurretControllerInterface *turretController = nullptr;
 
+    /// ratio of motor rotations per rotation of controled pivot
+    float ratio;
+
     /// Unwrapped chassis frame setpoint specified by the user and limited to `[config.minAngle,
     /// config.maxAngle]`. Units radians.
     WrappedFloat chassisFrameSetpoint;
