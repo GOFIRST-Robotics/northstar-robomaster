@@ -28,7 +28,7 @@
 #include "robot/standard/standard_turret_constants.hpp"
 #elif TARGET_SENTRY
 #include "robot/sentry/sentry_turret_constants.hpp"
-#elif TARRGET_HERO
+#elif TARGET_HERO
 #include "robot/hero/hero_turret_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_turret_constants.hpp"

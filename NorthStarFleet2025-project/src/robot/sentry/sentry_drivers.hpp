@@ -46,17 +46,17 @@ public:
     Drivers()
         : tap::Drivers(),
           controlOperatorInterface(this),
-          turretMCBCanCommBus1(this, tap::can::CanBus::CAN_BUS2)
+          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2)
     {
     }
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
     testing::NiceMock<mock::ControlOperatorInterfaceMock> controlOperatorInterface;
-    testing::NiceMock<mock::TurretMCBCanCommMock> turretMCBCanCommBus1;
+    testing::NiceMock<mock::TurretMCBCanCommMock> turretMCBCanCommBus2;
 #else
 public:
     control::ControlOperatorInterface controlOperatorInterface;
-    can::TurretMCBCanComm turretMCBCanCommBus1;
+    can::TurretMCBCanComm turretMCBCanCommBus2;
 #endif
 };  // class src::SentryDrivers
 }  // namespace src::sentry

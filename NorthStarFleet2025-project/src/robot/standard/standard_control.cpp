@@ -24,6 +24,7 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // turret
+#include "communication/RevMotorTester.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
@@ -47,12 +48,13 @@ using namespace src::control::turret;
 using namespace src::control;
 using namespace src::agitator;
 using namespace src::control::agitator;
+using namespace Communications::Rev;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
 namespace standard_control
 {
-inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus1; }
+inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -68,7 +70,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_KD,
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
-    &drivers()->turretMCBCanCommBus1);
+    &drivers()->turretMCBCanCommBus2);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -176,12 +178,16 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
+// flywheel
+RevMotorTester revMotorTester(drivers());
+
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
     // m_FlyWheel.initialize();
     turret.initialize();
+    revMotorTester.initialize();
 }
 
 void registerStandardSubsystems(Drivers *drivers)
