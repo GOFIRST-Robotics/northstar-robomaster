@@ -52,7 +52,7 @@ driversFunc drivers = DoNotUse_getDrivers;
 
 namespace sentry_control
 {
-inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus1; }
+inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -68,7 +68,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_KD,
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
-    &drivers()->turretMCBCanCommBus1);
+    &drivers()->turretMCBCanCommBus2);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,

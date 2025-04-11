@@ -4,13 +4,14 @@
 
 namespace src::chassis::algorithms
 {
-
-float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) {
-    float delta = desiredVelocity - currentVelocity; 
+float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity)
+{
+    float delta = desiredVelocity - currentVelocity;
 
     // If stationary and should move, apply a boost
     float startBoost = 1000.0f;
-    if (std::abs(currentVelocity) < startBoost && std::abs(desiredVelocity) > startBoost) {
+    if (std::abs(currentVelocity) < startBoost && std::abs(desiredVelocity) > startBoost)
+    {
         return (desiredVelocity > 0) ? startBoost : -startBoost;
     }
 
@@ -18,4 +19,4 @@ float SlewRateLimiter::runLimiter(float desiredVelocity, float currentVelocity) 
     return currentVelocity + step;
 }
 
-}
+}  // namespace src::chassis::algorithms
