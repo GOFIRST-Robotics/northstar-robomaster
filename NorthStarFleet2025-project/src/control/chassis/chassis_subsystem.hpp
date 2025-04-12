@@ -102,7 +102,6 @@ private:
     inline float getTurretYaw();
 
 protected:
-    /// Motors.
     std::array<Motor, static_cast<uint8_t>(MotorId::NUM_MOTORS)> motors;
 };  // class ChassisSubsystem
 }  // namespace src::chassis
