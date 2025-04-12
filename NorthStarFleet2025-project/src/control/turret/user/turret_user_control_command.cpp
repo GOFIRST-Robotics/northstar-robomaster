@@ -49,11 +49,8 @@ TurretUserControlCommand::TurretUserControlCommand(
 {
     addSubsystemRequirement(turretSubsystem);
 }
-bool debugyaw = true;
-bool debugmotor = true;
-bool TurretUserControlCommand::isReady() {
-    debugmotor = turretSubsystem->yawMotor.isOnline();
-    debugyaw = this->yawController->isOnline();
+bool TurretUserControlCommand::isReady()
+{
     return !isFinished() && this->yawController->isOnline();
 }
 
@@ -83,7 +80,8 @@ void TurretUserControlCommand::execute()
 
 bool TurretUserControlCommand::isFinished() const
 {
-    return !pitchController->isOnline() || !yawController->isOnline(); //&&
+    return !pitchController->isOnline() ||
+           !yawController->isOnline();  //&& TODO not shure if this is right
 }
 
 void TurretUserControlCommand::end(bool)

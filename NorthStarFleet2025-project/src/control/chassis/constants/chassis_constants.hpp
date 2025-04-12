@@ -5,6 +5,10 @@
 
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_chassis_constants.hpp"
+#elif TARGET_SENTRY
+#include "robot/sentry/sentry_chassis_constants.hpp"
+#elif TARRGET_HERO
+#include "robot/hero/hero_chassis_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_chassis_constants.hpp"
 #endif
