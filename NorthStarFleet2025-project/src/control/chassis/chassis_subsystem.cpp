@@ -1,18 +1,14 @@
 #include "chassis_subsystem.hpp"
 
+#include <cmath>
+
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/drivers.hpp"
-
-//#define MECANUM
-
-#include <cmath>
 
 using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
-// STEP 1 (Tank Drive): create constructor
-
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
     const ChassisConfig& config,
@@ -54,11 +50,8 @@ ChassisSubsystem::ChassisSubsystem(
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor)
 {
-    // for (auto &controller : pidControllers) {
-    //     controller.setParameter(config.wheelVelocityPidConfig);
-    // }
 }
-// STEP 2 (Tank Drive): initialize function
+
 void ChassisSubsystem::initialize()
 {
     for (auto& i : motors)
@@ -78,6 +71,7 @@ inline float ChassisSubsystem::getTurretYaw()
 
 float ChassisSubsystem::getChassisTurretOffset()
 {
+    // In future may change with turretMcbCanComm->getYaw()
     return fmod(modm::toRadian(drivers->bmi088.getYaw()) - getTurretYaw() + M_PI_4, M_PI_2) -
            M_PI_4;
 }

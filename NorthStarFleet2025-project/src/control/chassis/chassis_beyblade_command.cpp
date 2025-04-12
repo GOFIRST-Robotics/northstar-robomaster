@@ -10,7 +10,6 @@ using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
-// STEP 1 (Tank Drive): Constructor
 ChassisBeybladeCommand::ChassisBeybladeCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface,
@@ -27,7 +26,6 @@ ChassisBeybladeCommand::ChassisBeybladeCommand(
 {
     addSubsystemRequirement(chassis);
 }
-// STEP 2 (Tank Drive): execute function
 
 void ChassisBeybladeCommand::initialize() { prevTime = tap::arch::clock::getTimeMilliseconds(); }
 
@@ -45,7 +43,7 @@ void ChassisBeybladeCommand::execute()
         -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
         calculateBeyBladeRotationSpeed(1, dt));
 }
-// STEP 3 (Tank Drive): end function
+
 void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityFieldDrive(0, 0, 0); }
 
 float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float distance, uint32_t dt)

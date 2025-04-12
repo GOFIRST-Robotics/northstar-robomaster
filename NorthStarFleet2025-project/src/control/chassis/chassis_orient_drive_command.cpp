@@ -12,7 +12,6 @@ float orientPidval;
 
 namespace src::chassis
 {
-// STEP 1 (Tank Drive): Constructor
 ChassisOrientDriveCommand::ChassisOrientDriveCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface)

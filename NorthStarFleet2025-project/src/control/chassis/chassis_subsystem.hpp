@@ -32,19 +32,15 @@ struct ChassisConfig
     modm::Pid<float>::Parameter wheelVelocityPidConfig;
 };
 
-///
-/// @brief This subsystem encapsulates four motors that control the chassis.
-///
 class ChassisSubsystem : public tap::control::Subsystem
 {
 public:
-    /// @brief Motor ID to index into the velocityPid and motors object.
     enum class MotorId : uint8_t
     {
-        LF = 0,  ///< Left front
-        LB,      ///< Left back
-        RF,      ///< Right front
-        RB,      ///< Right back
+        LF = 0,
+        LB,
+        RF,
+        RB,
         NUM_MOTORS,
     };
 
@@ -64,19 +60,8 @@ public:
         src::can::TurretMCBCanComm* turretMCBCanComm,
         tap::motor::DjiMotor* yawMotor);
 
-    ///
-    /// @brief Initializes the drive motors.
-    ///
     void initialize() override;
 
-    ///
-    /// @brief Control the chassis using tank drive. Sets the wheel velocity of the four drive
-    /// motors based on the input left/right desired velocity.
-    ///
-    /// @param left Desired chassis speed in m/s of the left side of the chassis. Positive speed is
-    /// forward, negative is backwards.
-    /// @param right Desired chassis speed in m/s of the right side of the chassis.
-    ///
     mockable void setVelocityTurretDrive(float forward, float sideways, float rotational);
 
     mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
@@ -87,9 +72,6 @@ public:
 
     float getChassisTurretOffset();
 
-    ///
-    /// @brief Runs velocity PID controllers for the drive motors.
-    ///
     void refresh() override;
 
     const char* getName() { return "Chassis"; }
@@ -113,10 +95,8 @@ private:
 
     float beyBladeRotationSpeed = 0.0f;
 
-    /// Desired wheel output for each motor
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
 
-    /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
 
     inline float getTurretYaw();

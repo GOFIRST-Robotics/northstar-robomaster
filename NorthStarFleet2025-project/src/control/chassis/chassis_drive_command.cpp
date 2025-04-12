@@ -10,7 +10,6 @@ using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
-// STEP 1 (Tank Drive): Constructor
 ChassisDriveCommand::ChassisDriveCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface)
@@ -19,7 +18,7 @@ ChassisDriveCommand::ChassisDriveCommand(
 {
     addSubsystemRequirement(chassis);
 }
-// STEP 2 (Tank Drive): execute function
+
 void ChassisDriveCommand::execute()
 {
     auto scale = [](float raw) -> float {
@@ -30,6 +29,6 @@ void ChassisDriveCommand::execute()
         -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
         scale(operatorInterface->getDrivetrainRotationalTranslation()));
 }
-// STEP 3 (Tank Drive): end function
+
 void ChassisDriveCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
 };  // namespace src::chassis
