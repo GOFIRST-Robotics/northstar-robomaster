@@ -61,7 +61,8 @@ public:
     ChassisSubsystem(
         tap::Drivers* drivers,
         const ChassisConfig& config,
-        src::can::TurretMCBCanComm* turretMCBCanComm);
+        src::can::TurretMCBCanComm* turretMCBCanComm,
+        tap::motor::DjiMotor* yawMotor);
 
     ///
     /// @brief Initializes the drive motors.
@@ -80,15 +81,11 @@ public:
 
     mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
 
-    mockable void setVelocityBeyBladeDrive(
-        float forward,
-        float sideways,
-        float distance,
-        double dt);
+    mockable void setVelocityBeyBladeDrive(float forward, float sideways, float rotational);
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    float calculateBeyBladeRotationSpeed(float speed, uint32_t dt);
+    float getChassisTurretOffset();
 
     ///
     /// @brief Runs velocity PID controllers for the drive motors.
@@ -112,6 +109,8 @@ private:
 
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
+    tap::motor::DjiMotor* yawMotor;
+
     float beyBladeRotationSpeed = 0.0f;
 
     /// Desired wheel output for each motor
@@ -119,6 +118,8 @@ private:
 
     /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
+
+    inline float getTurretYaw();
 
 protected:
     /// Motors.

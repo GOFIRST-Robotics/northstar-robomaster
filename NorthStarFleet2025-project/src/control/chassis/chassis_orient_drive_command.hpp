@@ -2,6 +2,8 @@
 
 #include "tap/control/command.hpp"
 
+#include "modm/math/filter/pid.hpp"
+
 namespace src
 {
 class Drivers;
@@ -21,7 +23,7 @@ class ChassisSubsystem;
  * commanded independently by this command. This command executes constantly, taking remote inputs
  * in from a control operator interface, transforming remote input into chassis speed.
  */
-class ChassisDriveCommand : public tap::control::Command
+class ChassisOrientDriveCommand : public tap::control::Command
 {
 public:
     static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
@@ -31,7 +33,7 @@ public:
      *
      * @param chassis Chassis to control.
      */
-    ChassisDriveCommand(
+    ChassisOrientDriveCommand(
         ChassisSubsystem *chassis,
         src::control::ControlOperatorInterface *operatorInterface);
 
@@ -49,5 +51,7 @@ private:
     src::chassis::ChassisSubsystem *chassis;
 
     src::control::ControlOperatorInterface *operatorInterface;
+
+    modm::Pid<float> orientPid;
 };
 }  // namespace src::chassis

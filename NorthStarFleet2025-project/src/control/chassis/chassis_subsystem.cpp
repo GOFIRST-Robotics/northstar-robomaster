@@ -11,10 +11,13 @@ using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
+// STEP 1 (Tank Drive): create constructor
+
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
     const ChassisConfig& config,
-    src::can::TurretMCBCanComm* turretMcbCanComm)
+    src::can::TurretMCBCanComm* turretMcbCanComm,
+    tap::motor::DjiMotor* yawMotor)
     : Subsystem(drivers),
       desiredOutput{},
       pidControllers{
@@ -48,16 +51,14 @@ ChassisSubsystem::ChassisSubsystem(
           Motor(drivers, config.rightFrontId, config.canBus, false, "RF"),
           Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
       },
-      rateLimiters{
-          src::chassis::algorithms::SlewRateLimiter(1000, 10),
-          src::chassis::algorithms::SlewRateLimiter(1000, 10),
-          src::chassis::algorithms::SlewRateLimiter(1000, 10),
-          src::chassis::algorithms::SlewRateLimiter(1000, 10),
-      },
-      turretMcbCanComm(turretMcbCanComm)
+      turretMcbCanComm(turretMcbCanComm),
+      yawMotor(yawMotor)
 {
+    // for (auto &controller : pidControllers) {
+    //     controller.setParameter(config.wheelVelocityPidConfig);
+    // }
 }
-
+// STEP 2 (Tank Drive): initialize function
 void ChassisSubsystem::initialize()
 {
     for (auto& i : motors)
@@ -65,50 +66,54 @@ void ChassisSubsystem::initialize()
         i.initialize();
     }
 }
+float LFSpeed;
+float LBSpeed;
+float RFSpeed;
+float RBSpeed;
 
-void ChassisSubsystem::setVelocityDrive(
+inline float ChassisSubsystem::getTurretYaw()
+{
+    return (fmod(yawMotor->getPositionWrapped() + M_PI, M_PI * 2)) - M_PI;
+}
+
+float ChassisSubsystem::getChassisTurretOffset()
+{
+    return fmod(modm::toRadian(drivers->bmi088.getYaw()) - getTurretYaw() + M_PI_4, M_PI_2) -
+           M_PI_4;
+}
+
+void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
+{
+    float turretRot = -getTurretYaw() + modm::toRadian(drivers->bmi088.getYaw());
+    driveBasedOnHeading(forward, sideways, rotational, turretRot);
+}
+
+void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, float rotational)
+{
+    float robotHeading = modm::toRadian(drivers->bmi088.getYaw());
+    driveBasedOnHeading(forward, sideways, rotational, robotHeading);
+}
+
+void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
     float rotational,
-    float turretRot = 0.0f)
+    float heading)
 {
-#ifdef FIELD
-    float robotHeading = modm::toRadian(turretMcbCanComm->getYaw());
-#else
-    float robotHeading = -(turretRot);  // Signs subject to change, just want the difference
-    robotHeading = fmod(robotHeading, 2 * M_PI);
-#endif
-// For robotCentric only just + M_PI_4
-#ifdef MECANUM
-    // Mecanum
-    float forwardAdjusted = forward * cos(robotHeading);
-    float sidewaysAdjusted = sideways * sin(robotHeading);
-    LFSpeed = mpsToRpm(
-        forwardAdjusted - sidewaysAdjusted - (2 * DIST_TO_CENTER * rotational * M_PI / 180));
-    LBSpeed = mpsToRpm(
-        forwardAdjusted + sidewaysAdjusted - (2 * DIST_TO_CENTER * rotational * M_PI / 180));
-    RFSpeed = mpsToRpm(
-        forwardAdjusted + sidewaysAdjusted + (2 * DIST_TO_CENTER * rotational * M_PI / 180));
-    RBSpeed = mpsToRpm(
-        forwardAdjusted - sidewaysAdjusted + (2 * DIST_TO_CENTER * rotational * M_PI / 180));
-#else
-    // Omni
-    turretRot = -turretMcbCanComm->getYaw() + modm::toRadian(drivers->bmi088.getYaw());
-    double cos_theta = cos(turretRot);
-    double sin_theta = sin(turretRot);
+    float distToCenter = 0.3048f;
+    double cos_theta = cos(heading);
+    double sin_theta = sin(heading);
     double vx_local = forward * cos_theta + sideways * sin_theta;
     double vy_local = -forward * sin_theta + sideways * cos_theta;
     double sqrt2 = sqrt(2.0);
-    rotational = modm::toRadian(rotational);
-    float LFSpeed = mpsToRpm(
-        (vx_local - vy_local) / sqrt2 + rotational * DIST_TO_CENTER * sqrt2);  // Front-left wheel
-    float RFSpeed = mpsToRpm(
-        (-vx_local - vy_local) / sqrt2 + rotational * DIST_TO_CENTER * sqrt2);  // Front-right wheel
-    float RBSpeed = mpsToRpm(
-        (-vx_local + vy_local) / sqrt2 + rotational * DIST_TO_CENTER * sqrt2);  // Rear-right wheel
-    float LBSpeed = mpsToRpm(
-        (vx_local + vy_local) / sqrt2 + rotational * DIST_TO_CENTER * sqrt2);  // Rear-left wheel
-#endif
+    LFSpeed = mpsToRpm(
+        (vx_local - vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Front-left wheel
+    RFSpeed = mpsToRpm(
+        (-vx_local - vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Front-right wheel
+    RBSpeed = mpsToRpm(
+        (-vx_local + vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Rear-right wheel
+    LBSpeed = mpsToRpm(
+        (vx_local + vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
     int RF = static_cast<int>(MotorId::RF);

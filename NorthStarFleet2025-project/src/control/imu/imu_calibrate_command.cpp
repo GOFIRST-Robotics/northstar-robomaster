@@ -62,7 +62,7 @@ void ImuCalibrateCommand::initialize()
 
     if (chassis != nullptr)
     {
-        chassis->setVelocityDrive(0, 0, 0, 0);
+        chassis->setVelocityFieldDrive(0, 0, 0);
     }
 
     for (auto &config : turretsAndControllers)
@@ -151,7 +151,7 @@ void ImuCalibrateCommand::execute()
             {
                 calibrationState = CalibrationState::WAITING_CALIBRATION_COMPLETE;
             }
-            tap::buzzer::playNote(&drivers->pwm, notes[4-buzzerTimer.timeRemaining()/201]);
+            tap::buzzer::playNote(&drivers->pwm, notes[4 - buzzerTimer.timeRemaining() / 201]);
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
             tap::buzzer::silenceBuzzer(&drivers->pwm);
