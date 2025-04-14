@@ -41,7 +41,7 @@ struct TurretMotorConfig
                          /// value should be > minAngle.
     bool limitMotorAngles = true;  /// true if the motor will be limited between [minAngle,
                                    /// maxAngle], false otherwise.
-    float ratio = 1;               /*ratio of motor rotations per rotation of controled pivot*/
+    float ratio = 1; /*1 / number of rotatons needed to turn moving pivot one ratation*/
 };
 }  // namespace src::control::turret
 

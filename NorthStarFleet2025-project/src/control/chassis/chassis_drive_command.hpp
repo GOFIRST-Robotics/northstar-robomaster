@@ -10,7 +10,7 @@ namespace control
 {
 class ControlOperatorInterface;
 }
-}  //
+}  // namespace src
 
 namespace src::chassis
 {
@@ -31,7 +31,9 @@ public:
      *
      * @param chassis Chassis to control.
      */
-    ChassisDriveCommand(ChassisSubsystem *chassis, src::control::ControlOperatorInterface* operatorInterface);
+    ChassisDriveCommand(
+        ChassisSubsystem *chassis,
+        src::control::ControlOperatorInterface *operatorInterface);
 
     const char *getName() const override { return "Chassis tank drive"; }
 
@@ -46,6 +48,6 @@ public:
 private:
     src::chassis::ChassisSubsystem *chassis;
 
-    src::control::ControlOperatorInterface* operatorInterface;
+    src::control::ControlOperatorInterface *operatorInterface;
 };
-}  // namespace control::chassis
+}  // namespace src::chassis

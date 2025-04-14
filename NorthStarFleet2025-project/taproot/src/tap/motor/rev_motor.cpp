@@ -42,12 +42,11 @@ namespace motor
 RevMotor::~RevMotor() { drivers->revMotorTxHandler.removeFromMotorManager(*this); }
 
 RevMotor::RevMotor(
-    Drivers* drivers,
+    tap::Drivers* drivers,
     REVMotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
     bool isInverted,
-    const char* name
-    )
+    const char* name)
     : CanRxListener(drivers, static_cast<uint32_t>(desMotorIdentifier), motorCanBus),
       motorName(name),
       drivers(drivers),
@@ -60,46 +59,43 @@ RevMotor::RevMotor(
     // motorDisconnectTimeout.stop();
 }
 
-void RevMotor::initialize()
-{
-    drivers->revMotorTxHandler.addMotorToManager(this);
-}
+void RevMotor::initialize() { drivers->revMotorTxHandler.addMotorToManager(this); }
 
 // Add these implementations to rev_motor.cpp
 
-void RevMotor::setControlMode(ControlMode mode)
-{
-    currentControlMode = mode;
-}
+void RevMotor::setControlMode(ControlMode mode) { currentControlMode = mode; }
 
-RevMotor::ControlMode RevMotor::getControlMode() const
-{
-    return currentControlMode;
-}
+RevMotor::ControlMode RevMotor::getControlMode() const { return currentControlMode; }
 
 void RevMotor::setControlValue(float value)
 {
-    controlValue = value;
-    
+    if (motorInverted)
+    {
+        controlValue = -value;
+    }
+    else
+    {
+        controlValue = value;
+    }
+
     // If you want backward compatibility with existing voltage control:
-    if (currentControlMode == ControlMode::VOLTAGE) {
+    if (currentControlMode == ControlMode::VOLTAGE)
+    {
         // setTargetVoltage(value);
     }
 }
 
-float RevMotor::getControlValue() const
-{
-    return controlValue;
-}
+float RevMotor::getControlValue() const { return controlValue; }
 
 // Modify serializeCanSendData to handle the different control modes
 void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
 {
     // Copy the control value to the message
     std::memcpy(&txMessage->data[0], &controlValue, sizeof(controlValue));
-    
+
     // Zero out the remaining bytes
-    for (int i = sizeof(controlValue); i < 8; i++) {
+    for (int i = sizeof(controlValue); i < 8; i++)
+    {
         txMessage->data[i] = 0;
     }
 }

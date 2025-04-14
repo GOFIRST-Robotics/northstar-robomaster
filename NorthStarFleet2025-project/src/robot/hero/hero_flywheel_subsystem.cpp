@@ -1,8 +1,9 @@
+#ifdef TARGET_HERO
 #include "hero_flywheel_subsystem.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 
-#include "hero_flywheel_constants.hpp"
+#include "control/flywheel/flywheel_constants.hpp"
 
 using namespace tap::motor;
 using namespace tap::algorithms;
@@ -13,7 +14,7 @@ HeroFlywheelSubsystem::HeroFlywheelSubsystem(
     tap::Drivers *drivers,
     tap::motor::MotorId leftMotorId,
     tap::motor::MotorId rightMotorId,
-    tap::motor::MotorId upMotorId,
+    tap::motor::MotorId downMotorId,
     tap::can::CanBus canBus)
     : tap::control::Subsystem(drivers),
       velocityPidLeftWheel(
@@ -28,37 +29,51 @@ HeroFlywheelSubsystem::HeroFlywheelSubsystem(
           FLYWHEEL_PID_KD,
           FLYWHEEL_PID_MAX_ERROR_SUM,
           FLYWHEEL_PID_MAX_OUTPUT),
-      velocityPidUpWheel(
+      velocityPidDownWheel(
           FLYWHEEL_PID_KP,
           FLYWHEEL_PID_KI,
           FLYWHEEL_PID_KD,
           FLYWHEEL_PID_MAX_ERROR_SUM,
           FLYWHEEL_PID_MAX_OUTPUT),
-      leftWheel(drivers, leftMotorId, canBus, true, "Left Flywheel"),
+      leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
       rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
-      upWheel(drivers, upMotorId, canBus, false, "Up Flywheel"),
-      desiredLaunchSpeed(0),
-      desiredRpmRamp(0){};
+      downWheel(drivers, downMotorId, canBus, true, "Down Flywheel"),
+      desiredLaunchSpeedLeft(0),
+      desiredLaunchSpeedRight(0),
+      desiredLaunchSpeedDown(0),
+      desiredRpmRampLeft(0),
+      desiredRpmRampRight(0),
+      desiredRpmRampDown(0){};
 
 void HeroFlywheelSubsystem::initialize()
 {
     leftWheel.initialize();
     rightWheel.initialize();
-    upWheel.initialize();
-    setDesiredLaunchSpeed(500);
+    downWheel.initialize();
     prevTime = tap::arch::clock::getTimeMilliseconds();
 }
 
-void HeroFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
+void HeroFlywheelSubsystem::setDesiredLaunchSpeedLeft(float speed)
 {
-    desiredLaunchSpeed = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRamp.setTarget(desiredLaunchSpeed);
+    desiredLaunchSpeedLeft = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+    desiredRpmRampLeft.setTarget(desiredLaunchSpeedLeft);
+}
+
+void HeroFlywheelSubsystem::setDesiredLaunchSpeedRight(float speed)
+{
+    desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+    desiredRpmRampRight.setTarget(desiredLaunchSpeedRight);
+}
+
+void HeroFlywheelSubsystem::setDesiredLaunchSpeedDown(float speed)
+{
+    desiredLaunchSpeedDown = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+    desiredRpmRampDown.setTarget(desiredLaunchSpeedDown);
 }
 
 float HeroFlywheelSubsystem::getCurrentFlyWheelMotorRPM(tap::motor::DjiMotor motor) const
 {
-    // return motor.getShaftRPM(); // TODO
-    return 0.0f;
+    return motor.getShaftRPM();
 }
 
 void HeroFlywheelSubsystem::refresh()
@@ -68,14 +83,18 @@ void HeroFlywheelSubsystem::refresh()
     {
         return;
     }
-    desiredRpmRamp.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
+    desiredRpmRampLeft.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
+    desiredRpmRampRight.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
+    desiredRpmRampDown.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     prevTime = currTime;
 
-    velocityPidLeftWheel.update(desiredRpmRamp.getValue() - leftWheel.getShaftRPM());
+    velocityPidLeftWheel.update(desiredRpmRampLeft.getValue() - leftWheel.getShaftRPM());
     leftWheel.setDesiredOutput(static_cast<int32_t>(velocityPidLeftWheel.getValue()));
-    velocityPidRightWheel.update(desiredRpmRamp.getValue() - rightWheel.getShaftRPM());
+    velocityPidRightWheel.update(desiredRpmRampRight.getValue() - rightWheel.getShaftRPM());
     rightWheel.setDesiredOutput(static_cast<int32_t>(velocityPidRightWheel.getValue()));
-    velocityPidUpWheel.update(desiredRpmRamp.getValue() - upWheel.getShaftRPM());
-    upWheel.setDesiredOutput(static_cast<int32_t>(velocityPidUpWheel.getValue()));
+    velocityPidDownWheel.update(desiredRpmRampDown.getValue() - downWheel.getShaftRPM());
+    downWheel.setDesiredOutput(static_cast<int32_t>(velocityPidDownWheel.getValue()));
 }
 }  // namespace src::control::flywheel
+
+#endif  // TARGET_HERO

@@ -60,16 +60,16 @@ static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
 };
 
 static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
-    .startAngle = 0,
-    .startEncoderValue = 5700,
-    .minAngle = 0,
-    .maxAngle = M_PI / 2,
+    .startAngle = modm::toRadian(90),
+    .startEncoderValue = 3070,
+    .minAngle = modm::toRadian(45),
+    .maxAngle = modm::toRadian(115),
     .limitMotorAngles = true,
-};
+    .ratio = 1.0 / 3.0};
 
-static constexpr float TURRET_CG_X = 0.0f;                  // 30.17;
+static constexpr float TURRET_CG_X = 30.0f;                 // 30.17;
 static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 7'000;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 2400.0f;  // 7'000;
 
 namespace world_rel_turret_imu
 {
@@ -256,9 +256,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
     // .errDeadzone = 0.0f,
     // .errorDerivativeFloor = 0.0f,
 
-    .kp = 70'000.0f,
+    .kp = 150'000.0f,
     .ki = 0.0f,
-    .kd = 500.0f,
+    .kd = 1500.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 0.1f,

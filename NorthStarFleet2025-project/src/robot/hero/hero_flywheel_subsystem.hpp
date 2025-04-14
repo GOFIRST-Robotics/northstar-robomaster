@@ -1,3 +1,5 @@
+#ifdef TARGET_HERO
+
 #ifndef HERO_FLYWHEEL_SUBSYSTEM
 #define HERO_FLYWHEEL_SUBSYSTEM
 
@@ -16,14 +18,18 @@ public:
         tap::Drivers *drivers,
         tap::motor::MotorId leftMotorId,
         tap::motor::MotorId rightMotorId,
-        tap::motor::MotorId upMotorId,
+        tap::motor::MotorId downMotorId,
         tap::can::CanBus canBus);
 
     void initialize() override;
 
-    mockable void setDesiredLaunchSpeed(float speed);
+    mockable void setDesiredLaunchSpeedLeft(float speed);
+    mockable void setDesiredLaunchSpeedRight(float speed);
+    mockable void setDesiredLaunchSpeedDown(float speed);
 
-    mockable float getDesiredLaunchSpeed() const { return desiredLaunchSpeed; }
+    mockable float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
+    mockable float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
+    mockable float getDesiredLaunchSpeedDown() const { return desiredLaunchSpeedDown; }
 
     float getCurrentFlyWheelMotorRPM(tap::motor::DjiMotor motor) const;
 
@@ -33,7 +39,7 @@ public:
     {
         leftWheel.setDesiredOutput(0);  // TODO CHANGE
         rightWheel.setDesiredOutput(0);
-        upWheel.setDesiredOutput(0);
+        downWheel.setDesiredOutput(0);
     }
 
     const char *getName() const override { return "Flywheels"; }
@@ -45,24 +51,28 @@ protected:
 
 private:
     modm::Pid<float> velocityPidLeftWheel;
-
     modm::Pid<float> velocityPidRightWheel;
+    modm::Pid<float> velocityPidDownWheel;
 
-    modm::Pid<float> velocityPidUpWheel;
+    float desiredLaunchSpeedLeft;
+    float desiredLaunchSpeedRight;
+    float desiredLaunchSpeedDown;
 
-    float desiredLaunchSpeed;
-
-    uint32_t prevTime = 0;
-
-    tap::algorithms::Ramp desiredRpmRamp;
+    tap::algorithms::Ramp desiredRpmRampLeft;
+    tap::algorithms::Ramp desiredRpmRampRight;
+    tap::algorithms::Ramp desiredRpmRampDown;
 
     tap::motor::DjiMotor leftWheel;
     tap::motor::DjiMotor rightWheel;
-    tap::motor::DjiMotor upWheel;
+    tap::motor::DjiMotor downWheel;
+
+    uint32_t prevTime = 0;
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
 };
 
 }  // namespace src::control::flywheel
 
-#endif
+#endif  // HERO_FLYWHEEL_SUBSYSTEM
+
+#endif  // TARGET_HERO

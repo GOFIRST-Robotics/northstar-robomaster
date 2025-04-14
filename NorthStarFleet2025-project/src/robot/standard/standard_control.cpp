@@ -4,6 +4,7 @@
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
+#include "tap/control/toggle_command_mapping.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
@@ -34,6 +35,11 @@
 #include "control/turret/user/turret_user_world_relative_command.hpp"
 #include "robot/standard/standard_turret_subsystem.hpp"
 
+// flywheel
+#include "control/flywheel/flywheel_constants.hpp"
+#include "control/flywheel/flywheel_run_command.hpp"
+#include "control/flywheel/flywheel_subsystem.hpp"
+
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
@@ -46,6 +52,8 @@ using namespace tap::control;
 using namespace src::standard;
 using namespace src::control::turret;
 using namespace src::control;
+using namespace src::flywheel;
+using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace Communications::Rev;
@@ -181,20 +189,29 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
 // flywheel
 RevMotorTester revMotorTester(drivers());
 
+FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+FlywheelRunCommand flywheelRunCommand(&flywheel);
+
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
-    // m_FlyWheel.initialize();
+    flywheel.initialize();
     turret.initialize();
-    revMotorTester.initialize();
+    // revMotorTester.initialize();
 }
 
 void registerStandardSubsystems(Drivers *drivers)
 {
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
-    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
+    drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
 }
 
@@ -213,6 +230,7 @@ void startStandardCommands(Drivers *drivers)
 void registerStandardIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
+    drivers->commandMapper.addMap(&fPressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
 }

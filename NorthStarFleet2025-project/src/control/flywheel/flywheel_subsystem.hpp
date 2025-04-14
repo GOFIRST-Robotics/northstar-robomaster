@@ -7,11 +7,6 @@
 
 #include "modm/math/filter/pid.hpp"
 
-namespace src
-{
-class Drivers;
-}
-
 namespace src::control::flywheel
 {
 class FlywheelSubsystem : public tap::control::Subsystem
@@ -26,9 +21,13 @@ public:
 
     void initialize() override;
 
-    mockable void setDesiredLaunchSpeed(float speed);
+    mockable void setDesiredLaunchSpeedLeft(float speed);
+    mockable void setDesiredLaunchSpeedRight(float speed);
+    mockable void setDesiredLaunchSpeedUp(float speed);
 
-    mockable float getDesiredLaunchSpeed() const { return desiredLaunchSpeed; }
+    mockable float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
+    mockable float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
+    mockable float getDesiredLaunchSpeedUp() const { return desiredLaunchSpeedUp; }
 
     float getCurrentFlyWheelMotorRPM(tap::motor::RevMotor motor) const;
 
@@ -36,9 +35,9 @@ public:
 
     void refreshSafeDisconnect() override
     {
-        leftWheel.setTargetVoltage(0);  // TODO CHANGE
-        rightWheel.setTargetVoltage(0);
-        upWheel.setTargetVoltage(0);
+        leftWheel.setControlValue(0);  // TODO CHANGE
+        rightWheel.setControlValue(0);
+        upWheel.setControlValue(0);
     }
 
     const char *getName() const override { return "Flywheels"; }
@@ -50,16 +49,18 @@ protected:
 
 private:
     modm::Pid<float> velocityPidLeftWheel;
-
     modm::Pid<float> velocityPidRightWheel;
-
     modm::Pid<float> velocityPidUpWheel;
 
-    float desiredLaunchSpeed;
+    float desiredLaunchSpeedLeft;
+    float desiredLaunchSpeedRight;
+    float desiredLaunchSpeedUp;
 
     uint32_t prevTime = 0;
 
-    tap::algorithms::Ramp desiredRpmRamp;
+    tap::algorithms::Ramp desiredRpmRampLeft;
+    tap::algorithms::Ramp desiredRpmRampRight;
+    tap::algorithms::Ramp desiredRpmRampUp;
 
     tap::motor::RevMotor leftWheel;
     tap::motor::RevMotor rightWheel;

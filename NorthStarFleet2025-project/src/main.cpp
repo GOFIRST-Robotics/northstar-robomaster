@@ -109,6 +109,10 @@ int main()
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
 #else
             PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
+#endif
+
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }

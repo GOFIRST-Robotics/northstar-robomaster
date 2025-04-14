@@ -92,14 +92,14 @@ public:
      *      See comment for RevMotor::encoderRevolutions for more details.
      */
     RevMotor(
-        Drivers* drivers,
+        tap::Drivers* drivers,
         REVMotorId desMotorIdentifier,
         tap::can::CanBus motorCanBus,
         bool isInverted,
         const char* name
         // uint16_t encoderWrapped = ENC_RESOLUTION / 2,
         // int64_t encoderRevolutions = 0
-        );
+    );
 
     mockable ~RevMotor();
 
@@ -114,9 +114,7 @@ public:
     //  *
     //  * @param[in] message the message to be processed.
     //  */
-    void processMessage(const modm::can::Message& message) override {};
-
-
+    void processMessage(const modm::can::Message& message) override{};
 
     /**
      * Serializes send data and deposits it in a message to be sent.
@@ -136,19 +134,7 @@ public:
 
     mockable const char* getName() const;
 
-
     void setTargetVoltage(float targetVoltage);
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * Control modes available for RevMotor operation
@@ -189,10 +175,9 @@ public:
     float getControlValue() const;
 
 private:
-
     const char* motorName;
 
-    Drivers* drivers;
+    tap::Drivers* drivers;
 
     uint32_t motorIdentifier;
 
@@ -204,13 +189,8 @@ private:
 
     bool motorInverted;
 
-
-
-
     ControlMode currentControlMode = ControlMode::VOLTAGE;
     float controlValue = 0.0f;
-
-
 };
 
 }  // namespace tap::motor
