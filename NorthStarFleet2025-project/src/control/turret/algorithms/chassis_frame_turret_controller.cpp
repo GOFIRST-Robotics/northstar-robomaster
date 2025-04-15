@@ -77,8 +77,12 @@ WrappedFloat ChassisFrameYawTurretController::getMeasurement() const
 {
     return turretMotor.getChassisFrameMeasuredAngle();
 }
-
-bool ChassisFrameYawTurretController::isOnline() const { return turretMotor.isOnline(); }
+bool isOn = true;
+bool ChassisFrameYawTurretController::isOnline() const
+{
+    isOn = turretMotor.isOnline();
+    return isOn;
+}
 
 ChassisFramePitchTurretController::ChassisFramePitchTurretController(
     TurretMotor &pitchMotorp,

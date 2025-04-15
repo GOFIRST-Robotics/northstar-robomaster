@@ -113,7 +113,7 @@ tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true,
 
 tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, false, "YawMotor");
 
-StandardTurretSubsystem turret(
+TurretSubsystem turret(
     drivers(),
     &pitchMotor,
     &yawMotor,
