@@ -42,8 +42,7 @@ namespace motor
 RevMotor::~RevMotor() { drivers->revMotorTxHandler.removeFromMotorManager(*this); }
 
 RevMotor::RevMotor(
-    Drivers* drivers,
-    REVMotorId desMotorIdentifier,
+    Drivers* drivers,    REVMotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
     bool isInverted,
     const char* name
@@ -83,17 +82,17 @@ void RevMotor::processMessage(const modm::can::Message& message)
 }
 
 // Add these implementations to rev_motor.cpp
-RevMotorTxHandler::APICommand RevMotor::controlModeToAPI(ControlMode mode){
+APICommand RevMotor::controlModeToAPI(ControlMode mode){
     if(mode == ControlMode::DUTY_CYCLE){
-        return RevMotorTxHandler::APICommand::DutyCycle;
+        return APICommand::DutyCycle;
     } else if(mode == ControlMode::VELOCITY){
-        return RevMotorTxHandler::APICommand::Velocity;
+        return APICommand::Velocity;
     } else if(mode == ControlMode::POSITION){
-        return RevMotorTxHandler::APICommand::Position;
+        return APICommand::Position;
     } else if(mode == ControlMode::VOLTAGE){
-        return RevMotorTxHandler::APICommand::Voltage;
+        return APICommand::Voltage;
     } else if(mode == ControlMode::CURRENT){
-        return RevMotorTxHandler::APICommand::Current;
+        return APICommand::Current;
     }
   
 }

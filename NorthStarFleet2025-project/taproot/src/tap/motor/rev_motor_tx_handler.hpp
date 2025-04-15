@@ -70,32 +70,6 @@ class RevMotorTxHandler
 {
 public:
 
-    enum class APICommand : uint16_t
-    {
-    ClearFaults     = (6 << 4) | 14,
-    FactoryDefaults = (7 << 4) | 4,
-    FactoryReset    = (7 << 4) | 5,
-    Identify        = (7 << 4) | 6,
-    Heartbeat       = (11 << 4) | 2,
-    BurnFlash       = (63 << 4) | 2,
-    FirmwareVersion = (9 << 4) | 8,
-
-    Setpoint        = (0 << 4) | 1,
-    DutyCycle       = (0 << 4) | 2,
-    Velocity        = (1 << 4) | 2,
-    SmartVelocity   = (1 << 4) | 3,
-    Position        = (3 << 4) | 2,
-    Voltage         = (4 << 4) | 2,
-    Current         = (4 << 4) | 3,
-    SmartMotion     = (5 << 4) | 2,
-
-    Period0         = (6 << 4) | 0,
-    Period1         = (6 << 4) | 1,
-    Period2         = (6 << 4) | 2,
-    Period3         = (6 << 4) | 3,
-    Period4         = (6 << 4) | 4
-    };
-
     enum class Parameter : uint32_t
     {
         kInputMode = 1,
