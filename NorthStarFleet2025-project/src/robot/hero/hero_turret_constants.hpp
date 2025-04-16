@@ -17,8 +17,8 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STANDARD_TURRET_CONSTANTS_HPP_
-#define STANDARD_TURRET_CONSTANTS_HPP_
+#ifndef HERO_TURRET_CONSTANTS_HPP_
+#define HERO_TURRET_CONSTANTS_HPP_
 
 #include "tap/algorithms/smooth_pid.hpp"
 #include "tap/motor/dji_motor.hpp"
@@ -48,12 +48,10 @@ static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = -0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS1;
-static constexpr tap::motor::MotorId PITCH_MOTOR_BOTTOM_ID = tap::motor::MOTOR5;  // 1
-static constexpr tap::motor::MotorId YAW_MOTOR_BOTTOM_ID = tap::motor::MOTOR6;    // 2
-static constexpr tap::motor::MotorId PITCH_MOTOR_TOP_ID = tap::motor::MOTOR7;     // 3
-static constexpr tap::motor::MotorId YAW_MOTOR_TOP_ID = tap::motor::MOTOR8;       // 4
+static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR5;  // 1
+static constexpr tap::motor::MotorId YAW_MOTOR_ID = tap::motor::MOTOR6;    // 2
 
-static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_BOTTOM = {
+static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
     .startEncoderValue = 2700,  // enc res 8191
     .minAngle = 0,
@@ -61,33 +59,17 @@ static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_BOTTOM = {
     .limitMotorAngles = false,
 };
 
-static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_TOP = {
+static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
     .startAngle = modm::toRadian(90),
-    .startEncoderValue = 2700,  // enc res 8191
-    .minAngle = 0,
-    .maxAngle = modm::toRadian(180),
+    .startEncoderValue = 3070,
+    .minAngle = modm::toRadian(45),
+    .maxAngle = modm::toRadian(115),
     .limitMotorAngles = true,
-};
+    .ratio = 1.0 / 3.0};
 
-static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG_BOTTOM = {
-    .startAngle = modm::toRadian(90),
-    .startEncoderValue = 7461,
-    .minAngle = modm::toRadian(20),
-    .maxAngle = modm::toRadian(120),
-    .limitMotorAngles = true,
-};
-
-static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG_TOP = {
-    .startAngle = modm::toRadian(90),
-    .startEncoderValue = 7461,
-    .minAngle = modm::toRadian(20),
-    .maxAngle = modm::toRadian(120),
-    .limitMotorAngles = true,
-};
-
-static constexpr float TURRET_CG_X = 0.0f;                  // 30.17;
+static constexpr float TURRET_CG_X = 30.0f;                 // 30.17;
 static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 7'000;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 2400.0f;  // 7'000;
 
 namespace world_rel_turret_imu
 {
@@ -274,9 +256,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
     // .errDeadzone = 0.0f,
     // .errorDerivativeFloor = 0.0f,
 
-    .kp = 70'000.0f,
+    .kp = 150'000.0f,
     .ki = 0.0f,
-    .kd = 500.0f,
+    .kd = 1500.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 0.1f,
@@ -357,4 +339,4 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
 }  // namespace chassis_rel
 
 }  // namespace src::control::turret
-#endif
+#endif  // HERO_TURRET_CONSTANTS_HPP_

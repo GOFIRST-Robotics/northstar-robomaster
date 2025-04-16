@@ -1,5 +1,5 @@
-#ifndef STANDARD_AGITATOR_CONSTANTS_HPP_
-#define STANDARD_AGITATOR_CONSTANTS_HPP_
+#ifndef HERO_AGITATOR_CONSTANTS_HPP_
+#define HERO_AGITATOR_CONSTANTS_HPP_
 
 #include "tap/algorithms/smooth_pid.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
@@ -33,7 +33,7 @@ static constexpr float AGITATOR_MAX_ROF = 20.0f;  // balls per second
 
 static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .gearRatio = 36.0f,
-    .agitatorMotorId = tap::motor::MOTOR4,
+    .agitatorMotorId = tap::motor::MOTOR7,
     .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
     .isAgitatorInverted = false,
     /**
@@ -66,4 +66,4 @@ static constexpr src::control::agitator::UnjamSpokeAgitatorCommand::Config AGITA
 };
 }  // namespace src::control::agitator::constants
 
-#endif  // STANDARD_AGITATOR_CONSTANTS_HPP_
+#endif  // HERO_AGITATOR_CONSTANTS_HPP_

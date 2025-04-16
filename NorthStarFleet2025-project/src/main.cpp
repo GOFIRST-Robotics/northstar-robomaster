@@ -108,11 +108,15 @@ int main()
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
 #else
-            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
+            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
+#endif
+
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
-        // if(!drivers->turretMCBCanCommBus1.isConnected()){
+        // if(!drivers->turretMCBCanCommBus2.isConnected()){
         //     std::cout<<"poop";
         // }
         modm::delay_us(10);
@@ -129,8 +133,8 @@ static void initializeIo(Drivers *drivers)
     drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
     drivers->terminalSerial.initialize();
-#ifdef TARGET_STANDARD
-    drivers->turretMCBCanCommBus1.init();
+#if defined(TARGET_STANDARD) || defined(TARGET_HERO)
+    drivers->turretMCBCanCommBus2.init();
 #endif
 #ifdef TURRET
     chassisMcbCanComm.init();

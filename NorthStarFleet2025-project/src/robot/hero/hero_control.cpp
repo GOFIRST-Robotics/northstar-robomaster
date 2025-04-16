@@ -1,4 +1,4 @@
-#ifdef TARGET_STANDARD
+#ifdef TARGET_HERO
 
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
@@ -8,15 +8,12 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
-#include "../../robot-type/robot_type.hpp"
-#include "robot/standard/standard_drivers.hpp"
+#include "robot/hero/hero_drivers.hpp"
 
 #include "drivers_singleton.hpp"
 
 // chasis
-#include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
-#include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
@@ -27,36 +24,72 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // turret
+#include "communication/RevMotorTester.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/turret_subsystem.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
-#include "robot/standard/standard_turret_subsystem.hpp"
+
+// flywheel
+#include "robot/hero/hero_flywheel_constants.hpp"
+#include "robot/hero/hero_flywheel_run_command.hpp"
+#include "robot/hero/hero_flywheel_subsystem.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
 using tap::can::CanBus;
-using tap::communication::serial::Remote;
-using tap::control::RemoteMapState;
-using tap::motor::MotorId;
 
 using namespace tap::control::setpoint;
 using namespace tap::control;
-using namespace src::standard;
 using namespace src::control::turret;
 using namespace src::control;
 using namespace src::agitator;
 using namespace src::control::agitator;
+using namespace src::hero;
+using namespace src::control;
+using namespace src::control::flywheel;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
-namespace standard_control
+namespace hero_control
 {
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+
+// flywheel
+HeroFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, DOWN_MOTOR_ID, CAN_BUS);
+
+HeroFlywheelRunCommand heroFlywheelRunCommand(&flywheel);
+
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&heroFlywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+
+// chassis subsystem
+src::chassis::ChassisSubsystem chassisSubsystem(
+    drivers(),
+    src::chassis::ChassisConfig{
+        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
+        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
+        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
+        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
+        .canBus = CanBus::CAN_BUS1,
+        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
+            src::chassis::VELOCITY_PID_KP,
+            src::chassis::VELOCITY_PID_KI,
+            src::chassis::VELOCITY_PID_KD,
+            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
+    },
+    &drivers()->turretMCBCanCommBus2);
+
+src::chassis::ChassisDriveCommand chassisDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -87,7 +120,7 @@ tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true,
 
 tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, false, "YawMotor");
 
-StandardTurretSubsystem turret(
+TurretSubsystem turret(
     drivers(),
     &pitchMotor,
     &yawMotor,
@@ -148,51 +181,6 @@ user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
-// chassis subsystem
-src::chassis::ChassisSubsystem chassisSubsystem(
-    drivers(),
-    src::chassis::ChassisConfig{
-        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
-        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
-        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
-        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
-        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
-            src::chassis::VELOCITY_PID_KP,
-            src::chassis::VELOCITY_PID_KI,
-            src::chassis::VELOCITY_PID_KD,
-            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
-    },
-    &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
-
-src::chassis::ChassisDriveCommand chassisDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
-src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    2,
-    true);
-
-// chassis Mappings
-ToggleCommandMapping beyBlade(
-    drivers(),
-    {&chassisBeyBladeCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
-
-ToggleCommandMapping orientDrive(
-    drivers(),
-    {&chassisOrientDriveCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
-
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
@@ -209,50 +197,45 @@ void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
-    // m_FlyWheel.initialize();
     turret.initialize();
+    flywheel.initialize();
 }
 
-void registerStandardSubsystems(Drivers *drivers)
+void registerHeroSubsystems(Drivers *drivers)
 {
-    drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
-    drivers->commandScheduler.registerSubsystem(&agitator);
-    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
     drivers->commandScheduler.registerSubsystem(&turret);
+    drivers->commandScheduler.registerSubsystem(&agitator);
+    drivers->commandScheduler.registerSubsystem(&flywheel);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultHeroCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     turret.setDefaultCommand(&turretUserWorldRelativeCommand);
 }
 
-void startStandardCommands(Drivers *drivers)
+void startHeroCommands(Drivers *drivers)
 {
-    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
-void registerStandardIoMappings(Drivers *drivers)
+void registerHeroIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
-    // drivers.commandMapper.addMap(&rightMousePressed);
-    // drivers.commandMapper.addMap(&leftSwitchUp);
-    drivers->commandMapper.addMap(&beyBlade);
-    drivers->commandMapper.addMap(&orientDrive);
+    drivers->commandMapper.addMap(&fPressed);
 }
-}  // namespace standard_control
+}  // namespace hero_control
 
-namespace src::standard
+namespace src::hero
 {
-void initSubsystemCommands(src::standard::Drivers *drivers)
+void initSubsystemCommands(src::hero::Drivers *drivers)
 {
-    standard_control::initializeSubsystems(drivers);
-    standard_control::registerStandardSubsystems(drivers);
-    standard_control::setDefaultStandardCommands(drivers);
-    standard_control::startStandardCommands(drivers);
-    standard_control::registerStandardIoMappings(drivers);
+    hero_control::initializeSubsystems(drivers);
+    hero_control::registerHeroSubsystems(drivers);
+    hero_control::setDefaultHeroCommands(drivers);
+    hero_control::startHeroCommands(drivers);
+    hero_control::registerHeroIoMappings(drivers);
 }
-}  // namespace src::standard
+}  // namespace src::hero
 
-#endif
+#endif  // TARGET_HERO

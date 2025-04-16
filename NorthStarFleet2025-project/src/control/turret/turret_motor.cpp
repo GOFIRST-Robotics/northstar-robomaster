@@ -32,6 +32,7 @@ namespace src::control::turret
 TurretMotor::TurretMotor(tap::motor::MotorInterface *motor, const TurretMotorConfig &motorConfig)
     : config(motorConfig),
       motor(motor),
+      ratio(config.ratio),
       chassisFrameSetpoint(Angle(config.startAngle)),
       chassisFrameMeasuredAngle(Angle(config.startAngle)),
       lastUpdatedEncoderValue(config.startEncoderValue)
@@ -58,7 +59,7 @@ void TurretMotor::updateMotorAngle()
                 static_cast<float>(M_TWOPI) / static_cast<float>(DjiMotor::ENC_RESOLUTION) +
             config.startAngle;
 
-        chassisFrameMeasuredAngle.setUnwrappedValue(chassisFrameUnwrappedMeasurement);
+        chassisFrameMeasuredAngle.setUnwrappedValue(chassisFrameUnwrappedMeasurement * ratio);
     }
     else
     {
@@ -94,11 +95,13 @@ void TurretMotor::setChassisFrameSetpoint(WrappedFloat setpoint)
     if (config.limitMotorAngles)
     {
         int status;
-        chassisFrameSetpoint = Angle(WrappedFloat::limitValue(
-            chassisFrameSetpoint,
-            config.minAngle,
-            config.maxAngle,
-            &status));
+        chassisFrameSetpoint = Angle(
+            limitVal(chassisFrameSetpoint.getUnwrappedValue(), config.minAngle, config.maxAngle));
+        // chassisFrameSetpoint = Angle(WrappedFloat::limitValue(
+        //     chassisFrameSetpoint,
+        //     config.minAngle,
+        //     config.maxAngle,
+        //     &status));
     }
 }
 
