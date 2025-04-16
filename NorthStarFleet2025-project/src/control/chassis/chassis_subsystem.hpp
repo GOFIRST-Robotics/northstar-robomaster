@@ -12,7 +12,6 @@
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
-
 #define FIELD
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
@@ -33,19 +32,15 @@ struct ChassisConfig
     modm::Pid<float>::Parameter wheelVelocityPidConfig;
 };
 
-///
-/// @brief This subsystem encapsulates four motors that control the chassis.
-///
 class ChassisSubsystem : public tap::control::Subsystem
 {
 public:
-    /// @brief Motor ID to index into the velocityPid and motors object.
     enum class MotorId : uint8_t
     {
-        LF = 0,  ///< Left front
-        LB,      ///< Left back
-        RF,      ///< Right front
-        RB,      ///< Right back
+        LF = 0,
+        LB,
+        RF,
+        RB,
         NUM_MOTORS,
     };
 
@@ -62,30 +57,21 @@ public:
     ChassisSubsystem(
         tap::Drivers* drivers,
         const ChassisConfig& config,
-        src::can::TurretMCBCanComm* turretMCBCanComm);
+        src::can::TurretMCBCanComm* turretMCBCanComm,
+        tap::motor::DjiMotor* yawMotor);
 
-    ///
-    /// @brief Initializes the drive motors.
-    ///
     void initialize() override;
 
-    ///
-    /// @brief Control the chassis using tank drive. Sets the wheel velocity of the four drive
-    /// motors based on the input left/right desired velocity.
-    ///
-    /// @param left Desired chassis speed in m/s of the left side of the chassis. Positive speed is
-    /// forward, negative is backwards.
-    /// @param right Desired chassis speed in m/s of the right side of the chassis.
-    ///
-    mockable void setVelocityDrive(
-        float forward,
-        float sideways,
-        float rotational,
-        float turretRot);
+    mockable void setVelocityTurretDrive(float forward, float sideways, float rotational);
 
-    ///
-    /// @brief Runs velocity PID controllers for the drive motors.
-    ///
+    mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
+
+    mockable void setVelocityBeyBladeDrive(float forward, float sideways, float rotational);
+
+    void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
+
+    float getChassisTurretOffset();
+
     void refresh() override;
 
     const char* getName() { return "Chassis"; }
@@ -96,7 +82,7 @@ private:
     inline float mpsToRpm(float mps)
     {
         static constexpr float GEAR_RATIO = 19.0f;
-        static constexpr float WHEEL_DIAMETER_M = 0.076f;
+        static constexpr float WHEEL_DIAMETER_M = 0.0575f;  // 0.076
         static constexpr float WHEEL_CIRCUMFERANCE_M = M_PI * WHEEL_DIAMETER_M;
         static constexpr float SEC_PER_M = 60.0f;
 
@@ -105,17 +91,17 @@ private:
 
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
-    /// Desired wheel output for each motor
+    tap::motor::DjiMotor* yawMotor;
+
+    float beyBladeRotationSpeed = 0.0f;
+
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
 
-    /// PID controllers. Input desired wheel velocity, output desired motor current.
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
 
-    std::array<src::chassis::algorithms::SlewRateLimiter, static_cast<uint8_t>(MotorId::NUM_MOTORS)>
-        rateLimiters;
+    inline float getTurretYaw();
 
 protected:
-    /// Motors.
     std::array<Motor, static_cast<uint8_t>(MotorId::NUM_MOTORS)> motors;
 };  // class ChassisSubsystem
 }  // namespace src::chassis

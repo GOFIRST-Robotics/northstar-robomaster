@@ -4,6 +4,7 @@
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
+#include "tap/control/toggle_command_mapping.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
@@ -13,7 +14,9 @@
 #include "drivers_singleton.hpp"
 
 // chasis
+#include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
@@ -38,6 +41,7 @@
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
+using tap::control::RemoteMapState;
 using tap::motor::MotorId;
 
 using namespace tap::control::setpoint;
@@ -52,27 +56,7 @@ driversFunc drivers = DoNotUse_getDrivers;
 
 namespace standard_control
 {
-inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus1; }
-// chassis subsystem
-src::chassis::ChassisSubsystem chassisSubsystem(
-    drivers(),
-    src::chassis::ChassisConfig{
-        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
-        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
-        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
-        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
-        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
-            src::chassis::VELOCITY_PID_KP,
-            src::chassis::VELOCITY_PID_KI,
-            src::chassis::VELOCITY_PID_KD,
-            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
-    },
-    &drivers()->turretMCBCanCommBus1);
-
-src::chassis::ChassisDriveCommand chassisDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
+inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -164,6 +148,51 @@ user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+// chassis subsystem
+src::chassis::ChassisSubsystem chassisSubsystem(
+    drivers(),
+    src::chassis::ChassisConfig{
+        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
+        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
+        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
+        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
+        .canBus = CanBus::CAN_BUS1,
+        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
+            src::chassis::VELOCITY_PID_KP,
+            src::chassis::VELOCITY_PID_KI,
+            src::chassis::VELOCITY_PID_KD,
+            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
+    },
+    &drivers()->turretMCBCanCommBus2,
+    &yawMotor);
+
+src::chassis::ChassisDriveCommand chassisDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    2,
+    true);
+
+// chassis Mappings
+ToggleCommandMapping beyBlade(
+    drivers(),
+    {&chassisBeyBladeCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+ToggleCommandMapping orientDrive(
+    drivers(),
+    {&chassisOrientDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
+
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
@@ -201,7 +230,7 @@ void setDefaultStandardCommands(Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerStandardIoMappings(Drivers *drivers)
@@ -209,6 +238,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftMousePressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
+    drivers->commandMapper.addMap(&beyBlade);
+    drivers->commandMapper.addMap(&orientDrive);
 }
 }  // namespace standard_control
 

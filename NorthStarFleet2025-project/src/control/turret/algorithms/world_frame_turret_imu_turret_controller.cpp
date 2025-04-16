@@ -335,7 +335,7 @@ void WorldFramePitchTurretImuCascadePidTurretController::runController(  // TODO
     pidOut += computeGravitationalForceOffset(
         TURRET_CG_X,
         TURRET_CG_Z,
-        -turretMotor.getChassisFrameMeasuredAngle().getWrappedValue(),
+        turretMotor.getChassisFrameMeasuredAngle().getWrappedValue() - M_PI / 2,
         GRAVITY_COMPENSATION_SCALAR);
     turretMotor.setMotorOutput(pidOut);
 }

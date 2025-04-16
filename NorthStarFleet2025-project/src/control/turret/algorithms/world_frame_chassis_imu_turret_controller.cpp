@@ -21,6 +21,10 @@
 
 #include "tap/drivers.hpp"
 
+#include "control/turret/constants/turret_constants.hpp"
+
+#include "turret_gravity_compensation.hpp"
+
 namespace src::control::turret::algorithms
 {
 /**
@@ -262,11 +266,15 @@ void WorldFramePitchChassisImuTurretController::runController(
     // position controller based on imu and Pitch gimbal angle
     const float positionControllerError =
         turretMotor.getValidMinError(worldFrameSetpoint, worldFramePitchAngle);
-    const float pidOutput = pid.runController(
+    float pidOutput = pid.runController(
         positionControllerError,
         turretMotor.getChassisFrameVelocity() + modm::toRadian(drivers.bmi088.getGz()),
         dt);
-
+    pidOutput += -computeGravitationalForceOffset(
+        TURRET_CG_X,
+        TURRET_CG_Z,
+        turretMotor.getChassisFrameMeasuredAngle().getWrappedValue() - M_PI / 2,
+        GRAVITY_COMPENSATION_SCALAR);
     turretMotor.setMotorOutput(pidOutput);
 }
 

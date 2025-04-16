@@ -28,6 +28,7 @@
 //  #include "src/mock/turret_mcb_can_comm_mock.hpp"
 #else
 #include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
+#include "tap/motor/rev_motor_tx_handler.hpp"
 
 #include "../../src/communication/can/turret/turret_mcb_can_comm.hpp"
 #include "robot/control_operator_interface.hpp"
@@ -46,17 +47,19 @@ public:
     Drivers()
         : tap::Drivers(),
           controlOperatorInterface(this),
-          turretMCBCanCommBus1(this, tap::can::CanBus::CAN_BUS2)
+          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2),
+          revMotorTxHandler(this)
     {
     }
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
     testing::NiceMock<mock::ControlOperatorInterfaceMock> controlOperatorInterface;
-    testing::NiceMock<mock::TurretMCBCanCommMock> turretMCBCanCommBus1;
+    testing::NiceMock<mock::TurretMCBCanCommMock> turretMCBCanCommBus2;
 #else
 public:
     control::ControlOperatorInterface controlOperatorInterface;
-    can::TurretMCBCanComm turretMCBCanCommBus1;
+    can::TurretMCBCanComm turretMCBCanCommBus2;
+    tap::motor::RevMotorTxHandler revMotorTxHandler;
 #endif
 };  // class src::SentryDrivers
 }  // namespace src::sentry

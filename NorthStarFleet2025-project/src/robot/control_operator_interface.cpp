@@ -37,23 +37,33 @@ namespace control
 {
 float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
 {
+    float input;
     switch (turretID)
     {
         case 0:
-            return -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       -remote.getMouseX(),
-                       -USER_MOUSE_YAW_MAX,
-                       USER_MOUSE_YAW_MAX)) *
-                       USER_MOUSE_YAW_SCALAR;
+            input = -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseX(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         case 1:
-            return -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       -remote.getMouseX(),
-                       -USER_MOUSE_YAW_MAX,
-                       USER_MOUSE_YAW_MAX)) *
-                       USER_MOUSE_YAW_SCALAR;
-
+            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseX(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         default:
             return 0;
     }
@@ -61,22 +71,33 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
 
 float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
 {
+    float input;
     switch (turretID)
     {
         case 0:
-            return -remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       remote.getMouseY(),
-                       -USER_MOUSE_PITCH_MAX,
-                       USER_MOUSE_PITCH_MAX)) *
-                       USER_MOUSE_PITCH_SCALAR;
+            input = -remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseY(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         case 1:
-            return -remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       remote.getMouseY(),
-                       -USER_MOUSE_PITCH_MAX,
-                       USER_MOUSE_PITCH_MAX)) *
-                       USER_MOUSE_PITCH_SCALAR;
+            input = -remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseY(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         default:
             return 0;
     }
@@ -258,28 +279,6 @@ bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation()
 {
-    RandomNumberGenerator::enable();
-    checkToggleBeyBlade();
-    if (beyBlade)
-    {
-        count++;
-        if (count >= 250)
-        {
-            if (RandomNumberGenerator::isReady())
-            {
-                prevBeyBladeValue = beyBladeValue;
-                beyBladeValue = RandomNumberGenerator::getValue() % 360;
-                count = 0;
-            }
-        }
-        if (count % 25 == 0)
-        {
-            speed = (0.1f * sin(beyBladeValue) + 0.9f + prevBeyBladeValue) / 2;
-            prevBeyBladeValue = speed;
-        }
-        return speed;
-    }
-
     if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
     {
         return -0.3f;
