@@ -36,6 +36,11 @@
 #include "control/turret/user/turret_user_world_relative_command.hpp"
 #include "robot/standard/standard_turret_subsystem.hpp"
 
+// flywheel
+#include "control/flywheel/flywheel_constants.hpp"
+#include "control/flywheel/flywheel_run_command.hpp"
+#include "control/flywheel/flywheel_subsystem.hpp"
+
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
@@ -49,6 +54,8 @@ using namespace tap::control;
 using namespace src::standard;
 using namespace src::control::turret;
 using namespace src::control;
+using namespace src::flywheel;
+using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 
@@ -204,6 +211,18 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem);
+
+// flywheel
+// RevMotorTester revMotorTester(drivers());
+
+FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+FlywheelRunCommand flywheelRunCommand(&flywheel);
+
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
 void initializeSubsystems(Drivers *drivers)
 {

@@ -11,7 +11,7 @@ void FlywheelRunCommand::initialize()
 {
     flywheel->setDesiredLaunchSpeedLeft(.5);
     flywheel->setDesiredLaunchSpeedRight(.5);
-    flywheel->setDesiredLaunchSpeedUp(.2);
+    flywheel->setDesiredLaunchSpeedUp(.5);
 }
 
 void FlywheelRunCommand::end(bool interrupted)
