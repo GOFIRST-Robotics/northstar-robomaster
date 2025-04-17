@@ -25,6 +25,7 @@
 #define TAPROOT_REV_MOTOR_HPP_
 
 #include <string>
+#include <queue>
 
 #include "tap/architecture/timeout.hpp"
 #include "tap/communication/can/can_rx_listener.hpp"
@@ -284,11 +285,6 @@ public:
 
 
     /**
-     * Serializes send data and deposits it in a message to be sent.
-     */
-    mockable void serializeCanSendData(modm::can::Message* txMessage) const;
-
-    /**
      * @return the raw `desiredOutput` value which will be sent to the motor controller
      *      (specified via `setDesiredOutput()`)
      */
@@ -361,8 +357,7 @@ public:
      * there is then an operation done to merge the devices CAN ID with the Messgae ID to create a message for
      * a specific motor controller
      */
-    modm::can::Message createRevCanControlMessage(APICommand cmd, const RevMotor* motor);
-    modm::can::Message createRevCanParameterMessage(Parameter param, const RevMotor* motor);
+    modm::can::Message createRevCanMessage(const RevMotor* motor);
 
     uint8_t GetAPIClass(APICommand cmd) const;
     uint8_t GetAPIIndex(APICommand cmd) const;
@@ -370,7 +365,9 @@ public:
     uint32_t CreateArbitrationControlId(APICommand cmd, const RevMotor* motor) const;
     uint32_t CreateArbitrationParameterId(Parameter param, const RevMotor* motor) const;
 
-    void serializeRevMotorHeartBeat(modm::can::Message* message);
+    modm::can::Message constructRevMotorHeartBeat(const RevMotor* motor);
+
+    void setParameter(Parameter param, float paramVal);
 
 
 private:
@@ -404,6 +401,14 @@ private:
 
     ControlMode currentControlMode = ControlMode::VOLTAGE;
     float controlValue = 0.0f;
+
+
+
+
+    bool isControlAndNotParam;
+
+    std::queue<Parameter> parameters;
+    std::queue<float> paramVals;
 
 
 };

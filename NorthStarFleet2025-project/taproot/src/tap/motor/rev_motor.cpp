@@ -122,33 +122,12 @@ float RevMotor::getControlValue() const
     return controlValue;
 }
 
-// Modify serializeCanSendData to handle the different control modes
-void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
-{
-    // Copy the control value to the message
-    std::memcpy(&txMessage->data[0], &controlValue, sizeof(controlValue));
-    
-    // Zero out the remaining bytes
-    for (int i = sizeof(controlValue); i < 8; i++) {
-        txMessage->data[i] = 0;
-    }
-}
 
-void RevMotor::serializeRevMotorHeartBeat(modm::can::Message* message)
-{
-    for (int i = 0; i < 8; i++)
-    {
-        message->data[i] = 0xFF;
-    }
-}
 
-/**
- * constructs a can message for the given REV motor by using the motor's id and the 
- * desired control mode id to tell the the motor what method of control you want to 
- * use. the control modes can be found in a REV SW Spark Max google sheet which can be
- * obtained by emailing REV Robotics.
- */
-modm::can::Message RevMotor::createRevCanControlMessage(APICommand cmd, const RevMotor* motor) {
+modm::can::Message RevMotor::constructRevMotorHeartBeat(const RevMotor* motor)
+{
+
+    APICommand cmd = APICommand::Heartbeat;
     uint32_t RevArbitrationId = CreateArbitrationControlId(cmd, motor);
     //the number of bytes in the message
     uint8_t canRevIdLength = 8;
@@ -157,6 +136,63 @@ modm::can::Message RevMotor::createRevCanControlMessage(APICommand cmd, const Re
         canRevIdLength,
         0,
         true);
+
+
+    for (int i = 0; i < 8; i++)
+    {
+        canMessage.data[i] = 0xFF;
+    }
+
+    return canMessage;
+}
+
+void RevMotor::setParameter(Parameter param, float paramVal){
+    parameters.push(param);
+    paramVals.push(paramVal);
+}
+
+/**
+ * constructs a can message for the given REV motor by using the motor's id and the 
+ * desired control mode id to tell the the motor what method of control you want to 
+ * use. the control modes can be found in a REV SW Spark Max google sheet which can be
+ * obtained by emailing REV Robotics.
+ */
+modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor) {
+
+    uint32_t RevArbitrationId;
+
+    if(parameters.size() > 0 && paramVals.size() > 0){
+        // If there are parameters to set, we will use the first one
+        Parameter firstParam = parameters.front();
+        parameters.pop();
+        float firstParamVal = paramVals.front();
+        paramVals.pop();
+        RevArbitrationId = CreateArbitrationParameterId(firstParam, motor);
+    } else {
+        // If no parameters, use the control mode
+        RevArbitrationId = CreateArbitrationControlId(controlModeToAPI(currentControlMode), motor);
+    }
+
+    uint8_t canRevIdLength = 8;
+    modm::can::Message canMessage(
+        RevArbitrationId,
+        canRevIdLength,
+        0,
+        true);
+    if(paramVals.size() > 0 && parameters.size() > 0){
+        float parameterVal = paramVals.front();
+        parameters.pop();
+        std::memcpy(&canMessage.data[0], &parameterVal, sizeof(parameterVal));
+        for (int i = sizeof(parameterVal); i < 8; i++) {
+            canMessage.data[i] = 0;
+        }
+    } else { //fill with control value data
+        std::memcpy(&canMessage.data[0], &controlValue, sizeof(controlValue));
+        // Zero out the remaining bytes
+        for (int i = sizeof(controlValue); i < 8; i++) {
+            canMessage.data[i] = 0;
+        }
+    }
     return canMessage;
 }
 
@@ -171,18 +207,6 @@ uint32_t RevMotor::CreateArbitrationControlId(APICommand cmd, const RevMotor* mo
   return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
          (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
          static_cast<uint32_t>(deviceId);
-}
-
-modm::can::Message RevMotor::createRevCanParameterMessage(Parameter param, const RevMotor* motor) {
-    uint32_t RevArbitrationId = CreateArbitrationParameterId(param, motor);
-    //the number of bytes in the message
-    uint8_t canRevIdLength = 8;
-    modm::can::Message canMessage(
-        RevArbitrationId,
-        canRevIdLength,
-        0,
-        true);
-    return canMessage;
 }
 
 uint32_t RevMotor::CreateArbitrationParameterId(Parameter param, const RevMotor* motor) const

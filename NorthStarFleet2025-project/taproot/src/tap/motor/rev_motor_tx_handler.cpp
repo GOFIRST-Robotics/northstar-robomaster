@@ -90,13 +90,11 @@ void RevMotorTxHandler::encodeAndSendCanData()
             if (motor != nullptr)
             {
                 // Create and send heartbeat for this motor
-                modm::can::Message heartbeatMsg = motor->createRevCanControlMessage(APICommand::Heartbeat, motor);
-                motor->serializeRevMotorHeartBeat(&heartbeatMsg);
+                modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
                 
                 // Create and send control message for this motor
-                modm::can::Message controlMsg = motor->createRevCanControlMessage(APICommand::DutyCycle, motor);
-                motor->serializeCanSendData(&controlMsg);
+                modm::can::Message controlMsg = motor->createRevCanMessage(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, controlMsg);
             }
         }
@@ -113,13 +111,11 @@ void RevMotorTxHandler::encodeAndSendCanData()
             {
                 //TODO: MOVE THESE FUNCTIONS INTO REV MOTOR CLASS and then reimplement them here
                 // Create and send heartbeat for this motor
-                modm::can::Message heartbeatMsg = motor->createRevCanControlMessage(APICommand::Heartbeat, motor);
-                motor->serializeRevMotorHeartBeat(&heartbeatMsg);
+                modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, heartbeatMsg);
                 
                 // Create and send control message for this motor
-                modm::can::Message controlMsg = motor->createRevCanControlMessage(APICommand::DutyCycle, motor);
-                motor->serializeCanSendData(&controlMsg);
+                modm::can::Message controlMsg = motor->createRevCanMessage(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, controlMsg);
             }
         }
