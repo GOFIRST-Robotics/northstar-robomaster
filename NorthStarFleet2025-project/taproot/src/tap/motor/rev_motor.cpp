@@ -134,6 +134,78 @@ void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
     }
 }
 
+void RevMotor::serializeRevMotorHeartBeat(modm::can::Message* message)
+{
+    for (int i = 0; i < 8; i++)
+    {
+        message->data[i] = 0xFF;
+    }
+}
+
+/**
+ * constructs a can message for the given REV motor by using the motor's id and the 
+ * desired control mode id to tell the the motor what method of control you want to 
+ * use. the control modes can be found in a REV SW Spark Max google sheet which can be
+ * obtained by emailing REV Robotics.
+ */
+modm::can::Message RevMotor::createRevCanControlMessage(APICommand cmd, const RevMotor* motor) {
+    uint32_t RevArbitrationId = CreateArbitrationControlId(cmd, motor);
+    //the number of bytes in the message
+    uint8_t canRevIdLength = 8;
+    modm::can::Message canMessage(
+        RevArbitrationId,
+        canRevIdLength,
+        0,
+        true);
+    return canMessage;
+}
+
+uint32_t RevMotor::CreateArbitrationControlId(APICommand cmd, const RevMotor* motor) const
+{
+  uint8_t apiClass = GetAPIClass(cmd);
+  uint8_t apiIndex = GetAPIIndex(cmd);
+  uint8_t deviceId = motor->getMotorIdentifier();
+
+  
+
+  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+         (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
+         static_cast<uint32_t>(deviceId);
+}
+
+modm::can::Message RevMotor::createRevCanParameterMessage(Parameter param, const RevMotor* motor) {
+    uint32_t RevArbitrationId = CreateArbitrationParameterId(param, motor);
+    //the number of bytes in the message
+    uint8_t canRevIdLength = 8;
+    modm::can::Message canMessage(
+        RevArbitrationId,
+        canRevIdLength,
+        0,
+        true);
+    return canMessage;
+}
+
+uint32_t RevMotor::CreateArbitrationParameterId(Parameter param, const RevMotor* motor) const
+{
+  uint8_t deviceId = motor->getMotorIdentifier();
+
+  
+
+  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+         (static_cast<uint32_t>(48) <<
+         10) | (static_cast<uint32_t>(param) << 6) | static_cast<uint32_t>(deviceId);
+}
+
+uint8_t RevMotor::GetAPIClass(APICommand cmd) const
+{
+  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) >> 4);
+}
+
+uint8_t RevMotor::GetAPIIndex(APICommand cmd) const
+{
+  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) & 0x0F);
+}
+
 // void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const
 // {
 //     std::memcpy(&txMessage->data[0], &targetVoltage, sizeof(targetVoltage));
