@@ -47,8 +47,8 @@ public:
     Drivers()
         : tap::Drivers(),
           controlOperatorInterface(this),
-          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2),
-          revMotorTxHandler(this)
+          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2)
+    //   revMotorTxHandler(this)
     {
     }
 
@@ -59,7 +59,7 @@ public:
 public:
     control::ControlOperatorInterface controlOperatorInterface;
     can::TurretMCBCanComm turretMCBCanCommBus2;
-    tap::motor::RevMotorTxHandler revMotorTxHandler;
+    // tap::motor::RevMotorTxHandler revMotorTxHandler;
 #endif
 };  // class src::SentryDrivers
 }  // namespace src::sentry

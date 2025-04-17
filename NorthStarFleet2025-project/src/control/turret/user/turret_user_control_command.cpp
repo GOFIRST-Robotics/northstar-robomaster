@@ -80,7 +80,7 @@ void TurretUserControlCommand::execute()
 
 bool TurretUserControlCommand::isFinished() const
 {
-    return !pitchController->isOnline() ||
+    return !pitchController->isOnline() &&
            !yawController->isOnline();  //&& TODO not shure if this is right
 }
 

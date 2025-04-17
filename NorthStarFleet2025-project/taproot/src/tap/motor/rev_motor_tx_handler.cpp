@@ -59,26 +59,25 @@ void RevMotorTxHandler::addMotorToManager(RevMotor* motor)
     }
 }
 
-
 /**
  * Encodes and sends control and heartbeat messages for all connected REV motors on both CAN buses.
- * 
+ *
  * This method iterates through each motor store (CAN1 and CAN2) and for each valid motor:
  * 1. Sends a heartbeat message to maintain connection with the motor controller
  * 2. Sends a control message with the motor's current target values
- * 
- * The heartbeat messages prevent timeout disconnections, while the control messages 
- * provide the actual motor commands. Each message is properly formatted with the 
+ *
+ * The heartbeat messages prevent timeout disconnections, while the control messages
+ * provide the actual motor commands. Each message is properly formatted with the
  * correct arbitration ID based on the motor's ID and message type.
- * 
+ *
  * If any send operation fails, an error will be raised.
- * 
+ *
  * @note This method should be called periodically to maintain motor control.
  */
 void RevMotorTxHandler::encodeAndSendCanData()
 {
     bool messageSuccess = true;
-    
+
     // Process CAN bus 1 motors
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
     {
@@ -91,7 +90,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
                 modm::can::Message heartbeatMsg = createRevCanMessage(APICommand::Heartbeat, motor);
                 serializeRevMotorHeartBeat(&heartbeatMsg);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
-                
+
                 // Create and send control message for this motor
                 modm::can::Message controlMsg = createRevCanMessage(APICommand::DutyCycle, motor);
                 motor->serializeCanSendData(&controlMsg);
@@ -99,7 +98,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
             }
         }
     }
-    
+
     // Process CAN bus 2 motors
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS2))
     {
@@ -113,7 +112,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
                 modm::can::Message heartbeatMsg = createRevCanMessage(APICommand::Heartbeat, motor);
                 serializeRevMotorHeartBeat(&heartbeatMsg);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, heartbeatMsg);
-                
+
                 // Create and send control message for this motor
                 modm::can::Message controlMsg = createRevCanMessage(APICommand::DutyCycle, motor);
                 motor->serializeCanSendData(&controlMsg);
@@ -121,7 +120,7 @@ void RevMotorTxHandler::encodeAndSendCanData()
             }
         }
     }
-    
+
     if (!messageSuccess)
     {
         RAISE_ERROR(drivers, "sendMessage failure");
@@ -131,12 +130,12 @@ void RevMotorTxHandler::encodeAndSendCanData()
 /**
  * Sets all bytes in the CAN message data field to 0xFF (255 decimal),
  * which serves as a heartbeat signal for REV motors.
- * 
+ *
  * Heartbeat messages are sent periodically to maintain connection with
  * the motor controllers and prevent timeout disconnections. When a REV motor
- * controller receives this specific pattern (all 0xFF), it recognizes it as 
+ * controller receives this specific pattern (all 0xFF), it recognizes it as
  * a "still alive" signal from the control system.
- * 
+ *
  * @param message Pointer to the CAN message whose data field will be filled with 0xFF values
  */
 void RevMotorTxHandler::serializeRevMotorHeartBeat(modm::can::Message* message)
@@ -182,76 +181,40 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(REVMotorId motorId)
     return index > tap::motor::MOTOR8 ? nullptr : can2MotorStore[index];
 }
 
-
-
-
-
-
-
-
-
 /**
- * constructs a can message for the given REV motor by using the motor's id and the 
- * desired control mode id to tell the the motor what method of control you want to 
+ * constructs a can message for the given REV motor by using the motor's id and the
+ * desired control mode id to tell the the motor what method of control you want to
  * use. the control modes can be found in a REV SW Spark Max google sheet which can be
  * obtained by emailing REV Robotics.
  */
-modm::can::Message RevMotorTxHandler::createRevCanMessage(APICommand cmd, const RevMotor* motor) {
+modm::can::Message RevMotorTxHandler::createRevCanMessage(APICommand cmd, const RevMotor* motor)
+{
     uint32_t RevArbitrationId = CreateArbitrationId(cmd, motor);
-    //the number of bytes in the message
+    // the number of bytes in the message
     uint8_t canRevIdLength = 8;
-    modm::can::Message canMessage(
-        RevArbitrationId,
-        canRevIdLength,
-        0,
-        true);
+    modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
     return canMessage;
 }
 
-
-
-
 uint8_t RevMotorTxHandler::GetAPIClass(APICommand cmd) const
 {
-  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) >> 4);
+    return static_cast<uint8_t>(static_cast<uint16_t>(cmd) >> 4);
 }
 
 uint8_t RevMotorTxHandler::GetAPIIndex(APICommand cmd) const
 {
-  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) & 0x0F);
+    return static_cast<uint8_t>(static_cast<uint16_t>(cmd) & 0x0F);
 }
-
 
 uint32_t RevMotorTxHandler::CreateArbitrationId(APICommand cmd, const RevMotor* motor) const
 {
-  uint8_t apiClass = GetAPIClass(cmd);
-  uint8_t apiIndex = GetAPIIndex(cmd);
-  uint8_t deviceId = motor->getMotorIdentifier();
+    uint8_t apiClass = GetAPIClass(cmd);
+    uint8_t apiIndex = GetAPIIndex(cmd);
+    uint8_t deviceId = motor->getMotorIdentifier();
 
-  
-
-  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
-         (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
-         static_cast<uint32_t>(deviceId);
+    return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+           (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
+           static_cast<uint32_t>(deviceId);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }  // namespace tap::motor

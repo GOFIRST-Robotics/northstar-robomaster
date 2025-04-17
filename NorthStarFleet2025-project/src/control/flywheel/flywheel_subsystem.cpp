@@ -18,8 +18,8 @@ FlywheelSubsystem::FlywheelSubsystem(
     tap::can::CanBus canBus)
     : tap::control::Subsystem(drivers),
       leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
-      rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
-      upWheel(drivers, upMotorId, canBus, false, "Up Flywheel"),
+      rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
+      upWheel(drivers, upMotorId, canBus, true, "Up Flywheel"),
       desiredLaunchSpeedLeft(0),
       desiredLaunchSpeedRight(0),
       desiredLaunchSpeedUp(0),

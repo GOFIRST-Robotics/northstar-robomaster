@@ -71,7 +71,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
         .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
         .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
         .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
+        .canBus = CanBus::CAN_BUS2,
         .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
             src::chassis::VELOCITY_PID_KP,
             src::chassis::VELOCITY_PID_KI,
@@ -187,7 +187,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     &chassisSubsystem);
 
 // flywheel
-RevMotorTester revMotorTester(drivers());
+// RevMotorTester revMotorTester(drivers());
 
 FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 

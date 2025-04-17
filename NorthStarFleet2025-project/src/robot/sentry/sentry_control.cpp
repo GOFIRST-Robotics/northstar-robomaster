@@ -4,6 +4,7 @@
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
+#include "tap/control/toggle_command_mapping.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
@@ -32,6 +33,11 @@
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
 
+// flywheel
+#include "control/flywheel/flywheel_constants.hpp"
+#include "control/flywheel/flywheel_run_command.hpp"
+#include "control/flywheel/flywheel_subsystem.hpp"
+
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
@@ -44,6 +50,8 @@ using namespace tap::control;
 using namespace src::sentry;
 using namespace src::control::turret;
 using namespace src::control;
+using namespace src::flywheel;
+using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 
@@ -275,11 +283,23 @@ user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
 //      }},
 //     &chassisSubsystem);
 
+// flywheel
+// RevMotorTester revMotorTester(drivers());
+
+FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+FlywheelRunCommand flywheelRunCommand(&flywheel);
+
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
-    // m_FlyWheel.initialize();
+    flywheel.initialize();
     sentryTurrets.initialize();
 }
 
@@ -287,7 +307,7 @@ void registerSentrySubsystems(Drivers *drivers)
 {
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
-    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
+    drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&sentryTurrets);
 }
 
@@ -306,6 +326,7 @@ void startSentryCommands(Drivers *drivers)
 void registerSentryIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
+    drivers->commandMapper.addMap(&fPressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
 }
