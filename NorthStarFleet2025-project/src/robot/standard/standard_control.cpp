@@ -174,7 +174,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     &drivers()->turretMCBCanCommBus2,
     &yawMotor);
 
-src::chassis::ChassisFieldCommand chassisDriveCommand(
+src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
