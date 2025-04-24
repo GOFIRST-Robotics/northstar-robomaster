@@ -9,9 +9,9 @@ FlywheelRunCommand::FlywheelRunCommand(FlywheelSubsystem *flywheel) : flywheel(f
 
 void FlywheelRunCommand::initialize()
 {
-    flywheel->setDesiredLaunchSpeedLeft(.5);
-    flywheel->setDesiredLaunchSpeedRight(.5);
-    flywheel->setDesiredLaunchSpeedUp(.5);
+    flywheel->setDesiredLaunchSpeedLeft(.57);
+    flywheel->setDesiredLaunchSpeedRight(.57);
+    flywheel->setDesiredLaunchSpeedUp(.45);
 }
 
 void FlywheelRunCommand::end(bool interrupted)

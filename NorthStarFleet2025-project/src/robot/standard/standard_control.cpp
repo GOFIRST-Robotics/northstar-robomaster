@@ -16,6 +16,7 @@
 // chasis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
@@ -163,7 +164,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
         .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
         .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
         .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
+        .canBus = CanBus::CAN_BUS2,
         .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
             src::chassis::VELOCITY_PID_KP,
             src::chassis::VELOCITY_PID_KI,
@@ -173,7 +174,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     &drivers()->turretMCBCanCommBus2,
     &yawMotor);
 
-src::chassis::ChassisDriveCommand chassisDriveCommand(
+src::chassis::ChassisFieldCommand chassisDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
@@ -228,6 +229,7 @@ void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
+    flywheel.initialize();
     // m_FlyWheel.initialize();
     turret.initialize();
 }
@@ -236,6 +238,7 @@ void registerStandardSubsystems(Drivers *drivers)
 {
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
+    drivers->commandScheduler.registerSubsystem(&flywheel);
     // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
     drivers->commandScheduler.registerSubsystem(&turret);
 }
@@ -259,6 +262,7 @@ void registerStandardIoMappings(Drivers *drivers)
     // drivers.commandMapper.addMap(&leftSwitchUp);
     drivers->commandMapper.addMap(&beyBlade);
     drivers->commandMapper.addMap(&orientDrive);
+    drivers->commandMapper.addMap(&fPressed);
 }
 }  // namespace standard_control
 

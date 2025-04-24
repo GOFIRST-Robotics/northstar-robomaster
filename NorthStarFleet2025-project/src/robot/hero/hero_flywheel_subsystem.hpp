@@ -45,7 +45,7 @@ public:
     const char *getName() const override { return "Flywheels"; }
 
 protected:
-    static constexpr float MAX_DESIRED_LAUNCH_SPEED = 5000;  // TODO
+    static constexpr float MAX_DESIRED_LAUNCH_SPEED = 10000;  // TODO
 
     tap::Drivers *drivers;
 
