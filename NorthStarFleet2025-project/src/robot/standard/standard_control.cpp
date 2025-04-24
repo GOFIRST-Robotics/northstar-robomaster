@@ -45,6 +45,9 @@
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
+// safe disconnect
+#include "control/safe_disconnect.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -225,6 +228,7 @@ ToggleCommandMapping fPressed(
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
+RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
@@ -252,7 +256,7 @@ void setDefaultStandardCommands(Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
-    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerStandardIoMappings(Drivers *drivers)
@@ -270,6 +274,8 @@ namespace src::standard
 {
 void initSubsystemCommands(src::standard::Drivers *drivers)
 {
+    drivers->commandScheduler.setSafeDisconnectFunction(
+        &standard_control::remoteSafeDisconnectFunction);
     standard_control::initializeSubsystems(drivers);
     standard_control::registerStandardSubsystems(drivers);
     standard_control::setDefaultStandardCommands(drivers);

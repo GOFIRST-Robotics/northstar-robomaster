@@ -42,6 +42,9 @@
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
+// safe disconnect
+#include "control/safe_disconnect.hpp"
+
 using tap::can::CanBus;
 
 using namespace tap::control::setpoint;
@@ -194,6 +197,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
+RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
@@ -232,6 +236,8 @@ namespace src::hero
 {
 void initSubsystemCommands(src::hero::Drivers *drivers)
 {
+    drivers->commandScheduler.setSafeDisconnectFunction(
+        &hero_control::remoteSafeDisconnectFunction);
     hero_control::initializeSubsystems(drivers);
     hero_control::registerHeroSubsystems(drivers);
     hero_control::setDefaultHeroCommands(drivers);

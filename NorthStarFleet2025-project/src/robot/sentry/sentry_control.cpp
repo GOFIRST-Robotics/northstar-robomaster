@@ -44,6 +44,9 @@
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
+// safe disconnect
+#include "control/safe_disconnect.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::motor::MotorId;
@@ -322,6 +325,7 @@ ToggleCommandMapping fPressed(
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
+RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
@@ -365,6 +369,8 @@ namespace src::sentry
 {
 void initSubsystemCommands(src::sentry::Drivers *drivers)
 {
+    drivers->commandScheduler.setSafeDisconnectFunction(
+        &sentry_control::remoteSafeDisconnectFunction);
     sentry_control::initializeSubsystems(drivers);
     sentry_control::registerSentrySubsystems(drivers);
     sentry_control::setDefaultSentryCommands(drivers);

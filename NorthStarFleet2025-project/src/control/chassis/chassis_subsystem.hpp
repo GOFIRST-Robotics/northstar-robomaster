@@ -74,6 +74,14 @@ public:
 
     void refresh() override;
 
+    void refreshSafeDisconnect() override
+    {
+        for (size_t i = 0; i < motors.size(); i++)
+        {
+            motors[i].setDesiredOutput(0);
+        }
+    }
+
     const char* getName() const override { return "Chassis"; }
 
     float getYaw();
