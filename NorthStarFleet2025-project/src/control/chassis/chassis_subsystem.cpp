@@ -64,6 +64,10 @@ float LBSpeed;
 float RFSpeed;
 float RBSpeed;
 
+float topheading;
+float bottomheading;
+float difference;
+
 inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
 
 float ChassisSubsystem::getChassisTurretOffset()
@@ -75,7 +79,8 @@ float ChassisSubsystem::getChassisTurretOffset()
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
-    float turretRot = -getTurretYaw() + modm::toRadian(drivers->bmi088.getYaw());
+    // float turretRot = -getTurretYaw() + modm::toRadian(drivers->bmi088.getYaw());
+    float turretRot = -getTurretYaw();
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
