@@ -127,7 +127,6 @@ int main()
     }
     return 0;
 }
-
 static void initializeIo(Drivers *drivers)
 {
     drivers->can.initialize();

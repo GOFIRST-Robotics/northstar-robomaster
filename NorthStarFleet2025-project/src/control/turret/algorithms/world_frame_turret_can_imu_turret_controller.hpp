@@ -17,17 +17,17 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef WORLD_FRAME_TURRET_IMU_TURRET_CONTROLLER_HPP_
-#define WORLD_FRAME_TURRET_IMU_TURRET_CONTROLLER_HPP_
+#ifndef WORLD_FRAME_TURRET_CAN_IMU_TURRET_CONTROLLER_HPP_
+#define WORLD_FRAME_TURRET_CAN_IMU_TURRET_CONTROLLER_HPP_
 
 #include <cstdint>
 
 #include "tap/algorithms/fuzzy_pd.hpp"
 #include "tap/algorithms/wrapped_float.hpp"
-#include "tap/drivers.hpp"
+
+#include "communication/can/turret/turret_mcb_can_comm.hpp"
 
 #include "turret_controller_interface.hpp"
-
 
 using namespace tap::algorithms;
 
@@ -49,17 +49,19 @@ namespace src::control::turret::algorithms
  *
  * Implements TurretControllerInterface interface, see parent class comment for details.
  */
-class WorldFrameYawTurretImuCascadePidTurretController final : public TurretYawControllerInterface
+class WorldFrameYawTurretCanImuCascadePidTurretController final
+    : public TurretYawControllerInterface
 {
 public:
     /**
-     * @param[in] drivers A drivers object that will be queried for IMU information.
+     * @param[in] turretMCBCanComm A TurretMCBCanComm object that will be queried for IMU
+     * information.
      * @param[in] yawMotor A `TurretMotor` object accessible for children objects to use.
      * @param[in] positionPid Position PID controller.
      * @param[in] velocityPid Velocity PID controller.
      */
-    WorldFrameYawTurretImuCascadePidTurretController(
-        tap::Drivers &drivers,
+    WorldFrameYawTurretCanImuCascadePidTurretController(
+        const src::can::TurretMCBCanComm &turretMCBCanComm,
         TurretMotor &yawMotor,
         SmoothPid &positionPid,
         SmoothPid &velocityPid);
@@ -91,20 +93,12 @@ public:
     WrappedFloat convertChassisAngleToControllerFrame(WrappedFloat chassisFrameAngle) const final;
 
 private:
-    tap::Drivers &drivers;
+    const src::can::TurretMCBCanComm &turretMCBCanComm;
 
     SmoothPid &positionPid;
     SmoothPid &velocityPid;
 
     WrappedFloat worldFrameSetpoint;
-
-    inline WrappedFloat getBmi088Yaw(bool negitive = false) const
-    {
-        return negitive ? Angle::fromDegrees(drivers.bmi088.getYaw() * -1)
-                        : Angle::fromDegrees(drivers.bmi088.getYaw());
-    }
-
-    inline float getBmi088YawVelocity() const { return drivers.bmi088.getGz(); }
 };
 
 /**
@@ -118,18 +112,19 @@ private:
  *
  * Implements TurretControllerInterface interface, see parent class comment for details.
  */
-class WorldFramePitchTurretImuCascadePidTurretController final
+class WorldFramePitchTurretCanImuCascadePidTurretController final
     : public TurretPitchControllerInterface
 {
 public:
     /**
-     * @param[in] drivers A drivers object that will be queried for IMU information.
+     * @param[in] turretMCBCanComm A TurretMCBCanComm object that will be queried for IMU
+     * information.
      * @param[in] pitchMotor A `TurretMotor` object accessible for children objects to use.
      * @param[in] positionPid Position PID controller.
      * @param[in] velocityPid Velocity PID controller.
      */
-    WorldFramePitchTurretImuCascadePidTurretController(
-        tap::Drivers &drivers,
+    WorldFramePitchTurretCanImuCascadePidTurretController(
+        const src::can::TurretMCBCanComm &turretMCBCanComm,
         TurretMotor &pitchMotor,
         SmoothPid &positionPid,
         SmoothPid &velocityPid);
@@ -160,20 +155,12 @@ public:
     WrappedFloat convertChassisAngleToControllerFrame(WrappedFloat chassisFrameAngle) const final;
 
 private:
-    tap::Drivers &drivers;
+    const src::can::TurretMCBCanComm &turretMCBCanComm;
 
     SmoothPid &positionPid;
     SmoothPid &velocityPid;
 
     WrappedFloat worldFrameSetpoint;
-
-    inline WrappedFloat getBmi088Pitch(bool negitive = false) const
-    {
-        return negitive ? Angle::fromDegrees(drivers.bmi088.getPitch() * -1)
-                        : Angle::fromDegrees(drivers.bmi088.getPitch());
-    }
-
-    inline float getBmi088PitchVelocity() const { return drivers.bmi088.getGy(); }
 };
 }  // namespace src::control::turret::algorithms
 
