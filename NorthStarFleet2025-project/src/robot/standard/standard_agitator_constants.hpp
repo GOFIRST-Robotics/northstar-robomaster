@@ -33,8 +33,8 @@ static constexpr float AGITATOR_MAX_ROF = 20.0f;  // balls per second
 
 static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .gearRatio = 36.0f,
-    .agitatorMotorId = tap::motor::MOTOR7,
-    .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
+    .agitatorMotorId = tap::motor::MOTOR4,
+    .agitatorCanBusId = tap::can::CanBus::CAN_BUS2,
     .isAgitatorInverted = false,
     /**
      * The jamming constants. Agitator is considered jammed if difference between the velocity

@@ -13,7 +13,7 @@
 #include "drivers_singleton.hpp"
 
 // chasis
-#include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
@@ -41,6 +41,9 @@
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
+
+// safe disconnect
+#include "control/safe_disconnect.hpp"
 
 using tap::can::CanBus;
 
@@ -70,27 +73,6 @@ ToggleCommandMapping fPressed(
     {&heroFlywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
-// chassis subsystem
-src::chassis::ChassisSubsystem chassisSubsystem(
-    drivers(),
-    src::chassis::ChassisConfig{
-        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
-        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
-        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
-        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
-        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
-            src::chassis::VELOCITY_PID_KP,
-            src::chassis::VELOCITY_PID_KI,
-            src::chassis::VELOCITY_PID_KD,
-            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
-    },
-    &drivers()->turretMCBCanCommBus2);
-
-src::chassis::ChassisDriveCommand chassisDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
     drivers(),
@@ -119,6 +101,28 @@ HoldRepeatCommandMapping leftMousePressed(
 tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true, "PitchMotor");
 
 tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, false, "YawMotor");
+
+// chassis subsystem
+src::chassis::ChassisSubsystem chassisSubsystem(
+    drivers(),
+    src::chassis::ChassisConfig{
+        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
+        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
+        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
+        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
+        .canBus = CanBus::CAN_BUS2,
+        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
+            src::chassis::VELOCITY_PID_KP,
+            src::chassis::VELOCITY_PID_KI,
+            src::chassis::VELOCITY_PID_KD,
+            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
+    },
+    &drivers()->turretMCBCanCommBus2,
+    &yawMotor);
+
+src::chassis::ChassisFieldCommand chassisFieldCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
 
 TurretSubsystem turret(
     drivers(),
@@ -193,6 +197,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
+RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
@@ -203,6 +208,7 @@ void initializeSubsystems(Drivers *drivers)
 
 void registerHeroSubsystems(Drivers *drivers)
 {
+    drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
@@ -210,13 +216,13 @@ void registerHeroSubsystems(Drivers *drivers)
 
 void setDefaultHeroCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisFieldCommand);
     turret.setDefaultCommand(&turretUserWorldRelativeCommand);
 }
 
 void startHeroCommands(Drivers *drivers)
 {
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerHeroIoMappings(Drivers *drivers)
@@ -230,6 +236,8 @@ namespace src::hero
 {
 void initSubsystemCommands(src::hero::Drivers *drivers)
 {
+    drivers->commandScheduler.setSafeDisconnectFunction(
+        &hero_control::remoteSafeDisconnectFunction);
     hero_control::initializeSubsystems(drivers);
     hero_control::registerHeroSubsystems(drivers);
     hero_control::setDefaultHeroCommands(drivers);

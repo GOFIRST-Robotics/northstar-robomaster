@@ -36,8 +36,8 @@ HeroFlywheelSubsystem::HeroFlywheelSubsystem(
           FLYWHEEL_PID_MAX_ERROR_SUM,
           FLYWHEEL_PID_MAX_OUTPUT),
       leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
-      rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
-      downWheel(drivers, downMotorId, canBus, true, "Down Flywheel"),
+      rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
+      downWheel(drivers, downMotorId, canBus, false, "Down Flywheel"),
       desiredLaunchSpeedLeft(0),
       desiredLaunchSpeedRight(0),
       desiredLaunchSpeedDown(0),
@@ -75,7 +75,9 @@ float HeroFlywheelSubsystem::getCurrentFlyWheelMotorRPM(tap::motor::DjiMotor mot
 {
     return motor.getShaftRPM();
 }
-
+float speedglgtoop;
+float outputppp;
+float ugegsbkjdfk;
 void HeroFlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -87,7 +89,9 @@ void HeroFlywheelSubsystem::refresh()
     desiredRpmRampRight.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     desiredRpmRampDown.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     prevTime = currTime;
-
+    speedglgtoop = downWheel.getShaftRPM();
+    outputppp = velocityPidDownWheel.getValue();
+    ugegsbkjdfk = desiredRpmRampRight.getValue();
     velocityPidLeftWheel.update(desiredRpmRampLeft.getValue() - leftWheel.getShaftRPM());
     leftWheel.setDesiredOutput(static_cast<int32_t>(velocityPidLeftWheel.getValue()));
     velocityPidRightWheel.update(desiredRpmRampRight.getValue() - rightWheel.getShaftRPM());

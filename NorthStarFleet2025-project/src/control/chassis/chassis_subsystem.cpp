@@ -64,10 +64,11 @@ float LBSpeed;
 float RFSpeed;
 float RBSpeed;
 
-inline float ChassisSubsystem::getTurretYaw()
-{
-    return (fmod(yawMotor->getPositionWrapped() + M_PI, M_PI * 2)) - M_PI;
-}
+float topheading;
+float bottomheading;
+float difference;
+
+inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
 
 float ChassisSubsystem::getChassisTurretOffset()
 {
@@ -78,7 +79,8 @@ float ChassisSubsystem::getChassisTurretOffset()
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
-    float turretRot = -getTurretYaw() + modm::toRadian(drivers->bmi088.getYaw());
+    // float turretRot = -getTurretYaw() + modm::toRadian(drivers->bmi088.getYaw());
+    float turretRot = -getTurretYaw();
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
@@ -94,20 +96,19 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rotational,
     float heading)
 {
-    float distToCenter = 0.3048f;
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);
     double vx_local = forward * cos_theta + sideways * sin_theta;
     double vy_local = -forward * sin_theta + sideways * cos_theta;
     double sqrt2 = sqrt(2.0);
     LFSpeed = mpsToRpm(
-        (vx_local - vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Front-left wheel
+        (vx_local - vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vx_local - vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Front-right wheel
+        (-vx_local - vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vx_local + vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Rear-right wheel
+        (-vx_local + vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vx_local + vy_local) / sqrt2 + (rotational)*distToCenter * sqrt2);  // Rear-left wheel
+        (vx_local + vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
     int RF = static_cast<int>(MotorId::RF);

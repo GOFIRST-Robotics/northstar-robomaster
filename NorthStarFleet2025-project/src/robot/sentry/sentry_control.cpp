@@ -4,6 +4,7 @@
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
+#include "tap/control/toggle_command_mapping.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
@@ -13,7 +14,10 @@
 #include "drivers_singleton.hpp"
 
 // chasis
+#include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_field_command.hpp"
+#include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
@@ -32,8 +36,16 @@
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
 
+// flywheel
+#include "control/flywheel/flywheel_constants.hpp"
+#include "control/flywheel/flywheel_run_command.hpp"
+#include "control/flywheel/flywheel_subsystem.hpp"
+
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
+
+// safe disconnect
+#include "control/safe_disconnect.hpp"
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
@@ -44,6 +56,8 @@ using namespace tap::control;
 using namespace src::sentry;
 using namespace src::control::turret;
 using namespace src::control;
+using namespace src::flywheel;
+using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 
@@ -52,27 +66,6 @@ driversFunc drivers = DoNotUse_getDrivers;
 namespace sentry_control
 {
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
-// chassis subsystem
-src::chassis::ChassisSubsystem chassisSubsystem(
-    drivers(),
-    src::chassis::ChassisConfig{
-        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
-        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
-        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
-        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS2,
-        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
-            src::chassis::VELOCITY_PID_KP,
-            src::chassis::VELOCITY_PID_KI,
-            src::chassis::VELOCITY_PID_KD,
-            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
-    },
-    &drivers()->turretMCBCanCommBus2);
-
-src::chassis::ChassisDriveCommand chassisDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
     drivers(),
@@ -256,6 +249,51 @@ user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+// chassis subsystem
+src::chassis::ChassisSubsystem chassisSubsystem(
+    drivers(),
+    src::chassis::ChassisConfig{
+        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
+        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
+        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
+        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
+        .canBus = CanBus::CAN_BUS2,
+        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
+            src::chassis::VELOCITY_PID_KP,
+            src::chassis::VELOCITY_PID_KI,
+            src::chassis::VELOCITY_PID_KD,
+            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
+    },
+    &drivers()->turretMCBCanCommBus2,
+    &yawMotorBottom);
+
+src::chassis::ChassisDriveCommand chassisDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    2,
+    true);
+
+// chassis Mappings
+ToggleCommandMapping beyBlade(
+    drivers(),
+    {&chassisBeyBladeCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+ToggleCommandMapping orientDrive(
+    drivers(),
+    {&chassisOrientDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
+
 // imu commands
 // imu::ImuCalibrateCommand imuCalibrateCommand(
 //     drivers(),
@@ -275,11 +313,24 @@ user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
 //      }},
 //     &chassisSubsystem);
 
+// flywheel
+// RevMotorTester revMotorTester(drivers());
+
+FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+FlywheelRunCommand flywheelRunCommand(&flywheel);
+
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+
+RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
-    // m_FlyWheel.initialize();
+    flywheel.initialize();
     sentryTurrets.initialize();
 }
 
@@ -287,7 +338,7 @@ void registerSentrySubsystems(Drivers *drivers)
 {
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
-    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
+    drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&sentryTurrets);
 }
 
@@ -306,8 +357,11 @@ void startSentryCommands(Drivers *drivers)
 void registerSentryIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
+    drivers->commandMapper.addMap(&fPressed);
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
+    drivers->commandMapper.addMap(&beyBlade);
+    drivers->commandMapper.addMap(&orientDrive);
 }
 }  // namespace sentry_control
 
@@ -315,6 +369,8 @@ namespace src::sentry
 {
 void initSubsystemCommands(src::sentry::Drivers *drivers)
 {
+    drivers->commandScheduler.setSafeDisconnectFunction(
+        &sentry_control::remoteSafeDisconnectFunction);
     sentry_control::initializeSubsystems(drivers);
     sentry_control::registerSentrySubsystems(drivers);
     sentry_control::setDefaultSentryCommands(drivers);

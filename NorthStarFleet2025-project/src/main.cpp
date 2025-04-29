@@ -48,6 +48,7 @@
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
+tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
 
 #ifdef TARGET_STANDARD
 using namespace src::standard;
@@ -109,13 +110,16 @@ int main()
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
 #else
             PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
-#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
-            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
-#endif
-
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+        if (revTxPublisherTimeout.execute())
+        {
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
+        }
+#endif
+
         // if(!drivers->turretMCBCanCommBus2.isConnected()){
         //     std::cout<<"poop";
         // }
@@ -123,7 +127,6 @@ int main()
     }
     return 0;
 }
-
 static void initializeIo(Drivers *drivers)
 {
     drivers->can.initialize();
