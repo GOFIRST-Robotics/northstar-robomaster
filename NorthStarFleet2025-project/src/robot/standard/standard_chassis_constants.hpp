@@ -14,7 +14,7 @@ using tap::motor::DjiMotor;
 
 namespace src::chassis
 {
-static constexpr float VELOCITY_PID_KP = 1.0f;                  // 10.0f;
+static constexpr float VELOCITY_PID_KP = 1.5f;                  // 10.0f;
 static constexpr float VELOCITY_PID_KI = 0.0f;                  // 0.0f;
 static constexpr float VELOCITY_PID_KD = 0.0f;                  // 1.25f;
 static constexpr float VELOCITY_PID_MAX_ERROR_SUM = 16'000.0f;  // 0.0f;
