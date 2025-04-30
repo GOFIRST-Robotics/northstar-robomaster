@@ -21,6 +21,16 @@ static constexpr float FLYWHEEL_PID_KD = 0.0f;
 static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM = 5'000.0f;
 static constexpr float FLYWHEEL_PID_MAX_OUTPUT = 16'000.0f;
 
+// TODO make these correct
+static std::unordered_map<float, std::vector<modm::Pair<float, float>>>
+    SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
+        {1.0f,
+         {{0.0f, 0.0f}, {15.0f, 4325.0f}, {18.0f, 4800.0f}, {30.0f, 6900.0f}, {32.0f, 8400.0f}}},
+        {0.9f,
+         {{0.0f, 0.0f}, {15.0f, 4325.0f}, {18.0f, 4800.0f}, {30.0f, 6900.0f}, {32.0f, 8400.0f}}},
+        {1.1f,
+         {{0.0f, 0.0f}, {15.0f, 4325.0f}, {18.0f, 4800.0f}, {30.0f, 6900.0f}, {32.0f, 8400.0f}}}};
+
 }  // namespace src::flywheel
 
 #endif

@@ -17,6 +17,7 @@ FlywheelSubsystem::FlywheelSubsystem(
     tap::motor::REVMotorId upMotorId,
     tap::can::CanBus canBus)
     : tap::control::Subsystem(drivers),
+      spinToRPMMap(SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
       leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
       rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
       upWheel(drivers, upMotorId, canBus, true, "Up Flywheel"),
@@ -37,23 +38,31 @@ void FlywheelSubsystem::initialize()
 void FlywheelSubsystem::setDesiredLaunchSpeedLeft(float speed)
 {
     desiredLaunchSpeedLeft = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRampLeft.setTarget(desiredLaunchSpeedLeft);
+    desiredRpmRampLeft.setTarget(launchSpeedToFlywheelRpm(speed));
 }
 void FlywheelSubsystem::setDesiredLaunchSpeedRight(float speed)
 {
     desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRampRight.setTarget(desiredLaunchSpeedRight);
+    desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(speed));
 }
 void FlywheelSubsystem::setDesiredLaunchSpeedUp(float speed)
 {
     desiredLaunchSpeedUp = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRampUp.setTarget(desiredLaunchSpeedUp);
+    desiredRpmRampUp.setTarget(launchSpeedToFlywheelRpm(speed));
 }
 
 float FlywheelSubsystem::getCurrentFlyWheelMotorRPM(tap::motor::RevMotor motor) const
 {
     // return motor.getShaftRPM(); // TODO
     return 0.0f;
+}
+
+float FlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
+{
+    modm::interpolation::Linear<modm::Pair<float, float>> thing = {
+        spinToRPMMap.at(desiredSpin).data(),
+        spinToRPMMap.at(desiredSpin).size()};
+    return thing.interpolate(launchSpeed);
 }
 
 void FlywheelSubsystem::refresh()

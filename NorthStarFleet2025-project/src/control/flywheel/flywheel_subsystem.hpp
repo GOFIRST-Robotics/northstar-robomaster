@@ -21,6 +21,8 @@ public:
 
     void initialize() override;
 
+    // can now make getter and setter for spin then seprate speed stuff can be removed and spin
+    // accounted for in refresh
     mockable void setDesiredLaunchSpeedLeft(float speed);
     mockable void setDesiredLaunchSpeedRight(float speed);
     mockable void setDesiredLaunchSpeedUp(float speed);
@@ -28,6 +30,19 @@ public:
     mockable float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
     mockable float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
     mockable float getDesiredLaunchSpeedUp() const { return desiredLaunchSpeedUp; }
+
+    mockable float getDesiredFlywheelSpeedLeft() const
+    {
+        return launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft);
+    }
+    mockable float getDesiredFlywheelSpeedRight() const
+    {
+        return launchSpeedToFlywheelRpm(desiredLaunchSpeedRight);
+    }
+    mockable float getDesiredFlywheelSpeedUp() const
+    {
+        return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
+    }
 
     float getCurrentFlyWheelMotorRPM(tap::motor::RevMotor motor) const;
 
@@ -55,6 +70,7 @@ private:
     float desiredLaunchSpeedLeft;
     float desiredLaunchSpeedRight;
     float desiredLaunchSpeedUp;
+    float desiredSpin;
 
     uint32_t prevTime = 0;
 
@@ -67,6 +83,8 @@ private:
     tap::motor::RevMotor upWheel;
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
+
+    std::unordered_map<float, std::vector<modm::Pair<float, float>>> spinToRPMMap;
 };
 
 }  // namespace src::control::flywheel

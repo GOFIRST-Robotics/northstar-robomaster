@@ -17,6 +17,7 @@ using tap::motor::DjiMotor;
 
 namespace src::control::agitator::constants
 {
+static constexpr uint16_t HEAT_LIMIT_BUFFER = 25;
 // position PID terms
 // PID terms for standard
 static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {

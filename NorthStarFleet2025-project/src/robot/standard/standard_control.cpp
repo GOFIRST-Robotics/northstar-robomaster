@@ -49,6 +49,11 @@
 // safe disconnect
 #include "control/safe_disconnect.hpp"
 
+// governor
+#include "control/governor/heat_limit_governor.hpp"
+
+#include "ref_system_constants.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -63,6 +68,7 @@ using namespace src::flywheel;
 using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
+using namespace src::control::governor;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -252,6 +258,16 @@ ToggleCommandMapping fPressed(
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
+
+// Implement governor for limiting firing due to heat
+HeatLimitGovernor heatLimitGovernor(
+    *drivers(),
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
+    constants::HEAT_LIMIT_BUFFER);
+// Immplement governor for only shooting when flywheels are up to speed
+
+// Check ref system to make sure we fired, if not unjam
+
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
