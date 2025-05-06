@@ -53,8 +53,10 @@
 
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
+#include "tap/control/governor/governor_with_fallback_command.hpp"
 
 #include "control/governor/fire_rate_limit_governor.hpp"
+#include "control/governor/fired_recently_governor.hpp"
 #include "control/governor/flywheel_on_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
@@ -278,7 +280,15 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    1,
+    true);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     1,
@@ -286,16 +296,22 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     2,
     true);
 
+// Chassis Governors
+
+FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
+
+GovernorWithFallbackCommand<1> beyBladeSlowOutOfCombat(
+    {&chassisSubsystem},
+    chassisBeyBladeSlowCommand,
+    chassisBeyBladeFastCommand,
+    {&firedRecentlyGovernor},
+    true);
+
 // chassis Mappings
 ToggleCommandMapping beyBlade(
     drivers(),
-    {&chassisBeyBladeCommand},
+    {&beyBladeSlowOutOfCombat},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
-
-ToggleCommandMapping orientDrive(
-    drivers(),
-    {&chassisOrientDriveCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -333,7 +349,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
@@ -351,7 +367,6 @@ void registerStandardIoMappings(Drivers *drivers)
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
     drivers->commandMapper.addMap(&beyBlade);
-    drivers->commandMapper.addMap(&orientDrive);
     drivers->commandMapper.addMap(&fPressed);
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
