@@ -1,6 +1,8 @@
 #ifndef FLYWHEEL_SUBSYSTEM_HPP_
 #define FLYWHEEL_SUBSYSTEM_HPP_
 
+#include <modm/container/pair.hpp>
+
 #include "tap/algorithms/ramp.hpp"
 #include "tap/control/subsystem.hpp"
 #include "tap/motor/rev_motor.hpp"
@@ -23,9 +25,11 @@ public:
 
     // can now make getter and setter for spin then seprate speed stuff can be removed and spin
     // accounted for in refresh
-    mockable void setDesiredLaunchSpeedLeft(float speed);
-    mockable void setDesiredLaunchSpeedRight(float speed);
-    mockable void setDesiredLaunchSpeedUp(float speed);
+    mockable void setDesiredSpin(u_int16_t spin);
+
+    mockable float getDesiredSpin() const { return desiredSpin; }
+
+    mockable void setDesiredLaunchSpeed(float speed);
 
     mockable float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
     mockable float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
@@ -44,7 +48,23 @@ public:
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
     }
 
-    float getCurrentFlyWheelMotorRPM(tap::motor::RevMotor motor) const;
+    float getCurrentLeftFlywheelMotorRPM() const
+    {
+        // return motor.getShaftRPM(); // TODO
+        return 0.0f;
+    }
+
+    float getCurrentRightFlywheelMotorRPM() const
+    {
+        // return motor.getShaftRPM(); // TODO
+        return 0.0f;
+    }
+
+    float getCurrentUpFlywheelMotorRPM() const
+    {
+        // return motor.getShaftRPM(); // TODO
+        return 0.0f;
+    }
 
     void refresh() override;
 
@@ -70,7 +90,8 @@ private:
     float desiredLaunchSpeedLeft;
     float desiredLaunchSpeedRight;
     float desiredLaunchSpeedUp;
-    float desiredSpin;
+
+    u_int16_t desiredSpin = 100;  // percent of spin
 
     uint32_t prevTime = 0;
 
@@ -84,7 +105,7 @@ private:
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
 
-    std::unordered_map<float, std::vector<modm::Pair<float, float>>> spinToRPMMap;
+    std::unordered_map<u_int16_t, std::vector<modm::Pair<float, float>>> spinToRPMMap;
 };
 
 }  // namespace src::control::flywheel

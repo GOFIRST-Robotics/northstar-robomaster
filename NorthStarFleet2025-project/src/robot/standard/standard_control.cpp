@@ -9,6 +9,7 @@
 #include "tap/util_macros.hpp"
 
 #include "../../robot-type/robot_type.hpp"
+#include "control/dummy_subsystem.hpp"
 #include "robot/standard/standard_drivers.hpp"
 
 #include "drivers_singleton.hpp"
@@ -24,6 +25,7 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
+#include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
@@ -50,7 +52,12 @@
 #include "control/safe_disconnect.hpp"
 
 // governor
+#include "tap/control/governor/governor_limited_command.hpp"
+
+#include "control/governor/fire_rate_limit_governor.hpp"
+#include "control/governor/flywheel_on_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
+#include "control/governor/ref_system_projectile_launched_governor.hpp"
 
 #include "ref_system_constants.hpp"
 
@@ -69,12 +76,27 @@ using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
+using namespace tap::control::governor;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
 namespace standard_control
 {
+DummySubsystem dummySubsystem(drivers());
+
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+
+// flywheel subsystem
+FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+// flywheel commands
+FlywheelRunCommand flywheelRunCommand(&flywheel);
+
+// flywheel mappings
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -93,10 +115,52 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     rotateAgitator,
     unjamAgitator);
 
+// agitator governors
+HeatLimitGovernor heatLimitGovernor(
+    *drivers(),
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
+    constants::HEAT_LIMIT_BUFFER);
+
+FlywheelOnGovernor flywheelOnGovernor(flywheel);
+
+RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
+    drivers()->refSerial,
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1);
+
+ManualFireRateReselectionManager manualFireRateReselectionManager;
+
+SetFireRateCommand setFireRateCommandFullAuto(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    40,
+    &rotateAgitator);
+SetFireRateCommand setFireRateCommand10RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    10,
+    &rotateAgitator);
+
+FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
+
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+    {&agitator},
+    rotateAndUnjamAgitator,
+    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
+
 // agitator mappings
+ToggleCommandMapping bPressed(
+    drivers(),
+    {&setFireRateCommandFullAuto},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+ToggleCommandMapping gPressed(
+    drivers(),
+    {&setFireRateCommand10RPS},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
+
 HoldRepeatCommandMapping leftMousePressed(
     drivers(),
-    {&rotateAndUnjamAgitator},
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
@@ -196,7 +260,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
         .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
         .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
         .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
+        .canBus = CanBus::CAN_BUS2,
         .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
             src::chassis::VELOCITY_PID_KP,
             src::chassis::VELOCITY_PID_KI,
@@ -245,31 +309,11 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
-// flywheel
-// RevMotorTester revMotorTester(drivers());
-
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
-
-FlywheelRunCommand flywheelRunCommand(&flywheel);
-
-ToggleCommandMapping fPressed(
-    drivers(),
-    {&flywheelRunCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
-
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
-
-// Implement governor for limiting firing due to heat
-HeatLimitGovernor heatLimitGovernor(
-    *drivers(),
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
-    constants::HEAT_LIMIT_BUFFER);
-// Immplement governor for only shooting when flywheels are up to speed
-
-// Check ref system to make sure we fired, if not unjam
 
 void initializeSubsystems(Drivers *drivers)
 {
+    dummySubsystem.initialize();
     chassisSubsystem.initialize();
     agitator.initialize();
     flywheel.initialize();
@@ -279,6 +323,7 @@ void initializeSubsystems(Drivers *drivers)
 
 void registerStandardSubsystems(Drivers *drivers)
 {
+    drivers->commandScheduler.registerSubsystem(&dummySubsystem);
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
@@ -308,6 +353,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&beyBlade);
     drivers->commandMapper.addMap(&orientDrive);
     drivers->commandMapper.addMap(&fPressed);
+    drivers->commandMapper.addMap(&bPressed);
+    drivers->commandMapper.addMap(&gPressed);
 }
 }  // namespace standard_control
 

@@ -17,8 +17,8 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FLYWHEEL_ON_GOVERNOR_HPP_
-#define FLYWHEEL_ON_GOVERNOR_HPP_
+#ifndef FLYwheel_ON_GOVERNOR_HPP_
+#define FLYwheel_ON_GOVERNOR_HPP_
 
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/control/governor/command_governor_interface.hpp"
@@ -26,7 +26,7 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 #include "control/flywheel/flywheel_subsystem.hpp"
 
-namespace aruwsrc::control::governor
+namespace src::control::governor
 {
 /**
  * Governor that allows one to gate a command from running when the actual, average friction wheel
@@ -34,36 +34,39 @@ namespace aruwsrc::control::governor
  *
  * Useful for disallowing the agitator from rotating while friction wheels are not on.
  */
-class FlyWheelOnGovernor : public tap::control::governor::CommandGovernorInterface
+class FlywheelOnGovernor : public tap::control::governor::CommandGovernorInterface
 {
 public:
     /**
      * @param[in] flywheel Reference to the friction wheel subsystem being used in the
      * governor's behavior.
      */
-    FlyWheelOnGovernor(src::control::flywheel::FlywheelSubsystem &flywheel) : flywheel(flywheel) {}
+    FlywheelOnGovernor(src::control::flywheel::FlywheelSubsystem &flywheel) : flywheel(flywheel) {}
 
     bool isReady() final
     {
         return
-            // Top
-            (!tap::algorithms::compareFloatClose(flywheel.getDesiredflywheelSpeed(), 0.0f, 1) &&
-             flywheel.getCurrentflywheelSpeed() >=
-                 flywheel.getDesiredflywheelSpeed() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             flywheel.getCurrentflywheelSpeed() <=
-                 flywheel.getDesiredflywheelSpeed() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
-            // RIght
-            (!tap::algorithms::compareFloatClose(flywheel.getDesiredflywheelSpeed(), 0.0f, 1) &&
-             flywheel.getCurrentflywheelSpeed() >=
-                 flywheel.getDesiredflywheelSpeed() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             flywheel.getCurrentflywheelSpeed() <=
-                 flywheel.getDesiredflywheelSpeed() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
-            // Left
-            (!tap::algorithms::compareFloatClose(flywheel.getDesiredflywheelSpeed(), 0.0f, 1) &&
-             flywheel.getCurrentflywheelSpeed() >=
-                 flywheel.getDesiredflywheelSpeed() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             flywheel.getCurrentflywheelSpeed() <=
-                 flywheel.getDesiredflywheelSpeed() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
+            // left
+            (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedLeft(), 0.0f, 1) &&
+             flywheel.getCurrentLeftFlywheelMotorRPM() >=
+                 flywheel.getDesiredFlywheelSpeedLeft() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
+             flywheel.getCurrentLeftFlywheelMotorRPM() <=
+                 flywheel.getDesiredFlywheelSpeedLeft() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
+            // right
+            (!tap::algorithms::compareFloatClose(
+                 flywheel.getDesiredFlywheelSpeedRight(),
+                 0.0f,
+                 1) &&
+             flywheel.getCurrentRightFlywheelMotorRPM() >=
+                 flywheel.getDesiredFlywheelSpeedRight() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
+             flywheel.getCurrentRightFlywheelMotorRPM() <=
+                 flywheel.getDesiredFlywheelSpeedRight() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
+            // up
+            (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedUp(), 0.0f, 1) &&
+             flywheel.getCurrentUpFlywheelMotorRPM() >=
+                 flywheel.getDesiredFlywheelSpeedUp() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
+             flywheel.getCurrentUpFlywheelMotorRPM() <=
+                 flywheel.getDesiredFlywheelSpeedUp() * MAXIMUM_SPEED_THRESHOLD_FRACTION);
     }
 
     bool isFinished() final { return !isReady(); }
@@ -74,6 +77,6 @@ private:
     static constexpr float MINIMUM_SPEED_THRESHOLD_FRACTION = 0.9;
     static constexpr float MAXIMUM_SPEED_THRESHOLD_FRACTION = 1.02;
 };
-}  // namespace aruwsrc::control::governor
+}  // namespace src::control::governor
 
-#endif  // FRICTION_WHEELS_ON_GOVERNOR_HPP_
+#endif  // FRICTION_wheelS_ON_GOVERNOR_HPP_

@@ -9,11 +9,11 @@ namespace src::flywheel
 {
 static constexpr float FRICTION_WHEEL_RAMP_SPEED = .0001f;
 
-static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID = tap::motor::REV_MOTOR1;
-static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID = tap::motor::REV_MOTOR2;
-static constexpr tap::motor::REVMotorId UP_MOTOR_ID = tap::motor::REV_MOTOR3;
+static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID = tap::motor::REV_MOTOR4;
+static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID = tap::motor::REV_MOTOR5;
+static constexpr tap::motor::REVMotorId UP_MOTOR_ID = tap::motor::REV_MOTOR6;
 
-static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
+static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS1;
 
 static constexpr float FLYWHEEL_PID_KP = 10.0f;
 static constexpr float FLYWHEEL_PID_KI = 0.0f;
@@ -22,15 +22,11 @@ static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM = 5'000.0f;
 static constexpr float FLYWHEEL_PID_MAX_OUTPUT = 16'000.0f;
 
 // TODO make these correct
-static std::unordered_map<float, std::vector<modm::Pair<float, float>>>
+static std::unordered_map<u_int16_t, std::vector<modm::Pair<float, float>>>
     SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
-        {1.0f,
-         {{0.0f, 0.0f}, {15.0f, 4325.0f}, {18.0f, 4800.0f}, {30.0f, 6900.0f}, {32.0f, 8400.0f}}},
-        {0.9f,
-         {{0.0f, 0.0f}, {15.0f, 4325.0f}, {18.0f, 4800.0f}, {30.0f, 6900.0f}, {32.0f, 8400.0f}}},
-        {1.1f,
-         {{0.0f, 0.0f}, {15.0f, 4325.0f}, {18.0f, 4800.0f}, {30.0f, 6900.0f}, {32.0f, 8400.0f}}}};
-
+        {90, {{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {30.0f, .64f}, {32.0f, .7f}}},
+        {100, {{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {30.0f, .64f}, {32.0f, .7f}}},
+        {110, {{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {30.0f, .64f}, {32.0f, .7f}}}};
 }  // namespace src::flywheel
 
 #endif

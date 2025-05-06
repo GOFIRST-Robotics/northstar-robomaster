@@ -56,13 +56,13 @@ public:
 
     void refresh() override;
 
-    void refreshSafeDisconnect() override // TODO
+    void refreshSafeDisconnect() override
     {
         subsystemJamStatus = false;
         agitatorMotor.setDesiredOutput(0);
     }
 
-    const char* getName() const override { return "velocity agitator"; } // TODO
+    const char* getName() const override { return "velocity agitator"; }
 
     /// @return The velocity setpoint that some command has requested, in radians / second
     inline float getSetpoint() const override { return velocitySetpoint; }
@@ -178,6 +178,6 @@ private:
 #endif
 };
 
-}  // namespace control::agitator
+}  // namespace src::agitator
 
 #endif  // VELOCITY_AGITATOR_SUBSYSTEM_HPP_
