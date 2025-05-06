@@ -73,8 +73,9 @@ inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrap
 float ChassisSubsystem::getChassisTurretOffset()
 {
     // In future may change with turretMcbCanComm->getYaw()
-    return fmod(modm::toRadian(drivers->bmi088.getYaw()) - getTurretYaw() + M_PI_4, M_PI_2) -
-           M_PI_4;
+    /*return fmod(modm::toRadian(drivers->bmi088.getYaw()) - getTurretYaw() + M_PI_4, M_PI_2) -
+           M_PI_4;*/
+    return fmod(yawMotor->getPositionWrapped() + M_PI, M_PI * 2) - M_PI;
 }
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)

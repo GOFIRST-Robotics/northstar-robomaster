@@ -27,7 +27,7 @@ void ChassisOrientDriveCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
-    float updateVal = chassis->getChassisTurretOffset();
+    float updateVal = -chassis->getChassisTurretOffset();
     short sign = 1;
     if (updateVal < 0)
     {
