@@ -59,6 +59,7 @@
 #include "control/governor/fired_recently_governor.hpp"
 #include "control/governor/flywheel_on_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
+#include "control/governor/plate_hit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
 
 #include "ref_system_constants.hpp"
@@ -300,11 +301,13 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
-GovernorWithFallbackCommand<1> beyBladeSlowOutOfCombat(
+PlateHitGovernor plateHitGovernor(drivers(), 5000);
+
+GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
     {&chassisSubsystem},
     chassisBeyBladeSlowCommand,
     chassisBeyBladeFastCommand,
-    {&firedRecentlyGovernor},
+    {&firedRecentlyGovernor, &plateHitGovernor},
     true);
 
 // chassis Mappings
