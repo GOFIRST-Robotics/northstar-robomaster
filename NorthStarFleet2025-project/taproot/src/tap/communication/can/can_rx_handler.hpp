@@ -79,27 +79,54 @@ class CanRxListener;
 class CanRxHandler
 {
 public:
-    static constexpr uint16_t MIN_CAN_ID = 0x1E4;
-    static constexpr uint16_t NUM_CAN_IDS = 64;
-    static constexpr uint16_t MAX_CAN_ID = MIN_CAN_ID + NUM_CAN_IDS;
+    static constexpr uint16_t MIN_DJI_CAN_ID = 0x1E4;
+    static constexpr uint16_t NUM_DJI_CAN_IDS = 64;
+    static constexpr uint16_t MAX_DJI_CAN_ID = MIN_DJI_CAN_ID + NUM_DJI_CAN_IDS;
+
+
+    static constexpr uint16_t MIN_REV_CAN_ID = 0;
+    static constexpr uint16_t NUM_REV_CAN_IDS = 64;
+    static constexpr uint16_t MAX_REV_CAN_ID = MIN_REV_CAN_ID + NUM_REV_CAN_IDS;
 
     CanRxHandler(Drivers* drivers);
     mockable ~CanRxHandler() = default;
     DISALLOW_COPY_AND_ASSIGN(CanRxHandler)
 
     /**
-     * Given a CAN identifier, returns the "normalized" id between [0, NUM_CAN_IDS), or a
-     * value >= NUM_CAN_IDS if the canId is outside the range specified.
+     * Given a CAN identifier, returns the "normalized" id between [0, NUM_DJI_CAN_IDS), or a
+     * value >= NUM_DJI_CAN_IDS if the canId is outside the range specified.
      */
     static inline uint16_t lookupTableIndexForCanId(uint16_t canId)
     {
-        if (canId < MIN_CAN_ID)
+        if (canId >= MIN_DJI_CAN_ID && canId <= MAX_DJI_CAN_ID)
         {
-            return NUM_CAN_IDS;
+            return canId - MIN_DJI_CAN_ID;
+        } else if (canId >= MIN_REV_CAN_ID && canId > MAX_REV_CAN_ID)
+        {
+            return canId - MIN_REV_CAN_ID;
+        } else {
+            return 0;
         }
-
-        return canId - MIN_CAN_ID;
     }
+
+    /**
+     * @return true if canId lies in either the DJI or REV CAN ID ranges.
+     */
+    static inline bool isValidCanId(uint16_t canId)
+    {
+        return isDjiCanId(canId) || isRevCanId(canId);
+    }
+
+    static bool isDjiCanId(uint16_t canId)
+    {
+        return (canId >= MIN_DJI_CAN_ID && canId <  MAX_DJI_CAN_ID);
+    }
+    static bool isRevCanId(uint16_t canId)
+    {
+        return (canId >= MIN_REV_CAN_ID && canId <  MAX_REV_CAN_ID);
+    }
+
+    
 
     /**
      * Call this function to add a CanRxListener to the list of CanRxListener's
@@ -146,13 +173,15 @@ protected:
      * Stores pointers to the `CanRxListeners` for CAN 1, referenced when
      * a new message is received.
      */
-    CanRxListener* messageHandlerStoreCan1[NUM_CAN_IDS];
+    CanRxListener* messageHandlerStoreDjiCan1[NUM_DJI_CAN_IDS];
+    CanRxListener* messageHandlerStoreRevCan1[NUM_REV_CAN_IDS];
 
     /**
      * Stores pointers to the `CanRxListeners` for CAN 2, referenced when
      * a new message is received.
      */
-    CanRxListener* messageHandlerStoreCan2[NUM_CAN_IDS];
+    CanRxListener* messageHandlerStoreDjiCan2[NUM_DJI_CAN_IDS];
+    CanRxListener* messageHandlerStoreRevCan2[NUM_REV_CAN_IDS];
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 public:
@@ -172,7 +201,7 @@ public:
 
     inline CanRxListener** getHandlerStore(CanBus bus)
     {
-        return bus == CanBus::CAN_BUS1 ? messageHandlerStoreCan1 : messageHandlerStoreCan2;
+        return bus == CanBus::CAN_BUS1 ? messageHandlerStoreDjiCan1 : messageHandlerStoreDjiCan2;
     }
 };  // class CanRxHandler
 
