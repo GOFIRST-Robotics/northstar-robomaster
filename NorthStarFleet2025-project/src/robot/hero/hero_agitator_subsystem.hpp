@@ -10,6 +10,7 @@
 #include "tap/control/subsystem.hpp"
 #include "tap/motor/servo.hpp"
 
+#include "communication/sensors/limit_switch.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
 #include "robot/hero/hero_agitator_config.hpp"
 
@@ -57,6 +58,10 @@ private:
 
     tap::motor::DjiMotor agitatorMotor;
 
+    src::communication::sensors::limit_switch::LimitSwitch limitSwitch;
+
+    tap::arch::MilliTimeout reloadTimeout;
+
     uint32_t prevTime = 0;
 
     float velocitySetpoint = 0;
@@ -67,7 +72,7 @@ private:
     /// Runes the velocity PID controller
     void runVelocityPidControl();
 
-    bool init = false;
+    bool loaded = false;
 };
 
 }  // namespace src::agitator

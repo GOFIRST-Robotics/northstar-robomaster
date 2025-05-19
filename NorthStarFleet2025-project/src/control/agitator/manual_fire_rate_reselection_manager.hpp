@@ -60,7 +60,11 @@ public:
     }
 
 private:
+#ifdef TARGET_HERO
+    float fireRate = 1.0f;
+#else
     float fireRate = 10;
+#endif
 };
 }  // namespace src::control::agitator
 

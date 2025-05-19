@@ -34,7 +34,10 @@ static constexpr src::agitator::HeroAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .agitatorMotorId = tap::motor::MOTOR4,
     .canBus = tap::can::CanBus::CAN_BUS1,
     .agitatorMotorInverted = true,
-    .agitatorGearRatio = 19.0f};
+    .agitatorGearRatio = 19.0f,
+    .pin = tap::gpio::Digital::InputPin::PF0,
+    .limitSwitchInverted = true,
+    .reloadTimeout = 10'000};
 }  // namespace src::control::agitator::constants
 
 #endif  // HERO_AGITATOR_CONSTANTS_HPP_

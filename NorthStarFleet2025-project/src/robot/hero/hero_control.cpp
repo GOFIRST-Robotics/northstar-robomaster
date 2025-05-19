@@ -9,6 +9,7 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
+#include "control/dummy_subsystem.hpp"
 #include "robot/hero/hero_drivers.hpp"
 
 #include "drivers_singleton.hpp"
@@ -21,10 +22,10 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
-#include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
 #include "robot/hero/hero_agitator_shoot_command.hpp"
 #include "robot/hero/hero_agitator_subsystem.hpp"
+#include "robot/hero/hero_set_fire_rate_command.hpp"
 
 // turret
 #include "communication/RevMotorTester.hpp"
@@ -76,6 +77,8 @@ driversFunc drivers = DoNotUse_getDrivers;
 
 namespace hero_control
 {
+DummySubsystem dummySubsystem(drivers());
+
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
 // flywheel
@@ -111,12 +114,29 @@ RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
 
 ManualFireRateReselectionManager manualFireRateReselectionManager;
 
+HeroSetFireRateCommand setFireRateCommand1RPS(&dummySubsystem, manualFireRateReselectionManager, 1);
+HeroSetFireRateCommand setFireRateCommand5SPR(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    .2);
+
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
 GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
     {&agitator},
     agitatorShootCommand,
     {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
+
+// agitator mappings
+ToggleCommandMapping bPressed(
+    drivers(),
+    {&setFireRateCommand1RPS},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+ToggleCommandMapping gPressed(
+    drivers(),
+    {&setFireRateCommand5SPR},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
 
 HoldRepeatCommandMapping leftMousePressed(
     drivers(),
@@ -259,6 +279,8 @@ void registerHeroIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
     drivers->commandMapper.addMap(&fPressed);
+    drivers->commandMapper.addMap(&bPressed);
+    drivers->commandMapper.addMap(&gPressed);
 }
 }  // namespace hero_control
 

@@ -25,6 +25,7 @@ HeroAgitatorSubsystem::HeroAgitatorSubsystem(
           config.canBus,
           config.agitatorMotorInverted,
           "Agitator"),
+      limitSwitch(&drivers->digital, config.pin, config.limitSwitchInverted),
       pid(pidConfig)
 
 {
@@ -37,25 +38,23 @@ void HeroAgitatorSubsystem::shoot() { agitatorServo.setTargetPwm(agitatorServo.g
 
 void HeroAgitatorSubsystem::reload()
 {
-    init = true;
-    if (getUncalibratedAgitatorAngle() > M_TWOPI)
-    {
-        agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
-        agitatorMotor.resetEncoderValue();
-    }
+    agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
+    velocitySetpoint = M_TWOPI * 1.5;
+    loaded = false;
+    reloadTimeout.restart(config.reloadTimeout);
 }
 
 void HeroAgitatorSubsystem::refresh()
 {
+    if (!loaded && !limitSwitch.getLimitSwitchDepressed())
+    {
+        loaded = true;
+    }
+    if (reloadTimeout.isExpired() || loaded && limitSwitch.getLimitSwitchDepressed())
+    {
+        velocitySetpoint = 0;
+    }
     agitatorServo.updateSendPwmRamp();
-    if (getUncalibratedAgitatorAngle() < M_TWOPI)
-    {
-        velocitySetpoint = init * M_TWOPI * 1.5;
-    }
-    else
-    {
-        velocitySetpoint = 0.0f;
-    }
     runVelocityPidControl();
 }
 float HeroAgitatorSubsystem::getUncalibratedAgitatorAngle() const

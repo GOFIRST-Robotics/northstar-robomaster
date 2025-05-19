@@ -2,6 +2,7 @@
 #define HERO_AGITATOR_SUBSYSTEM_CONFIG_HPP_
 
 #include "tap/communication/can/can_bus.hpp"
+#include "tap/communication/gpio/digital.hpp"
 #include "tap/motor/servo.hpp"
 
 namespace src::agitator
@@ -31,6 +32,12 @@ struct HeroAgitatorSubsystemConfig
     bool agitatorMotorInverted;
 
     float agitatorGearRatio;
+
+    const tap::gpio::Digital::InputPin pin;
+
+    bool limitSwitchInverted;
+
+    uint32_t reloadTimeout;  // milliseconds
 };
 
 struct HeroAgitatorMoveCongig

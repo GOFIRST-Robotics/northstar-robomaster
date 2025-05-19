@@ -8,7 +8,6 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
-#include "../../robot-type/robot_type.hpp"
 #include "control/dummy_subsystem.hpp"
 #include "robot/standard/standard_drivers.hpp"
 
