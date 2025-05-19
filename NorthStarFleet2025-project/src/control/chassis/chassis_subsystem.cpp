@@ -123,7 +123,7 @@ void ChassisSubsystem::driveBasedOnHeading(
 void ChassisSubsystem::refresh()
 {
     auto runPid = [](Pid& pid, Motor& motor, float desiredOutput) {
-        pid.update(desiredOutput - motor.getShaftRPM());
+        pid.update(desiredOutput - motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI);
         motor.setDesiredOutput(pid.getValue());
     };
 

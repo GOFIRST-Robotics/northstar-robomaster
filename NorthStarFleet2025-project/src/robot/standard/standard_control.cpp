@@ -167,9 +167,25 @@ HoldRepeatCommandMapping leftMousePressed(
     false);
 
 // turret subsystem
-tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true, "PitchMotor");
+tap::motor::DjiMotor pitchMotor(
+    drivers(),
+    PITCH_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    true,
+    "PitchMotor",
+    false,
+    1,
+    PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, true, "YawMotor");
+tap::motor::DjiMotor yawMotor(
+    drivers(),
+    YAW_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    true,
+    "YawMotor",
+    false,
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue);
 
 StandardTurretSubsystem turret(
     drivers(),

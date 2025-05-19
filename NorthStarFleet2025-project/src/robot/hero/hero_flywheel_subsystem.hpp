@@ -49,11 +49,11 @@ public:
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedDown);
     }
 
-    float getCurrentLeftFlywheelMotorRPM() const { return leftWheel.getShaftRPM(); }
+    float getCurrentLeftFlywheelMotorRPM() const { return getWheelRPM(&leftWheel); }
 
-    float getCurrentRightFlywheelMotorRPM() const { return rightWheel.getShaftRPM(); }
+    float getCurrentRightFlywheelMotorRPM() const { return getWheelRPM(&rightWheel); }
 
-    float getCurrentDownFlywheelMotorRPM() const { return downWheel.getShaftRPM(); }
+    float getCurrentDownFlywheelMotorRPM() const { return getWheelRPM(&downWheel); }
 
     void refresh() override;
 
@@ -94,6 +94,11 @@ private:
     tap::motor::DjiMotor downWheel;
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
+
+    float getWheelRPM(const tap::motor::DjiMotor *motor) const
+    {
+        return motor->getEncoder()->getVelocity() * 60.0f / M_TWOPI;
+    }
 
     std::array<std::array<modm::Pair<float, float>, 5>, SPIN_COUNT> spinToRPMMap;
 };

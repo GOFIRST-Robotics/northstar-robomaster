@@ -38,7 +38,6 @@
 
 #include "rev_motor.hpp"
 
-
 namespace tap::motor
 {
 void RevMotorTxHandler::addMotorToManager(RevMotor** canMotorStore, RevMotor* const motor)

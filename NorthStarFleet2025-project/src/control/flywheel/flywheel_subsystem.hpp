@@ -7,7 +7,7 @@
 
 #include "tap/algorithms/ramp.hpp"
 #include "tap/control/subsystem.hpp"
-#include "tap/motor/rev_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "control/flywheel/flywheel_constants.hpp"
 #include "modm/math/filter/pid.hpp"

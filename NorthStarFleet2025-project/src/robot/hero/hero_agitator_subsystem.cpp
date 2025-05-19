@@ -59,8 +59,7 @@ void HeroAgitatorSubsystem::refresh()
 }
 float HeroAgitatorSubsystem::getUncalibratedAgitatorAngle() const
 {
-    return (2.0f * M_PI / tap::motor::DjiMotor::ENC_RESOLUTION) *
-           agitatorMotor.getEncoderUnwrapped() / config.agitatorGearRatio;
+    return agitatorMotor.getEncoder()->getPosition().getUnwrappedValue() / config.agitatorGearRatio;
 }
 
 void HeroAgitatorSubsystem::runVelocityPidControl()

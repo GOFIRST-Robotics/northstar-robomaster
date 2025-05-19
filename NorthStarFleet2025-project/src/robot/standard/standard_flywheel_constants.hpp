@@ -2,7 +2,7 @@
 #define STANDARD_FLYWHEEL_CONSTANTS_HPP_
 #include <modm/container/pair.hpp>
 
-#include "tap/motor/rev_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "modm/math/filter/pid.hpp"
 

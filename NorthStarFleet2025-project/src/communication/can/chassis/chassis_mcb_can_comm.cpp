@@ -19,7 +19,7 @@
 
 #include "chassis_mcb_can_comm.hpp"
 
-#include "tap/algorithms/contiguous_float.hpp"
+#include "tap/algorithms/wrapped_float.hpp"
 #include "tap/architecture/endianness_wrappers.hpp"
 #include "tap/drivers.hpp"
 
@@ -121,10 +121,11 @@ void ChassisMcbCanComm::sendAxisData(
 
     AxisMessageData* axisData = reinterpret_cast<AxisMessageData*>(axisMessage.data);
     axisData->angleFixedPoint =
-        tap::algorithms::ContiguousFloat(angle, -180.0f, 180.0f).getValue() /
+        tap::algorithms::WrappedFloat(angle, -180.0f, 180.0f).getWrappedValue() /  // BREAKING
         ANGLE_FIXED_POINT_PRECISION;
     axisData->angleAngularVelocityRaw =
-        angularVelocity / tap::communication::sensors::imu::bmi088::Bmi088::GYRO_DS_PER_GYRO_COUNT;
+        angularVelocity /
+        tap::communication::sensors::imu::bmi088::Bmi088::GYRO_RAD_PER_S_PER_GYRO_COUNT;
     axisData->linearAcceleration = linearAcceleration * MPS2_TO_CMPS2;
     axisData->seq = imuDataSeq;
 
@@ -138,7 +139,7 @@ void ChassisMcbCanComm::sendIMUData()
 
     if (getImuRecalibrationRequested())
     {
-        drivers->bmi088.requestRecalibration();
+        drivers->bmi088.requestCalibration();
     }
 
     if (imuState == Bmi088::ImuState::IMU_CALIBRATING)

@@ -100,18 +100,18 @@ void HeroFlywheelSubsystem::refresh()
     desiredRpmRampRight.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     desiredRpmRampDown.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     prevTime = currTime;
-    velocityPidLeftWheel.update(desiredRpmRampLeft.getValue() - leftWheel.getShaftRPM());
+    velocityPidLeftWheel.update(desiredRpmRampLeft.getValue() - getWheelRPM(&leftWheel));
     leftWheel.setDesiredOutput(static_cast<int32_t>(velocityPidLeftWheel.getValue()));
-    velocityPidRightWheel.update(desiredRpmRampRight.getValue() - rightWheel.getShaftRPM());
+    velocityPidRightWheel.update(desiredRpmRampRight.getValue() - getWheelRPM(&rightWheel));
     rightWheel.setDesiredOutput(static_cast<int32_t>(velocityPidRightWheel.getValue()));
-    velocityPidDownWheel.update(desiredRpmRampDown.getValue() - downWheel.getShaftRPM());
+    velocityPidDownWheel.update(desiredRpmRampDown.getValue() - getWheelRPM(&downWheel));
     downWheel.setDesiredOutput(static_cast<int32_t>(velocityPidDownWheel.getValue()));
     debugDesiredLeft = desiredRpmRampLeft.getValue();
     debugDesiredRight = desiredRpmRampRight.getValue();
     debugDesiredDown = desiredRpmRampDown.getValue();
-    debugWheelLeft = leftWheel.getShaftRPM();
-    debugWheelRight = rightWheel.getShaftRPM();
-    debugWheelDown = downWheel.getShaftRPM();
+    debugWheelLeft = getWheelRPM(&leftWheel);
+    debugWheelRight = getWheelRPM(&rightWheel);
+    debugWheelDown = getWheelRPM(&downWheel);
 }
 }  // namespace src::control::flywheel
 
