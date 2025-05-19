@@ -35,8 +35,10 @@ namespace tap::can
 {
 CanRxHandler::CanRxHandler(Drivers* drivers)
     : drivers(drivers),
-      messageHandlerStoreCan1(),
-      messageHandlerStoreCan2()
+      messageHandlerStoreDjiCan1(),
+      messageHandlerStoreRevCan1(),
+      messageHandlerStoreDjiCan2(),
+      messageHandlerStoreRevCan2()
 {
 }
 
@@ -44,11 +46,25 @@ void CanRxHandler::attachReceiveHandler(CanRxListener* const listener)
 {
     if (listener->canBus == can::CanBus::CAN_BUS1)
     {
-        attachReceiveHandler(listener, messageHandlerStoreCan1);
+        if (isRevCanId(listener->canIdentifier))
+        {
+            attachReceiveHandler(listener, messageHandlerStoreRevCan1);
+        }
+        else if (isDjiCanId(listener->canIdentifier))
+        {
+            attachReceiveHandler(listener, messageHandlerStoreDjiCan1);
+        }
     }
     else
     {
-        attachReceiveHandler(listener, messageHandlerStoreCan2);
+        if (isRevCanId(listener->canIdentifier))
+        {
+            attachReceiveHandler(listener, messageHandlerStoreRevCan2);
+        }
+        else if (isDjiCanId(listener->canIdentifier))
+        {
+            attachReceiveHandler(listener, messageHandlerStoreDjiCan2);
+        }
     }
 }
 
@@ -57,8 +73,8 @@ void CanRxHandler::attachReceiveHandler(
     CanRxListener** messageHandlerStore)
 {
     uint16_t id = lookupTableIndexForCanId(canRxListener->canIdentifier);
+    modm_assert(isValidCanId(id), "RX listener id out of bounds", 1);
 
-    modm_assert(id < NUM_CAN_IDS, "CAN", "RX listener id out of bounds", 1);
     modm_assert(messageHandlerStore[id] == nullptr, "CAN", "overloading", 1);
 
     messageHandlerStore[id] = canRxListener;
@@ -68,16 +84,27 @@ void CanRxHandler::pollCanData()
 {
     modm::can::Message rxMessage;
 
+
     // handle incoming CAN 1 messages
     if (drivers->can.getMessage(CanBus::CAN_BUS1, &rxMessage))
     {
-        processReceivedCanData(rxMessage, messageHandlerStoreCan1);
+        //small hack to switch between the two motor stores without having to change a large chunk of code
+        if(rxMessage.isExtended()){
+            processReceivedCanData(rxMessage, messageHandlerStoreRevCan1);
+        } else {
+            processReceivedCanData(rxMessage, messageHandlerStoreDjiCan1);
+        }
+        
     }
 
     // handle incoming CAN 2 messages
     if (drivers->can.getMessage(CanBus::CAN_BUS2, &rxMessage))
     {
-        processReceivedCanData(rxMessage, messageHandlerStoreCan2);
+        if(rxMessage.isExtended()){
+            processReceivedCanData(rxMessage, messageHandlerStoreRevCan2);
+        } else {
+            processReceivedCanData(rxMessage, messageHandlerStoreDjiCan2);
+        }
     }
 }
 
@@ -85,9 +112,12 @@ void CanRxHandler::processReceivedCanData(
     const modm::can::Message& rxMessage,
     CanRxListener* const* messageHandlerStore)
 {
-    uint16_t id = lookupTableIndexForCanId(rxMessage.getIdentifier());
+    // mask extended ID bottom 6 bits if needed
+    uint16_t rawId = rxMessage.getIdentifier();
+    uint16_t canId = rxMessage.isExtended() ? (rawId & 0x3F) : rawId;
+    uint16_t id = lookupTableIndexForCanId(canId);
 
-    if (id >= NUM_CAN_IDS)
+    if (!isValidCanId(id))
     {
         RAISE_ERROR(drivers, "Invalid can id received");
         return;
@@ -103,11 +133,25 @@ void CanRxHandler::removeReceiveHandler(const CanRxListener& canRxListener)
 {
     if (canRxListener.canBus == CanBus::CAN_BUS1)
     {
-        removeReceiveHandler(canRxListener, messageHandlerStoreCan1);
+        if (isRevCanId(canRxListener.canIdentifier))
+        {
+            removeReceiveHandler(canRxListener, messageHandlerStoreRevCan1);
+        }
+        else if (isDjiCanId(canRxListener.canIdentifier))
+        {
+            removeReceiveHandler(canRxListener, messageHandlerStoreDjiCan1);
+        }
     }
     else
     {
-        removeReceiveHandler(canRxListener, messageHandlerStoreCan2);
+        if (isRevCanId(canRxListener.canIdentifier))
+        {
+            removeReceiveHandler(canRxListener, messageHandlerStoreRevCan2);
+        }
+        else if (isDjiCanId(canRxListener.canIdentifier))
+        {
+            removeReceiveHandler(canRxListener, messageHandlerStoreDjiCan2);
+        }
     }
 }
 
@@ -116,13 +160,11 @@ void CanRxHandler::removeReceiveHandler(
     CanRxListener** messageHandlerStore)
 {
     int id = lookupTableIndexForCanId(canRxListener.canIdentifier);
-
-    if (id >= NUM_CAN_IDS)
+    if (!isValidCanId(id))
     {
-        RAISE_ERROR(drivers, "index out of bounds");
+        RAISE_ERROR(drivers, "invalid can id");
         return;
     }
-
     messageHandlerStore[id] = nullptr;
 }
 

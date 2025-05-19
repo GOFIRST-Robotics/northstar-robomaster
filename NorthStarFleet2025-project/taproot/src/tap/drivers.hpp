@@ -25,13 +25,13 @@
 #define TAPROOT_DRIVERS_HPP_
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
+#include ""
 #include "tap/architecture/profiler.hpp"
 #include "tap/mock/analog_mock.hpp"
 #include "tap/mock/bmi088_mock.hpp"
 #include "tap/mock/can_mock.hpp"
 #include "tap/mock/can_rx_handler_mock.hpp"
 #include "tap/mock/command_mapper_mock.hpp"
-#include "tap/mock/command_scheduler_mock.hpp"
 #include "tap/mock/digital_mock.hpp"
 #include "tap/mock/dji_motor_terminal_serial_handler_mock.hpp"
 #include "tap/mock/dji_motor_tx_handler_mock.hpp"
@@ -43,7 +43,7 @@
 #include "tap/mock/scheduler_terminal_handler_mock.hpp"
 #include "tap/mock/terminal_serial_mock.hpp"
 #include "tap/mock/uart_mock.hpp"
-
+#include "tap/mock/command_scheduler_mock.hpp"
 #else
 #include "tap/architecture/profiler.hpp"
 #include "tap/communication/can/can.hpp"
@@ -58,14 +58,12 @@
 #include "tap/communication/serial/terminal_serial.hpp"
 #include "tap/communication/serial/uart.hpp"
 #include "tap/control/command_mapper.hpp"
-#include "tap/control/command_scheduler.hpp"
 #include "tap/control/scheduler_terminal_handler.hpp"
 #include "tap/errors/error_controller.hpp"
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
-#include "tap/motor/rev_motor_tx_handler.hpp"
-
-// #include "../../src/communication/can/turret/turret_mcb_can_comm.hpp"
+#include "tap/motor/sparkmax/rev_motor_tx_handler.hpp"
+#include "tap/control/command_scheduler.hpp"
 #endif
 
 namespace tap
@@ -103,8 +101,7 @@ protected:
 #else
           commandScheduler(this, true)
 #endif
-    {
-    }
+          {}
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
     arch::Profiler profiler;
@@ -123,6 +120,7 @@ protected:
     testing::StrictMock<mock::ErrorControllerMock> errorController;
     testing::NiceMock<mock::DjiMotorTerminalSerialHandlerMock> djiMotorTerminalSerialHandler;
     testing::NiceMock<mock::DjiMotorTxHandlerMock> djiMotorTxHandler;
+     revMotorTxHandler;
     testing::NiceMock<mock::Bmi088Mock> bmi088;
     testing::NiceMock<mock::CommandSchedulerMock> commandScheduler;
 #else
