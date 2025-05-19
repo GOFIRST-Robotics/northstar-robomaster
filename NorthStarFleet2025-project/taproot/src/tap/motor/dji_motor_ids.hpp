@@ -3,7 +3,7 @@
 /*****************************************************************************/
 
 /*
- * Copyright (c) 2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
+ * Copyright (c) 2024 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
  * This file is part of Taproot.
  *
@@ -21,22 +21,30 @@
  * along with Taproot.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TAPROOT_LIMIT_SWITCH_INTERFACE_HPP_
-#define TAPROOT_LIMIT_SWITCH_INTERFACE_HPP_
+#ifndef TAPROOT_DJI_MOTOR_IDS_HPP_
+#define TAPROOT_DJI_MOTOR_IDS_HPP_
 
-namespace tap::communication::sensors::limit_switch
+#include <cstdint>
+
+namespace tap::motor
 {
 /**
- * Interface for generic limit switch sensor.
+ * CAN IDs for the feedback messages sent by DJI motor controllers. Motor `i` in the set
+ * {1, 2,...,8} sends feedback data with in a CAN message with ID 0x200 + `i`.
+ * for declaring a new motor, must be one of these motor
+ * identifiers
  */
-class LimitSwitchInterface
+enum MotorId : uint32_t
 {
-public:
-    /**
-     * Returns true if the limit switch depressed (in the down position), false otherwise.
-     */
-    virtual bool getLimitSwitchDepressed() const = 0;
+    MOTOR1 = 0X201,
+    MOTOR2 = 0x202,
+    MOTOR3 = 0x203,
+    MOTOR4 = 0x204,
+    MOTOR5 = 0x205,
+    MOTOR6 = 0x206,
+    MOTOR7 = 0x207,
+    MOTOR8 = 0x208,
 };
-}  // namespace tap::communication::sensors::limit_switch
+}  // namespace tap::motor
 
-#endif  // TAPROOT_LIMIT_SWITCH_INTERFACE_HPP_
+#endif  // TAPROOT_DJI_MOTOR_IDS_HPP_
