@@ -25,6 +25,8 @@
 
 #include <cassert>
 
+#include "control/agitator/constant_velocity_agitator_command.hpp"
+
 using namespace tap::control;
 
 namespace tap::control::setpoint

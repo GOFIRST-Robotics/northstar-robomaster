@@ -51,7 +51,7 @@ TurretUserControlCommand::TurretUserControlCommand(
 }
 bool TurretUserControlCommand::isReady()
 {
-    return !isFinished() && this->yawController->isOnline();
+    return !isFinished() && this->yawController->isOnline();  // TODO hero needs comented out
 }
 
 void TurretUserControlCommand::initialize()
@@ -80,7 +80,7 @@ void TurretUserControlCommand::execute()
 
 bool TurretUserControlCommand::isFinished() const
 {
-    return !pitchController->isOnline() ||
+    return !pitchController->isOnline() &&
            !yawController->isOnline();  //&& TODO not shure if this is right
 }
 

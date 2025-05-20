@@ -99,10 +99,7 @@ private:
 
     WrappedFloat chassisFrameInitImuYawAngle;
 
-    inline WrappedFloat getBmi088Yaw() const
-    {
-        return Angle::fromDegrees(drivers.bmi088.getYaw());
-    }
+    inline WrappedFloat getBmi088Yaw() const { return Angle(drivers.bmi088.getYaw()); }
 };
 
 class WorldFramePitchChassisImuTurretController final : public TurretPitchControllerInterface
@@ -154,10 +151,7 @@ private:
 
     WrappedFloat chassisFrameInitImuPitchAngle;
 
-    inline WrappedFloat getBmi088Pitch() const
-    {
-        return Angle::fromDegrees(drivers.bmi088.getPitch());
-    }
+    inline WrappedFloat getBmi088Pitch() const { return Angle(drivers.bmi088.getPitch()); }
 };
 
 }  // namespace src::control::turret::algorithms

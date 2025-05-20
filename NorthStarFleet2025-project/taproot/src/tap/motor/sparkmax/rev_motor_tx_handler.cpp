@@ -26,9 +26,7 @@
  */
 
 #include "rev_motor_tx_handler.hpp"
-//DO I WANT THIS?
-#include "rev_motor.hpp"
-
+// DO I WANT THIS?
 #include <cassert>
 
 #include "tap/algorithms/math_user_utils.hpp"
@@ -37,6 +35,8 @@
 
 #include "modm/architecture/interface/assert.h"
 #include "modm/architecture/interface/can_message.hpp"
+
+#include "rev_motor.hpp"
 
 namespace tap::motor
 {
@@ -65,26 +65,25 @@ void RevMotorTxHandler::addMotorToManager(RevMotor* motor)
     }
 }
 
-
 /**
  * Encodes and sends control and heartbeat messages for all connected REV motors on both CAN buses.
- * 
+ *
  * This method iterates through each motor store (CAN1 and CAN2) and for each valid motor:
  * 1. Sends a heartbeat message to maintain connection with the motor controller
  * 2. Sends a control message with the motor's current target values
- * 
- * The heartbeat messages prevent timeout disconnections, while the control messages 
- * provide the actual motor commands. Each message is properly formatted with the 
+ *
+ * The heartbeat messages prevent timeout disconnections, while the control messages
+ * provide the actual motor commands. Each message is properly formatted with the
  * correct arbitration ID based on the motor's ID and message type.
- * 
+ *
  * If any send operation fails, an error will be raised.
- * 
+ *
  * @note This method should be called periodically to maintain motor control.
  */
 void RevMotorTxHandler::encodeAndSendCanData()
 {
     bool messageSuccess = true;
-    
+
     // Process CAN bus 1 motors
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
     {
@@ -96,14 +95,14 @@ void RevMotorTxHandler::encodeAndSendCanData()
                 // Create and send heartbeat for this motor
                 modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
-                
+
                 // Create and send control message for this motor
                 modm::can::Message controlMsg = motor->createRevCanMessage(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, controlMsg);
             }
         }
     }
-    
+
     // Process CAN bus 2 motors
     if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS2))
     {
@@ -113,18 +112,18 @@ void RevMotorTxHandler::encodeAndSendCanData()
             RevMotor* motor = can2MotorStore[i];
             if (motor != nullptr)
             {
-                //TODO: MOVE THESE FUNCTIONS INTO REV MOTOR CLASS and then reimplement them here
+                // TODO: MOVE THESE FUNCTIONS INTO REV MOTOR CLASS and then reimplement them here
                 // Create and send heartbeat for this motor
                 modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, heartbeatMsg);
-                
+
                 // Create and send control message for this motor
                 modm::can::Message controlMsg = motor->createRevCanMessage(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, controlMsg);
             }
         }
     }
-    
+
     if (!messageSuccess)
     {
         RAISE_ERROR(drivers, "sendMessage failure");
@@ -134,12 +133,12 @@ void RevMotorTxHandler::encodeAndSendCanData()
 /**
  * Sets all bytes in the CAN message data field to 0xFF (255 decimal),
  * which serves as a heartbeat signal for REV motors.
- * 
+ *
  * Heartbeat messages are sent periodically to maintain connection with
  * the motor controllers and prevent timeout disconnections. When a REV motor
- * controller receives this specific pattern (all 0xFF), it recognizes it as 
+ * controller receives this specific pattern (all 0xFF), it recognizes it as
  * a "still alive" signal from the control system.
- * 
+ *
  * @param message Pointer to the CAN message whose data field will be filled with 0xFF values
  */
 
@@ -177,6 +176,5 @@ RevMotor const* RevMotorTxHandler::getCan2Motor(REVMotorId motorId)
     uint32_t index = motorId;
     return index > tap::motor::MOTOR8 ? nullptr : can2MotorStore[index];
 }
-
 
 }  // namespace tap::motor
