@@ -28,7 +28,6 @@
 
 #include "turret_controller_interface.hpp"
 
-
 using namespace tap::algorithms;
 
 namespace src::control::turret
@@ -100,8 +99,7 @@ private:
 
     inline WrappedFloat getBmi088Yaw(bool negitive = false) const
     {
-        return negitive ? Angle::fromDegrees(drivers.bmi088.getYaw() * -1)
-                        : Angle::fromDegrees(drivers.bmi088.getYaw());
+        return negitive ? Angle(drivers.bmi088.getYaw() * -1) : Angle(drivers.bmi088.getYaw());
     }
 
     inline float getBmi088YawVelocity() const { return drivers.bmi088.getGz(); }
@@ -169,8 +167,7 @@ private:
 
     inline WrappedFloat getBmi088Pitch(bool negitive = false) const
     {
-        return negitive ? Angle::fromDegrees(drivers.bmi088.getPitch() * -1)
-                        : Angle::fromDegrees(drivers.bmi088.getPitch());
+        return negitive ? Angle(drivers.bmi088.getPitch() * -1) : Angle(drivers.bmi088.getPitch());
     }
 
     inline float getBmi088PitchVelocity() const { return drivers.bmi088.getGy(); }

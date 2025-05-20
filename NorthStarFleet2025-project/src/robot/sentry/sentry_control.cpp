@@ -96,28 +96,40 @@ tap::motor::DjiMotor pitchMotorBottom(
     PITCH_MOTOR_BOTTOM_ID,
     CAN_BUS_MOTORS,
     true,
-    "Pitch Motor Bottom");
+    "Pitch Motor Bottom",
+    false,
+    1,
+    PITCH_MOTOR_CONFIG_BOTTOM.startEncoderValue);
 
 tap::motor::DjiMotor yawMotorBottom(
     drivers(),
     YAW_MOTOR_BOTTOM_ID,
     CAN_BUS_MOTORS,
     false,
-    "Yaw Motor Bottom");
+    "Yaw Motor Bottom",
+    false,
+    1,
+    YAW_MOTOR_CONFIG_BOTTOM.startEncoderValue);
 
 tap::motor::DjiMotor pitchMotorTop(
     drivers(),
     PITCH_MOTOR_TOP_ID,
     CAN_BUS_MOTORS,
     true,
-    "Pitch Motor Top");
+    "Pitch Motor Top",
+    false,
+    1,
+    PITCH_MOTOR_CONFIG_TOP.startEncoderValue);
 
 tap::motor::DjiMotor yawMotorTop(
     drivers(),
     YAW_MOTOR_TOP_ID,
     CAN_BUS_MOTORS,
     false,
-    "Yaw Motor Top");
+    "Yaw Motor Top",
+    false,
+    1,
+    YAW_MOTOR_CONFIG_TOP.startEncoderValue);
 
 // TurretSubsystem turretBottom(
 //     drivers(),
@@ -192,7 +204,7 @@ tap::algorithms::SmoothPid worldFramePitchTurretImuVelPidBottom(
 
 algorithms::
     WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerBottom(
-        getTurretMCBCanComm(),
+        *drivers(),
         sentryTurrets.pitchMotorBottom,
         worldFramePitchTurretImuPosPidBottom,
         worldFramePitchTurretImuVelPidBottom);
@@ -205,7 +217,7 @@ tap::algorithms::SmoothPid worldFramePitchTurretImuVelPidTop(
 
 algorithms::
     WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerTop(
-        getTurretMCBCanComm(),
+        *drivers(),
         sentryTurrets.pitchMotorTop,
         worldFramePitchTurretImuPosPidTop,
         worldFramePitchTurretImuVelPidTop);
@@ -217,7 +229,7 @@ tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidBottom(
     world_rel_turret_imu::YAW_VEL_PID_CONFIG);
 
 algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerBottom(
-    getTurretMCBCanComm(),
+    *drivers(),
     sentryTurrets.yawMotorBottom,
     worldFrameYawTurretImuPosPidBottom,
     worldFrameYawTurretImuVelPidBottom);
@@ -229,7 +241,7 @@ tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidTop(
     world_rel_turret_imu::YAW_VEL_PID_CONFIG);
 
 algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerTop(
-    getTurretMCBCanComm(),
+    *drivers(),
     sentryTurrets.yawMotorTop,
     worldFrameYawTurretImuPosPidTop,
     worldFrameYawTurretImuVelPidTop);

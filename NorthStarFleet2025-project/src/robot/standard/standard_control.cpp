@@ -8,7 +8,7 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
-#include "../../robot-type/robot_type.hpp"
+#include "control/dummy_subsystem.hpp"
 #include "robot/standard/standard_drivers.hpp"
 
 #include "drivers_singleton.hpp"
@@ -24,6 +24,7 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
+#include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
@@ -49,6 +50,19 @@
 // safe disconnect
 #include "control/safe_disconnect.hpp"
 
+// governor
+#include "tap/control/governor/governor_limited_command.hpp"
+#include "tap/control/governor/governor_with_fallback_command.hpp"
+
+#include "control/governor/fire_rate_limit_governor.hpp"
+#include "control/governor/fired_recently_governor.hpp"
+#include "control/governor/flywheel_on_governor.hpp"
+#include "control/governor/heat_limit_governor.hpp"
+#include "control/governor/plate_hit_governor.hpp"
+#include "control/governor/ref_system_projectile_launched_governor.hpp"
+
+#include "ref_system_constants.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -63,12 +77,28 @@ using namespace src::flywheel;
 using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
+using namespace src::control::governor;
+using namespace tap::control::governor;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
 namespace standard_control
 {
+DummySubsystem dummySubsystem(drivers());
+
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+
+// flywheel subsystem
+FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+// flywheel commands
+FlywheelRunCommand flywheelRunCommand(&flywheel);
+
+// flywheel mappings
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -87,17 +117,75 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     rotateAgitator,
     unjamAgitator);
 
+// agitator governors
+HeatLimitGovernor heatLimitGovernor(
+    *drivers(),
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
+    constants::HEAT_LIMIT_BUFFER);
+
+FlywheelOnGovernor flywheelOnGovernor(flywheel);
+
+RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
+    drivers()->refSerial,
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1);
+
+ManualFireRateReselectionManager manualFireRateReselectionManager;
+
+SetFireRateCommand setFireRateCommandFullAuto(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    40,
+    &rotateAgitator);
+SetFireRateCommand setFireRateCommand10RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    10,
+    &rotateAgitator);
+
+FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
+
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+    {&agitator},
+    rotateAndUnjamAgitator,
+    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
+
 // agitator mappings
+ToggleCommandMapping bPressed(
+    drivers(),
+    {&setFireRateCommandFullAuto},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+ToggleCommandMapping gPressed(
+    drivers(),
+    {&setFireRateCommand10RPS},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
+
 HoldRepeatCommandMapping leftMousePressed(
     drivers(),
-    {&rotateAndUnjamAgitator},
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
 // turret subsystem
-tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true, "PitchMotor");
+tap::motor::DjiMotor pitchMotor(
+    drivers(),
+    PITCH_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    true,
+    "PitchMotor",
+    false,
+    1,
+    PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, true, "YawMotor");
+tap::motor::DjiMotor yawMotor(
+    drivers(),
+    YAW_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    true,
+    "YawMotor",
+    false,
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue);
 
 StandardTurretSubsystem turret(
     drivers(),
@@ -190,7 +278,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
         .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
         .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
         .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
+        .canBus = CanBus::CAN_BUS2,
         .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
             src::chassis::VELOCITY_PID_KP,
             src::chassis::VELOCITY_PID_KI,
@@ -208,7 +296,15 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    1,
+    true);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     1,
@@ -216,16 +312,24 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     2,
     true);
 
+// Chassis Governors
+
+FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
+
+PlateHitGovernor plateHitGovernor(drivers(), 5000);
+
+GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+    {&chassisSubsystem},
+    chassisBeyBladeSlowCommand,
+    chassisBeyBladeFastCommand,
+    {&firedRecentlyGovernor, &plateHitGovernor},
+    true);
+
 // chassis Mappings
 ToggleCommandMapping beyBlade(
     drivers(),
-    {&chassisBeyBladeCommand},
+    {&beyBladeSlowOutOfCombat},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
-
-ToggleCommandMapping orientDrive(
-    drivers(),
-    {&chassisOrientDriveCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -239,21 +343,11 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
-// flywheel
-// RevMotorTester revMotorTester(drivers());
-
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
-
-FlywheelRunCommand flywheelRunCommand(&flywheel);
-
-ToggleCommandMapping fPressed(
-    drivers(),
-    {&flywheelRunCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
-
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
+
 void initializeSubsystems(Drivers *drivers)
 {
+    dummySubsystem.initialize();
     chassisSubsystem.initialize();
     agitator.initialize();
     flywheel.initialize();
@@ -263,6 +357,7 @@ void initializeSubsystems(Drivers *drivers)
 
 void registerStandardSubsystems(Drivers *drivers)
 {
+    drivers->commandScheduler.registerSubsystem(&dummySubsystem);
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
@@ -272,7 +367,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
@@ -290,8 +385,9 @@ void registerStandardIoMappings(Drivers *drivers)
     // drivers.commandMapper.addMap(&rightMousePressed);
     // drivers.commandMapper.addMap(&leftSwitchUp);
     drivers->commandMapper.addMap(&beyBlade);
-    drivers->commandMapper.addMap(&orientDrive);
     drivers->commandMapper.addMap(&fPressed);
+    drivers->commandMapper.addMap(&bPressed);
+    drivers->commandMapper.addMap(&gPressed);
 }
 }  // namespace standard_control
 

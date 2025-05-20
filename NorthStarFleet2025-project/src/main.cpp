@@ -136,6 +136,16 @@ static void initializeIo(Drivers *drivers)
     drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
     drivers->terminalSerial.initialize();
+#ifdef TARGET_STANDARD
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+#elif TARGET_SENTRY
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+#elif TARGET_HERO
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+#endif
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();
 #endif
