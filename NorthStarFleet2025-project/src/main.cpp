@@ -133,12 +133,10 @@ static void initializeIo(Drivers *drivers)
     drivers->leds.init();
     drivers->digital.init();
     drivers->pwm.init();
-    drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
     drivers->terminalSerial.initialize();
 #ifdef TARGET_STANDARD
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+
 #elif TARGET_SENTRY
     drivers->bmi088.setMountingTransform(
         tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
@@ -146,6 +144,8 @@ static void initializeIo(Drivers *drivers)
     drivers->bmi088.setMountingTransform(
         tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
 #endif
+    drivers->bmi088.initialize(500, .001, 0);
+
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();
 #endif
@@ -159,7 +159,10 @@ static void initializeIo(Drivers *drivers)
     drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
-
+float debugYaw = 0.0f;
+float debugPitch = 0.0f;
+float debugRoll = 0.0f;
+bool cal = false;
 static void updateIo(Drivers *drivers)
 {
 #ifdef PLATFORM_HOSTED
@@ -168,8 +171,17 @@ static void updateIo(Drivers *drivers)
 
     drivers->canRxHandler.pollCanData();
     drivers->bmi088.read();
+
 #ifndef TURRET
     drivers->refSerial.updateSerial();
     drivers->remote.read();
+    if (cal)
+    {
+        cal = false;
+        drivers->bmi088.requestCalibration();
+    }
+    debugYaw = modm::toDegree(drivers->bmi088.getYaw());
+    debugPitch = modm::toDegree(drivers->bmi088.getPitch());
+    debugRoll = modm::toDegree(drivers->bmi088.getRoll());
 #endif
 }

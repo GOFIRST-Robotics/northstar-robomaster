@@ -90,7 +90,7 @@ public:
     struct TurretIMUCalibrationConfig
     {
         /// The turret mounted IMU to be calibrated.
-        src::can::TurretMCBCanComm *turretMCBCanComm;
+        // src::can::TurretMCBCanComm *turretMCBCanComm;
         /// A `TurretSubsystem` that this command will control (will lock the turret).
         turret::TurretSubsystem *turret;
         /// A chassis relative yaw controller used to lock the turret.
@@ -176,7 +176,7 @@ protected:
 
     tap::arch::MilliTimeout buzzerTimer;
 
-    std::vector<int> notes = {1000,800,1200,900,1000,0};
+    std::vector<int> notes = {1000, 800, 1200, 900, 1000, 0};
 
     /**
      * Timeout used to determine if we should give up on calibration.

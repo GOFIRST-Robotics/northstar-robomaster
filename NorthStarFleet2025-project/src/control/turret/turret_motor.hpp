@@ -107,7 +107,7 @@ public:
      */
     mockable inline float getChassisFrameVelocity() const
     {
-        return motor->getEncoder()->getVelocity() / static_cast<float>(M_TWOPI) * 60.f;
+        return motor->getEncoder()->getVelocity();
     }
 
     /// @return turret controller controlling this motor (as specified by `attachTurretController`)

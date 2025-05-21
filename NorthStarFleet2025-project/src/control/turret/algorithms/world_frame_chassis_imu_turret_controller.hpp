@@ -151,7 +151,7 @@ private:
 
     WrappedFloat chassisFrameInitImuPitchAngle;
 
-    inline WrappedFloat getBmi088Pitch() const { return Angle(drivers.bmi088.getPitch()); }
+    inline WrappedFloat getBmi088Pitch() const { return Angle(drivers.bmi088.getRoll()); }
 };
 
 }  // namespace src::control::turret::algorithms

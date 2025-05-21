@@ -150,10 +150,10 @@ GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
     {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
 
 // agitator mappings
-ToggleCommandMapping bPressed(
+ToggleCommandMapping vPressed(
     drivers(),
     {&setFireRateCommandFullAuto},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
 
 ToggleCommandMapping gPressed(
     drivers(),
@@ -278,7 +278,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
         .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
         .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
         .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS2,
+        .canBus = CanBus::CAN_BUS1,
         .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
             src::chassis::VELOCITY_PID_KP,
             src::chassis::VELOCITY_PID_KI,
@@ -326,7 +326,7 @@ GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
     true);
 
 // chassis Mappings
-ToggleCommandMapping beyBlade(
+ToggleCommandMapping bPressed(
     drivers(),
     {&beyBladeSlowOutOfCombat},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
@@ -335,7 +335,7 @@ ToggleCommandMapping beyBlade(
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
-        &getTurretMCBCanComm(),
+        // &getTurretMCBCanComm(),
         &turret,
         &chassisFrameYawTurretController,
         &chassisFramePitchTurretController,
@@ -345,13 +345,17 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
+ToggleCommandMapping xPressed(
+    drivers(),
+    {&imuCalibrateCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
+
 void initializeSubsystems(Drivers *drivers)
 {
     dummySubsystem.initialize();
     chassisSubsystem.initialize();
     agitator.initialize();
     flywheel.initialize();
-    // m_FlyWheel.initialize();
     turret.initialize();
 }
 
@@ -361,14 +365,12 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
-    // drivers.commandScheduler.registerSubsystem(&m_FlyWheel);
     drivers->commandScheduler.registerSubsystem(&turret);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
-    // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -376,18 +378,19 @@ void setDefaultStandardCommands(Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
-    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerStandardIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
-    // drivers.commandMapper.addMap(&rightMousePressed);
-    // drivers.commandMapper.addMap(&leftSwitchUp);
-    drivers->commandMapper.addMap(&beyBlade);
+    drivers->commandMapper.addMap(&vPressed);
     drivers->commandMapper.addMap(&fPressed);
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
+    drivers->commandMapper.addMap(&xPressed);
 }
 }  // namespace standard_control
 

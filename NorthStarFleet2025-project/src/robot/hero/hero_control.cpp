@@ -15,7 +15,10 @@
 #include "drivers_singleton.hpp"
 
 // chasis
+#include "control/chassis/chassis_beyblade_command.hpp"
+#include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
+#include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
@@ -31,6 +34,7 @@
 #include "communication/RevMotorTester.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
+#include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/turret/turret_subsystem.hpp"
@@ -51,9 +55,12 @@
 
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
+#include "tap/control/governor/governor_with_fallback_command.hpp"
 
 #include "control/governor/fire_rate_limit_governor.hpp"
+#include "control/governor/fired_recently_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
+#include "control/governor/plate_hit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
 #include "robot/hero/hero_flywheel_on_governor.hpp"
 
@@ -68,7 +75,6 @@ using namespace src::control;
 using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::hero;
-using namespace src::control;
 using namespace src::control::flywheel;
 using namespace src::control::governor;
 using namespace tap::control::governor;
@@ -128,10 +134,10 @@ GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
     {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
 
 // agitator mappings
-ToggleCommandMapping bPressed(
+ToggleCommandMapping vPressed(
     drivers(),
     {&setFireRateCommand1RPS},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
 
 ToggleCommandMapping gPressed(
     drivers(),
@@ -145,31 +151,25 @@ HoldRepeatCommandMapping leftMousePressed(
     false);
 
 // turret subsystem
-tap::motor::DjiMotor pitchMotor(drivers(), PITCH_MOTOR_ID, CAN_BUS_MOTORS, true, "PitchMotor");
-
-tap::motor::DjiMotor yawMotor(drivers(), YAW_MOTOR_ID, CAN_BUS_MOTORS, false, "YawMotor");
-
-// chassis subsystem
-src::chassis::ChassisSubsystem chassisSubsystem(
+tap::motor::DjiMotor pitchMotor(
     drivers(),
-    src::chassis::ChassisConfig{
-        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
-        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
-        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
-        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS2,
-        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
-            src::chassis::VELOCITY_PID_KP,
-            src::chassis::VELOCITY_PID_KI,
-            src::chassis::VELOCITY_PID_KD,
-            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
-    },
-    &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    PITCH_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    true,
+    "PitchMotor",
+    false,
+    1,
+    PITCH_MOTOR_CONFIG.startEncoderValue);
 
-src::chassis::ChassisFieldCommand chassisFieldCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
+tap::motor::DjiMotor yawMotor(
+    drivers(),
+    YAW_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    false,
+    "YawMotor",
+    false,
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue);
 
 TurretSubsystem turret(
     drivers(),
@@ -198,53 +198,134 @@ algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuC
     turret.pitchMotor,
     world_rel_chassis_imu::PITCH_PID_CONFIG);
 
-tap::algorithms::SmoothPid worldFramePitchTurretImuPosPid(
-    world_rel_turret_imu::PITCH_POS_PID_CONFIG);
+tap::algorithms::SmoothPid worldFramePitchTurretPosPid(world_rel_turret_imu::PITCH_POS_PID_CONFIG);
 
-tap::algorithms::SmoothPid worldFramePitchTurretImuVelPid(
-    world_rel_turret_imu::PITCH_VEL_PID_CONFIG);
+tap::algorithms::SmoothPid worldFramePitchTurretVelPid(world_rel_turret_imu::PITCH_VEL_PID_CONFIG);
 
-// algorithms::WorldFramePitchTurretImuCascadePidTurretController
-// worldFramePitchTurretImuController(
-//     getTurretMCBCanComm(),
-//     turret.pitchMotor,
-//     worldFramePitchTurretImuPosPid,
-//     worldFramePitchTurretImuVelPid);
+tap::algorithms::SmoothPid worldFrameYawTurretPosPid(world_rel_turret_imu::YAW_POS_PID_CONFIG);
 
-tap::algorithms::SmoothPid worldFrameYawTurretImuPosPid(world_rel_turret_imu::YAW_POS_PID_CONFIG);
+tap::algorithms::SmoothPid worldFrameYawTurretVelPid(world_rel_turret_imu::YAW_VEL_PID_CONFIG);
 
-tap::algorithms::SmoothPid worldFrameYawTurretImuVelPid(world_rel_turret_imu::YAW_VEL_PID_CONFIG);
+// for imu can com giving imu data from turret to chassis
+algorithms::
+    WorldFramePitchTurretCanImuCascadePidTurretController worldFramePitchTurretCanImuController(
+        getTurretMCBCanComm(),
+        turret.pitchMotor,
+        worldFramePitchTurretPosPid,
+        worldFramePitchTurretVelPid);
 
-// algorithms::WorldFrameYawTurretImuCascadePidTurretController
-// worldFrameYawTurretImuController(
-//     getTurretMCBCanComm(),
-//     turret.yawMotor,
-//     worldFrameYawTurretImuPosPid,
-//     worldFrameYawTurretImuVelPid);
+algorithms::WorldFrameYawTurretCanImuCascadePidTurretController worldFrameYawTurretCanImuController(
+    getTurretMCBCanComm(),
+    turret.yawMotor,
+    worldFrameYawTurretPosPid,
+    worldFrameYawTurretVelPid);
+
+// for imu fixed on turret
+algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuController(
+    *drivers(),
+    turret.pitchMotor,
+    worldFramePitchTurretPosPid,
+    worldFramePitchTurretVelPid);
+
+algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuController(
+    *drivers(),
+    turret.yawMotor,
+    worldFrameYawTurretPosPid,
+    worldFrameYawTurretVelPid);
 
 // turret commands
-// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-//     drivers(),
-//     drivers()->controlOperatorInterface,
-//     &turret,
-//     &worldFrameYawChassisImuController,
-//     &worldFramePitchChassisImuController,
-//     &worldFrameYawTurretImuController,
-//     &worldFramePitchTurretImuController,
-//     USER_YAW_INPUT_SCALAR,
-//     USER_PITCH_INPUT_SCALAR);
+user::TurretUserControlCommand turretUserControlCommand(
+    drivers(),
+    drivers()->controlOperatorInterface,
+    &turret,
+    &worldFrameYawTurretImuController,
+    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    USER_YAW_INPUT_SCALAR,
+    USER_PITCH_INPUT_SCALAR);
+
+user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+    drivers(),
+    drivers()->controlOperatorInterface,
+    &turret,
+    &worldFrameYawChassisImuController,
+    &worldFramePitchChassisImuController,
+    &worldFrameYawTurretCanImuController,
+    &worldFramePitchTurretCanImuController,
+    USER_YAW_INPUT_SCALAR,
+    USER_PITCH_INPUT_SCALAR);
+
+// chassis subsystem
+src::chassis::ChassisSubsystem chassisSubsystem(
+    drivers(),
+    src::chassis::ChassisConfig{
+        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
+        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
+        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
+        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
+        .canBus = CanBus::CAN_BUS2,
+        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
+            src::chassis::VELOCITY_PID_KP,
+            src::chassis::VELOCITY_PID_KI,
+            src::chassis::VELOCITY_PID_KD,
+            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
+    },
+    &drivers()->turretMCBCanCommBus2,
+    &yawMotor);
+
+src::chassis::ChassisDriveCommand chassisDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    1,
+    true);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    2,
+    true);
+
+// Chassis Governors
+
+FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
+
+PlateHitGovernor plateHitGovernor(drivers(), 5000);
+
+GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+    {&chassisSubsystem},
+    chassisBeyBladeSlowCommand,
+    chassisBeyBladeFastCommand,
+    {&firedRecentlyGovernor, &plateHitGovernor},
+    true);
+
+// chassis Mappings
+ToggleCommandMapping bPressed(
+    drivers(),
+    {&beyBladeSlowOutOfCombat},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 
 // imu commands
-// imu::ImuCalibrateCommand imuCalibrateCommand(
-//     drivers(),
-//     {{
-//         &getTurretMCBCanComm(),
-//         &turret,
-//         &chassisFrameYawTurretController,
-//         &chassisFramePitchTurretController,
-//         true,
-//     }},
-//     &chassisSubsystem);
+imu::ImuCalibrateCommand imuCalibrateCommand(
+    drivers(),
+    {{
+        &getTurretMCBCanComm(),
+        &turret,
+        &chassisFrameYawTurretController,
+        &chassisFramePitchTurretController,
+        true,
+    }},
+    &chassisSubsystem);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -266,8 +347,10 @@ void registerHeroSubsystems(Drivers *drivers)
 
 void setDefaultHeroCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisFieldCommand);
-    // turret.setDefaultCommand(&turretUserWorldRelativeCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
+    // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
+    // running
+    turret.setDefaultCommand(&turretUserControlCommand);
 }
 
 void startHeroCommands(Drivers *drivers)
@@ -279,6 +362,7 @@ void registerHeroIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
     drivers->commandMapper.addMap(&fPressed);
+    drivers->commandMapper.addMap(&vPressed);
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
 }
