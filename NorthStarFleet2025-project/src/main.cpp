@@ -180,8 +180,11 @@ static void updateIo(Drivers *drivers)
         cal = false;
         drivers->bmi088.requestCalibration();
     }
-    debugYaw = modm::toDegree(drivers->bmi088.getYaw());
-    debugPitch = modm::toDegree(drivers->bmi088.getPitch());
-    debugRoll = modm::toDegree(drivers->bmi088.getRoll());
+    debugYaw = drivers->bmi088.getGz();
+    ;  // modm::toDegree(drivers->bmi088.getYaw());
+    debugPitch = drivers->bmi088.getGy();
+    ;  // modm::toDegree(drivers->bmi088.getPitch());
+    debugRoll = drivers->bmi088.getGx();
+    ;  // modm::toDegree(drivers->bmi088.getRoll());
 #endif
 }
