@@ -51,7 +51,7 @@ TurretUserControlCommand::TurretUserControlCommand(
 }
 bool TurretUserControlCommand::isReady()
 {
-    return !isFinished() && this->yawController->isOnline();  // TODO hero needs comented out
+    return !isFinished();  //&& this->yawController->isOnline();  // TODO hero needs comented out
 }
 
 void TurretUserControlCommand::initialize()
@@ -75,11 +75,15 @@ void TurretUserControlCommand::execute()
     const WrappedFloat yawSetpoint =
         yawController->getSetpoint() +
         userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
-    yawController->runController(dt, yawSetpoint);
+    // yawController->runController(dt, yawSetpoint);
 }
+bool debugpitchController = false;
+bool debugyawController = false;
 
 bool TurretUserControlCommand::isFinished() const
 {
+    debugpitchController = pitchController->isOnline();
+    debugyawController = yawController->isOnline();
     return !pitchController->isOnline() &&
            !yawController->isOnline();  //&& TODO not shure if this is right
 }

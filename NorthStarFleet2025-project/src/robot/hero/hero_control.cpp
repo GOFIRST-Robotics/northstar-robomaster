@@ -239,7 +239,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchChassisImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -319,13 +319,17 @@ ToggleCommandMapping bPressed(
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
-        &getTurretMCBCanComm(),
         &turret,
         &chassisFrameYawTurretController,
         &chassisFramePitchTurretController,
         true,
     }},
     &chassisSubsystem);
+
+ToggleCommandMapping xPressed(
+    drivers(),
+    {&imuCalibrateCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -355,7 +359,7 @@ void setDefaultHeroCommands(Drivers *drivers)
 
 void startHeroCommands(Drivers *drivers)
 {
-    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerHeroIoMappings(Drivers *drivers)
@@ -365,6 +369,7 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&vPressed);
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
+    drivers->commandMapper.addMap(&xPressed);
 }
 }  // namespace hero_control
 

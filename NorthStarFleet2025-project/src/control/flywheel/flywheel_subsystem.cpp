@@ -35,6 +35,9 @@ void FlywheelSubsystem::initialize()
     leftWheel.initialize();
     rightWheel.initialize();
     upWheel.initialize();
+    // leftWheel.setControlMode(tap::motor::RevMotor::ControlMode::VELOCITY);
+    // rightWheel.setControlMode(tap::motor::RevMotor::ControlMode::VELOCITY);
+    // upWheel.setControlMode(tap::motor::RevMotor::ControlMode::VELOCITY);
 }
 
 void FlywheelSubsystem::setDesiredSpin(u_int16_t spin)

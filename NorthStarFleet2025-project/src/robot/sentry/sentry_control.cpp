@@ -247,6 +247,17 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
     worldFrameYawTurretImuVelPidTop);
 
 // turret commands
+user::SentryTurretUserControlCommand turretWRChassisImuCommand(
+    drivers(),
+    drivers()->controlOperatorInterface,
+    &sentryTurrets,
+    &worldFrameYawChassisImuControllerBottom,
+    &worldFramePitchChassisImuControllerBottom,
+    &chassisFrameYawTurretControllerTop,  // controler for top turret
+    &worldFramePitchChassisImuControllerTop,
+    USER_YAW_INPUT_SCALAR,
+    USER_PITCH_INPUT_SCALAR);
+
 user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
     drivers(),
     drivers()->controlOperatorInterface,
@@ -358,7 +369,7 @@ void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     // m_FlyWheel.setDefaultCommand(&m_FlyWheelCommand);
-    sentryTurrets.setDefaultCommand(&turretsUserWorldRelativeCommand);
+    sentryTurrets.setDefaultCommand(&turretWRChassisImuCommand);
 }
 
 void startSentryCommands(Drivers *drivers)
