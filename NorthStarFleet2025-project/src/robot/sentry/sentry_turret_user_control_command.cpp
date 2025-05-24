@@ -87,10 +87,21 @@ void SentryTurretUserControlCommand::execute()
         userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(1);
     pitchControllerTop->runController(dt, pitchSetpointTop);
 
-    userYawTopInput += userYawInputScalar * controlOperatorInterface.getTurretYawInput(1);
-    const WrappedFloat yawSetpointTop = userYawTopInput - yawSetpointBottom.getUnwrappedValue();
+    // userYawTopInput += userYawInputScalar * controlOperatorInterface.getTurretYawInput(1);
+    // const WrappedFloat yawSetpointTop = userYawTopInput - yawSetpointBottom.getUnwrappedValue();
     //     yawControllerTop->getSetpoint()
-    yawControllerTop->runController(dt, yawSetpointTop);
+    const WrappedFloat yawSetpointTop =
+        yawControllerTop->getSetpoint() +
+        userYawInputScalar * controlOperatorInterface.getTurretYawInput(1);
+    const WrappedFloat relativeSetpoint = WrappedFloat(
+        limitVal<float>(
+            yawSetpointTop.getWrappedValue() - yawSetpointBottom.getWrappedValue(),
+            -45,
+            45),
+        -180,
+        180);
+
+    yawControllerTop->runController(dt, relativeSetpoint);
 }
 
 bool SentryTurretUserControlCommand::isFinished() const
