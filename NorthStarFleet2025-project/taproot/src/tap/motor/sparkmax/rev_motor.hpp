@@ -222,6 +222,63 @@ enum class Parameter : uint32_t
 };
 
 /**
+ * @brief Periodic status 0 structure
+ */
+struct Period0Status
+{
+  float dutyCycle;
+  uint16_t faults;
+  uint16_t stickyFaults;
+  bool isInverted;
+  bool idleMode;
+  bool isFollower;
+  std::chrono::steady_clock::time_point timestamp;
+};
+
+/**
+ * @brief Periodic status 1 structure
+ */
+struct Period1Status
+{
+  float velocity;
+  float temperature;
+  float voltage;
+  float current;
+  std::chrono::steady_clock::time_point timestamp;
+};
+
+/**
+ * @brief Periodic status 2 structure
+ */
+struct Period2Status
+{
+  float position;
+  float iAccum;
+  std::chrono::steady_clock::time_point timestamp;
+};
+
+/**
+ * @brief Periodic status 3 structure
+ */
+struct Period3Status
+{
+  float analogVoltage;
+  float analogVelocity;
+  float analogPosition;
+  std::chrono::steady_clock::time_point timestamp;
+};
+
+/**
+ * @brief Periodic status 4 structure
+ */
+struct Period4Status
+{
+  float altEncoderVelocity;
+  float altEncoderPosition;
+  std::chrono::steady_clock::time_point timestamp;
+};
+
+/**
  * A class designed to interface with DJI brand motors and motor controllers over CAN.
  * This includes the C610 and C620 motor controllers and the GM6020 motor (that has a
  * built-in motor controller).
@@ -401,6 +458,11 @@ private:
     bool motorInverted;
 
 
+    Period0Status period0_{};
+    Period1Status period1_{};
+    Period2Status period2_{};
+    Period3Status period3_{};
+    Period4Status period4_{};
 
 
     ControlMode currentControlMode = ControlMode::VOLTAGE;

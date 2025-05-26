@@ -70,19 +70,43 @@ void RevMotor::initialize()
 
 void RevMotor::processMessage(const modm::can::Message& message)
 {
-    if (message.getIdentifier() != RevMotor::getMotorIdentifier())
-    {
-        return;
-    }
-    uint16_t encoderActual =
-        static_cast<uint16_t>(message.data[0] << 8 | message.data[1]);        // encoder value
-    // shaftRPM = static_cast<int16_t>(message.data[2] << 8 | message.data[3]);  // rpm
-    // shaftRPM = motorInverted ? -shaftRPM : shaftRPM;
-    // torque = static_cast<int16_t>(message.data[4] << 8 | message.data[5]);  // torque
-    // torque = motorInverted ? -torque : torque;
-    // temperature = static_cast<int8_t>(message.data[6]);  // temperature
+    uint32_t receivedArbId = message.getIdentifier();
+    uint64_t rawValue = 0;
+    std::memcpy(&rawValue, message.data, sizeof(uint64_t));
 
-    //TODO: Reimplement encoder functionality
+    
+    if (receivedArbId == CreateArbitrationControlId(APICommand::Period0, this)) {
+        period0_.dutyCycle = int16_t(rawValue & 0xFFFF) / 32768.0f;
+        period0_.faults = (rawValue >> 16) & 0xFFFF;
+        period0_.stickyFaults = (rawValue >> 32) & 0xFFFF;
+        period0_.isInverted = (rawValue >> 49) & 1;
+        period0_.idleMode = (rawValue >> 57) & 1;
+        period0_.isFollower = (rawValue >> 58) & 1;
+    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period1, this)) {
+        uint32_t velocity = rawValue & 0xFFFFFFFF;
+        std::memcpy(&period1_.velocity, &velocity, 4);
+        period1_.temperature = (rawValue >> 32) & 0xFF;
+        period1_.voltage = ((rawValue >> 40) & 0xFFFF) / 128.0f;
+        period1_.current = ((rawValue >> 48) & 0xFFF) / 32.0f;
+    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period2, this)) {
+        uint32_t position = rawValue & 0xFFFFFFFF;
+        std::memcpy(&period2_.position, &position, 4);
+        period2_.iAccum = float((rawValue >> 32) & 0xFFFFFFFF) / 1000.0f;
+    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period3, this)) {
+        uint8_t * intVal = reinterpret_cast<uint8_t *>(&rawValue);
+        uint16_t voltage = intVal[0] | ((intVal[1] & 3) << 8);
+        period3_.analogVoltage = float(voltage) / 256.0f;
+        uint32_t velocity =
+            ((intVal[1] >> 2) & 0x3F) | (uint32_t(intVal[2]) << 6) | (uint32_t(intVal[3]) << 14);
+        period3_.analogVelocity = float(velocity) / 32768.0f;
+        uint32_t position = (rawValue >> 32) & 0xFFFFFFFF;
+        std::memcpy(&period3_.analogPosition, &position, 4);
+    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period4, this)) {
+        uint32_t velocity = rawValue & 0xFFFFFFFF;
+        uint32_t position = (rawValue >> 32) & 0xFFFFFFFF;
+        std::memcpy(&period4_.altEncoderVelocity, &velocity, 4);
+        std::memcpy(&period4_.altEncoderPosition, &position, 4);
+    }
 }
 
 // Add these implementations to rev_motor.cpp
