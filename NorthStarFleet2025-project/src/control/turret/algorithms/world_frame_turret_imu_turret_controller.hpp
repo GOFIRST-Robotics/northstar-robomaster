@@ -24,8 +24,7 @@
 
 #include "tap/algorithms/fuzzy_pd.hpp"
 #include "tap/algorithms/wrapped_float.hpp"
-
-#include "communication/can/turret/turret_mcb_can_comm.hpp"
+#include "tap/drivers.hpp"
 
 #include "turret_controller_interface.hpp"
 
@@ -53,14 +52,13 @@ class WorldFrameYawTurretImuCascadePidTurretController final : public TurretYawC
 {
 public:
     /**
-     * @param[in] turretMCBCanComm A TurretMCBCanComm object that will be queried for IMU
-     * information.
+     * @param[in] drivers A drivers object that will be queried for IMU information.
      * @param[in] yawMotor A `TurretMotor` object accessible for children objects to use.
      * @param[in] positionPid Position PID controller.
      * @param[in] velocityPid Velocity PID controller.
      */
     WorldFrameYawTurretImuCascadePidTurretController(
-        const src::can::TurretMCBCanComm &turretMCBCanComm,
+        tap::Drivers &drivers,
         TurretMotor &yawMotor,
         SmoothPid &positionPid,
         SmoothPid &velocityPid);
@@ -92,12 +90,19 @@ public:
     WrappedFloat convertChassisAngleToControllerFrame(WrappedFloat chassisFrameAngle) const final;
 
 private:
-    const src::can::TurretMCBCanComm &turretMCBCanComm;
+    tap::Drivers &drivers;
 
     SmoothPid &positionPid;
     SmoothPid &velocityPid;
 
     WrappedFloat worldFrameSetpoint;
+
+    inline WrappedFloat getBmi088Yaw(bool negitive = false) const
+    {
+        return negitive ? Angle(drivers.bmi088.getYaw() * -1) : Angle(drivers.bmi088.getYaw());
+    }
+
+    inline float getBmi088YawVelocity() const { return drivers.bmi088.getGz(); }
 };
 
 /**
@@ -116,14 +121,13 @@ class WorldFramePitchTurretImuCascadePidTurretController final
 {
 public:
     /**
-     * @param[in] turretMCBCanComm A TurretMCBCanComm object that will be queried for IMU
-     * information.
+     * @param[in] drivers A drivers object that will be queried for IMU information.
      * @param[in] pitchMotor A `TurretMotor` object accessible for children objects to use.
      * @param[in] positionPid Position PID controller.
      * @param[in] velocityPid Velocity PID controller.
      */
     WorldFramePitchTurretImuCascadePidTurretController(
-        const src::can::TurretMCBCanComm &turretMCBCanComm,
+        tap::Drivers &drivers,
         TurretMotor &pitchMotor,
         SmoothPid &positionPid,
         SmoothPid &velocityPid);
@@ -154,12 +158,19 @@ public:
     WrappedFloat convertChassisAngleToControllerFrame(WrappedFloat chassisFrameAngle) const final;
 
 private:
-    const src::can::TurretMCBCanComm &turretMCBCanComm;
+    tap::Drivers &drivers;
 
     SmoothPid &positionPid;
     SmoothPid &velocityPid;
 
     WrappedFloat worldFrameSetpoint;
+
+    inline WrappedFloat getBmi088Pitch(bool negitive = false) const
+    {
+        return negitive ? Angle(drivers.bmi088.getPitch() * -1) : Angle(drivers.bmi088.getPitch());
+    }
+
+    inline float getBmi088PitchVelocity() const { return drivers.bmi088.getGy(); }
 };
 }  // namespace src::control::turret::algorithms
 

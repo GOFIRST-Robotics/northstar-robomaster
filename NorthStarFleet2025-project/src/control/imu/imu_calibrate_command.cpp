@@ -128,7 +128,7 @@ void ImuCalibrateCommand::execute()
                     config.turretMCBCanComm->sendImuCalibrationRequest();
                 }
 
-                drivers->bmi088.requestRecalibration();
+                drivers->bmi088.requestCalibration();
                 calibrationState = CalibrationState::CALIBRATING_IMU;
             }
 

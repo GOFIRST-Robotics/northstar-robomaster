@@ -8,7 +8,7 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
 #else
-#include "tap/motor/rev_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 #endif
 
 // class Drivers;

@@ -47,7 +47,7 @@ static constexpr uint8_t NUM_TURRETS = 1;
 static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = -0.02f;
 
-static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS1;
+static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS2;
 static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR5;  // 1
 static constexpr tap::motor::MotorId YAW_MOTOR_ID = tap::motor::MOTOR6;    // 2
 
@@ -74,9 +74,12 @@ static constexpr float GRAVITY_COMPENSATION_SCALAR = 8000.0f;  // 7'000;
 namespace world_rel_turret_imu
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
-    .kp = 60.0f,
+    // .kp = 60.0f,
+    // .ki = 0.0f,
+    // .kd = 5.0f,
+    .kp = 15.0f,
     .ki = 0.0f,
-    .kd = 5.0f,
+    .kd = 0.3f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 1.0f,
@@ -113,9 +116,12 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_AUTO_AIM_CONFIG = 
 };
 
 static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
-    .kp = 2000.0f,
-    .ki = 20.0f,
-    .kd = 500.0f,
+    // .kp = 2000.0f,
+    // .ki = 20.0f,
+    // .kd = 500.0f,
+    .kp = 800.0f,
+    .ki = 0.0f,
+    .kd = 10.0f,
     .maxICumulative = 1'000.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 1.0f,
@@ -206,9 +212,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_VEL_PID_CONFIG = {
 namespace world_rel_chassis_imu
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
-    .kp = 55'000.0f,
-    .ki = 0.0f,
-    .kd = 400.0f,
+    .kp = 140'000.0f,
+    .ki = 100.0f,
+    .kd = 10'000.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 0.1f,

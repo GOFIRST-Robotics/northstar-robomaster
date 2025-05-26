@@ -160,7 +160,7 @@ void WorldFrameYawChassisImuTurretController::runController(
         turretMotor.getValidMinError(worldFrameSetpoint, worldFrameYawAngle);
     const float pidOutput = pid.runController(
         positionControllerError,
-        turretMotor.getChassisFrameVelocity() + modm::toRadian(drivers.bmi088.getGz()),
+        turretMotor.getChassisFrameVelocity() + drivers.bmi088.getGz(),
         dt);
 
     turretMotor.setMotorOutput(pidOutput);
@@ -178,8 +178,7 @@ void WorldFrameYawChassisImuTurretController::setSetpoint(WrappedFloat desiredSe
 
 WrappedFloat WorldFrameYawChassisImuTurretController::getMeasurement() const
 {
-    const WrappedFloat chassisFrameImuYawAngle =
-        getBmi088Yaw();  // NOTE THIS WAS NOT PREVIOUSLY IN RADIANS
+    const WrappedFloat chassisFrameImuYawAngle = getBmi088Yaw();
 
     return transformChassisFrameToWorldFrame(
         chassisFrameInitImuYawAngle,
@@ -268,7 +267,7 @@ void WorldFramePitchChassisImuTurretController::runController(
         turretMotor.getValidMinError(worldFrameSetpoint, worldFramePitchAngle);
     float pidOutput = pid.runController(
         positionControllerError,
-        turretMotor.getChassisFrameVelocity() + modm::toRadian(drivers.bmi088.getGz()),
+        turretMotor.getChassisFrameVelocity() + drivers.bmi088.getGz(),
         dt);
     pidOutput += -computeGravitationalForceOffset(
         TURRET_CG_X,
@@ -290,8 +289,7 @@ void WorldFramePitchChassisImuTurretController::setSetpoint(WrappedFloat desired
 
 WrappedFloat WorldFramePitchChassisImuTurretController::getMeasurement() const
 {
-    const WrappedFloat chassisFrameImuPitchAngle =
-        getBmi088Pitch();  // NOTE THIS WAS NOT PREVIOUSLY IN RADIANS
+    const WrappedFloat chassisFrameImuPitchAngle = getBmi088Pitch();
 
     return transformChassisFrameToWorldFrame(
         chassisFrameInitImuPitchAngle,

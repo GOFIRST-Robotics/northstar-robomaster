@@ -1,3 +1,5 @@
+#ifndef TARGET_HERO
+
 #include "flywheel_subsystem.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
@@ -17,9 +19,10 @@ FlywheelSubsystem::FlywheelSubsystem(
     tap::motor::REVMotorId upMotorId,
     tap::can::CanBus canBus)
     : tap::control::Subsystem(drivers),
+      spinToRPMMap(SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
       leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
-      rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
-      upWheel(drivers, upMotorId, canBus, false, "Up Flywheel"),
+      rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
+      upWheel(drivers, upMotorId, canBus, true, "Up Flywheel"),
       desiredLaunchSpeedLeft(0),
       desiredLaunchSpeedRight(0),
       desiredLaunchSpeedUp(0),
@@ -34,26 +37,47 @@ void FlywheelSubsystem::initialize()
     upWheel.initialize();
 }
 
-void FlywheelSubsystem::setDesiredLaunchSpeedLeft(float speed)
+void FlywheelSubsystem::setDesiredSpin(u_int16_t spin)
 {
-    desiredLaunchSpeedLeft = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRampLeft.setTarget(desiredLaunchSpeedLeft);
-}
-void FlywheelSubsystem::setDesiredLaunchSpeedRight(float speed)
-{
-    desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRampRight.setTarget(desiredLaunchSpeedRight);
-}
-void FlywheelSubsystem::setDesiredLaunchSpeedUp(float speed)
-{
-    desiredLaunchSpeedUp = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredRpmRampUp.setTarget(desiredLaunchSpeedUp);
+    if (auto spinSet = toSpinPreset(spin))
+    {
+        desiredSpin = spinSet.value();
+        desiredSpinValue = spin;
+    }
 }
 
-float FlywheelSubsystem::getCurrentFlyWheelMotorRPM(tap::motor::RevMotor motor) const
+/**
+ * using the set spin sets a desired rpm for the flywheels with the up wheel scaled by the spin
+ * @param[in] speed in meters per second
+ */
+void FlywheelSubsystem::setDesiredLaunchSpeed(float speed)
 {
-    // return motor.getShaftRPM(); // TODO
-    return 0.0f;
+    desiredLaunchSpeedLeft = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+    desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+    desiredLaunchSpeedUp =
+        limitVal(speed * (desiredSpinValue / 100.0f), 0.0f, MAX_DESIRED_LAUNCH_SPEED);  // uses spin
+
+    desiredRpmRampLeft.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft));
+    desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedRight));
+    desiredRpmRampUp.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedUp));
+}
+// void FlywheelSubsystem::setDesiredLaunchSpeedRight(float speed)
+// {
+//     desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+//     desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(speed));
+// }
+// void FlywheelSubsystem::setDesiredLaunchSpeedUp(float speed)
+// {
+//     desiredLaunchSpeedUp = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
+//     desiredRpmRampUp.setTarget(launchSpeedToFlywheelRpm(speed));
+// }
+
+float FlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
+{
+    modm::interpolation::Linear<modm::Pair<float, float>> MPSToRPMInterpolator = {
+        spinToRPMMap.at(desiredSpin).data(),
+        spinToRPMMap.at(desiredSpin).size()};
+    return MPSToRPMInterpolator.interpolate(launchSpeed);
 }
 
 void FlywheelSubsystem::refresh()
@@ -70,19 +94,7 @@ void FlywheelSubsystem::refresh()
     leftWheel.setControlValue(desiredRpmRampLeft.getValue());
     rightWheel.setControlValue(desiredRpmRampRight.getValue());
     upWheel.setControlValue(desiredRpmRampUp.getValue());
-    // just use spark pid
-    // uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
-    // if (currTime == prevTime)
-    // {
-    //     return;
-    // }
-    // desiredRpmRamp.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
-    // prevTime = currTime;
-    // velocityPidLeftWheel.update(desiredRpmRamp.getValue() - leftWheel.getShaftRPM());
-    // leftWheel.setDesiredOutput(static_cast<int32_t>(velocityPidLeftWheel.getValue()));
-    // velocityPidRightWheel.update(desiredRpmRamp.getValue() - rightWheel.getShaftRPM());
-    // rightWheel.setDesiredOutput(static_cast<int32_t>(velocityPidRightWheel.getValue()));
-    // velocityPidUpWheel.update(desiredRpmRamp.getValue() - upWheel.getShaftRPM());
-    // upWheel.setDesiredOutput(static_cast<int32_t>(velocityPidUpWheel.getValue()));
 }
 }  // namespace src::control::flywheel
+
+#endif  // TARGET_HERO
