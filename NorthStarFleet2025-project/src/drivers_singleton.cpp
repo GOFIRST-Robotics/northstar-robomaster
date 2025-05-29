@@ -29,6 +29,8 @@ namespace src::sentry
 namespace src::hero
 #elif TURRET
 namespace src::gyro
+#elif TARGET_TEST_BED
+namespace src::testbed
 #endif
 {
 /**

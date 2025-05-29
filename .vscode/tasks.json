@@ -98,6 +98,58 @@
             }
         },
         {
+            "label": "Build - Debug (standard)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Debug (sentry)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Debug (hero)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_HERO",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Debug (testbed)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
             "label": "Program - Debug",
             "type": "shell",
             "presentation": {

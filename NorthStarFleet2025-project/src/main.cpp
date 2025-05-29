@@ -60,6 +60,8 @@ using namespace src::hero;
 #include "communication/can/chassis/chassis_mcb_can_comm.hpp"
 using namespace src::gyro;
 ChassisMcbCanComm chassisMcbCanComm(DoNotUse_getDrivers());
+#elif TARGET_TEST_BED
+using namespace src::testbed;
 #endif
 
 // using namespace std::chrono_literals;
