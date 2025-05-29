@@ -25,6 +25,7 @@
 #define TAPROOT_DRIVERS_HPP_
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
+#include ""
 #include "tap/architecture/profiler.hpp"
 #include "tap/mock/analog_mock.hpp"
 #include "tap/mock/bmi088_mock.hpp"
@@ -61,9 +62,8 @@
 #include "tap/errors/error_controller.hpp"
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
-#include "tap/motor/rev_motor_tx_handler.hpp"
+#include "tap/motor/sparkmax/rev_motor_tx_handler.hpp"
 #include "tap/control/command_scheduler.hpp"
-// #include "../../src/communication/can/turret/turret_mcb_can_comm.hpp"
 #endif
 
 namespace tap
@@ -120,6 +120,7 @@ protected:
     testing::StrictMock<mock::ErrorControllerMock> errorController;
     testing::NiceMock<mock::DjiMotorTerminalSerialHandlerMock> djiMotorTerminalSerialHandler;
     testing::NiceMock<mock::DjiMotorTxHandlerMock> djiMotorTxHandler;
+     revMotorTxHandler;
     testing::NiceMock<mock::Bmi088Mock> bmi088;
     testing::NiceMock<mock::CommandSchedulerMock> commandScheduler;
 #else

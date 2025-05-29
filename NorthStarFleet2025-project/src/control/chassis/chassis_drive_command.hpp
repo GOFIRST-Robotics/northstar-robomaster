@@ -10,28 +10,20 @@ namespace control
 {
 class ControlOperatorInterface;
 }
-}  //
+}  // namespace src
 
 namespace src::chassis
 {
 class ChassisSubsystem;
 
-/**
- * @brief Commands a ChassisSubsystem using tank drive. The left and right sides of the chassis are
- * commanded independently by this command. This command executes constantly, taking remote inputs
- * in from a control operator interface, transforming remote input into chassis speed.
- */
 class ChassisDriveCommand : public tap::control::Command
 {
 public:
     static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
 
-    /**
-     * @brief Construct a new Chassis Tank Drive Command object
-     *
-     * @param chassis Chassis to control.
-     */
-    ChassisDriveCommand(ChassisSubsystem *chassis, src::control::ControlOperatorInterface* operatorInterface);
+    ChassisDriveCommand(
+        ChassisSubsystem *chassis,
+        src::control::ControlOperatorInterface *operatorInterface);
 
     const char *getName() const override { return "Chassis tank drive"; }
 
@@ -46,6 +38,6 @@ public:
 private:
     src::chassis::ChassisSubsystem *chassis;
 
-    src::control::ControlOperatorInterface* operatorInterface;
+    src::control::ControlOperatorInterface *operatorInterface;
 };
-}  // namespace control::chassis
+}  // namespace src::chassis

@@ -49,12 +49,9 @@ TurretUserControlCommand::TurretUserControlCommand(
 {
     addSubsystemRequirement(turretSubsystem);
 }
-bool debugyaw = true;
-bool debugmotor = true;
-bool TurretUserControlCommand::isReady() {
-    debugmotor = turretSubsystem->yawMotor.isOnline();
-    debugyaw = this->yawController->isOnline();
-    return !isFinished() && this->yawController->isOnline();
+bool TurretUserControlCommand::isReady()
+{
+    return !isFinished() && this->yawController->isOnline();  // TODO hero needs comented out
 }
 
 void TurretUserControlCommand::initialize()
@@ -75,7 +72,7 @@ void TurretUserControlCommand::execute()
         userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(turretID);
     pitchController->runController(dt, pitchSetpoint);
 
-    const WrappedFloat yawSetpoint = //not the error
+    const WrappedFloat yawSetpoint =
         yawController->getSetpoint() +
         userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
     yawController->runController(dt, yawSetpoint);
@@ -83,7 +80,8 @@ void TurretUserControlCommand::execute()
 
 bool TurretUserControlCommand::isFinished() const
 {
-    return !pitchController->isOnline() || !yawController->isOnline(); //&&
+    return !pitchController->isOnline() &&
+           !yawController->isOnline();  //&& TODO not shure if this is right
 }
 
 void TurretUserControlCommand::end(bool)

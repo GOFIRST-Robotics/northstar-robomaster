@@ -20,12 +20,13 @@
 
 #include "robot/control_operator_interface.hpp"
 
+#include <random>
+
+#include <tap/architecture/clock.hpp>
+
 #include "tap/algorithms/math_user_utils.hpp"
 #include "tap/architecture/clock.hpp"
 #include "tap/drivers.hpp"
-#include <tap/architecture/clock.hpp>
-#include <random>
-
 
 using namespace tap::algorithms;
 using namespace tap::communication::serial;
@@ -34,57 +35,73 @@ namespace src
 {
 namespace control
 {
-
-
-
 float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
 {
+    float input;
     switch (turretID)
     {
         case 0:
-            return -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       -remote.getMouseX(),
-                       -USER_MOUSE_YAW_MAX,
-                       USER_MOUSE_YAW_MAX)) *
-                       USER_MOUSE_YAW_SCALAR;
+            input = -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseX(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         case 1:
-            return -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       -remote.getMouseX(),
-                       -USER_MOUSE_YAW_MAX,
-                       USER_MOUSE_YAW_MAX)) *
-                       USER_MOUSE_YAW_SCALAR;
-
+            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseX(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         default:
             return 0;
     }
 }
-
 
 float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
 {
+    float input;
     switch (turretID)
     {
         case 0:
-            return -remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       remote.getMouseY(),
-                       -USER_MOUSE_PITCH_MAX,
-                       USER_MOUSE_PITCH_MAX)) *
-                       USER_MOUSE_PITCH_SCALAR;
+            input = -remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseY(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         case 1:
-            return -remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
-                   static_cast<float>(limitVal<int16_t>(
-                       remote.getMouseY(),
-                       -USER_MOUSE_PITCH_MAX,
-                       USER_MOUSE_PITCH_MAX)) *
-                       USER_MOUSE_PITCH_SCALAR;
+            input = -remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
+                    static_cast<float>(limitVal<int16_t>(
+                        -remote.getMouseY(),
+                        -USER_MOUSE_YAW_MAX,
+                        USER_MOUSE_YAW_MAX)) *
+                        USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
+            if (!compareFloatClose(input, 0, .01))
+            {
+                return input;
+            }
+            return 0;
         default:
             return 0;
     }
 }
-
 
 template <typename T>
 int getSign(T val)
@@ -92,21 +109,16 @@ int getSign(T val)
     return (T(0) < val) - (val < T(0));
 }
 
-
-
 float ControlOperatorInterface::applyChassisSpeedScaling(float value)
 {
     if (isSlowMode())
     {
-        value *=  0.333; //SPEED_REDUCTION_SCALAR;
+        value *= 0.333;  // SPEED_REDUCTION_SCALAR;
     }
     return value;
 }
 
-bool ControlOperatorInterface::isSlowMode()
-{
-    return remote.keyPressed(Remote::Key::CTRL);
-}
+bool ControlOperatorInterface::isSlowMode() { return remote.keyPressed(Remote::Key::CTRL); }
 
 /**
  * @param[out] ramp Ramp that should have acceleration applied to. The ramp is updated some
@@ -136,25 +148,32 @@ static inline void applyAccelerationToRamp(
 // STEP 2 (Tank Drive): Add getChassisTankLeftInput and getChassisTankRightInput function
 // definitions
 
-float ControlOperatorInterface::getDrivetrainHorizontalTranslation() {
-    if(remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT)){
+float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
+{
+    if (remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT))
+    {
         return -0.3f;
-    } else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT))
+    {
         return -0.6f;
-    } else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT))
+    {
         return 0.3f;
-    } else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT))
+    {
         return 0.6f;
-    } else {
+    }
+    else
+    {
         return 0.0f;
     }
 }
 
-float keyInputDebug = 0.0f;
-float finalXDebug = 0.0f;
-float outputDebug = 0.0f;
-float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
-
+float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard()
+{
     uint32_t updateCounter = remote.getUpdateCounter();
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
     uint32_t dt = currTime - prevChassisXInputCalledTime;
@@ -166,15 +185,12 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
         prevUpdateCounterX = updateCounter;
     }
 
-    float keyInput =
-        remote.keyPressed(Remote::Key::W) - remote.keyPressed(Remote::Key::S);
-    keyInputDebug = keyInput;
+    float keyInput = remote.keyPressed(Remote::Key::W) - remote.keyPressed(Remote::Key::S);
 
     const float maxChassisSpeed = 7000;
 
     float finalX = maxChassisSpeed *
                    limitVal(chassisXInput.getInterpolatedValue(currTime) + keyInput, -1.0f, 1.0f);
-    finalXDebug = finalX;
 
     chassisXInputRamp.setTarget(applyChassisSpeedScaling(finalX));
 
@@ -183,41 +199,47 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard() {
         MAX_ACCELERATION_X,
         MAX_DECELERATION_X,
         static_cast<float>(dt) / 1E3F);
-    outputDebug = chassisXInputRamp.getValue();
-    return outputDebug;
+    return chassisXInputRamp.getValue();
 }
 
-float ControlOperatorInterface::getDrivetrainVerticalTranslation() {
-    if(remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT)){
+float ControlOperatorInterface::getDrivetrainVerticalTranslation()
+{
+    if (remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT))
+    {
         return 0.3f;
-    } else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT))
+    {
         return 0.6f;
-    } else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT))
+    {
         return -0.3f;
-    } else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT))
+    {
         return -0.6f;
-    } else {
+    }
+    else
+    {
         return 0.0f;
     }
 }
 
-
-float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard() {
-uint32_t updateCounter = remote.getUpdateCounter();
+float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard()
+{
+    uint32_t updateCounter = remote.getUpdateCounter();
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
     uint32_t dt = currTime - prevChassisYInputCalledTime;
     prevChassisYInputCalledTime = currTime;
 
     if (prevUpdateCounterY != updateCounter)
     {
-        chassisYInput.update(
-            -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL),
-            currTime);
+        chassisYInput.update(-remote.getChannel(Remote::Channel::LEFT_HORIZONTAL), currTime);
         prevUpdateCounterY = updateCounter;
     }
 
-    float keyInput =
-        remote.keyPressed(Remote::Key::A) - remote.keyPressed(Remote::Key::D);
+    float keyInput = remote.keyPressed(Remote::Key::A) - remote.keyPressed(Remote::Key::D);
 
     const float maxChassisSpeed = 7000;
 
@@ -237,9 +259,12 @@ uint32_t updateCounter = remote.getUpdateCounter();
 
 float ControlOperatorInterface::getDrivetrainRotation()
 {
-    if(remote.keyPressed(Remote::Key::CTRL)){
+    if (remote.keyPressed(Remote::Key::CTRL))
+    {
         return 0.2f;
-    } else {
+    }
+    else
+    {
         return 0;
     }
 }
@@ -252,38 +277,29 @@ float speed = 0;
 bool beyBlade = false;
 bool isHeld = false;
 
-float ControlOperatorInterface::getDrivetrainRotationalTranslation() {
-    RandomNumberGenerator::enable();
-    checkToggleBeyBlade();
-    if (beyBlade) {
-        count++;
-        if (count >= 250) {
-            if (RandomNumberGenerator::isReady()) {
-                prevBeyBladeValue = beyBladeValue;
-                beyBladeValue = RandomNumberGenerator::getValue() % 360;
-                count = 0;
-            }
-        }
-        if (count % 25 == 0) {
-            speed = (0.1f * sin(beyBladeValue) + 0.9f + prevBeyBladeValue) / 2;
-            prevBeyBladeValue = speed;
-        }
-        return speed;
-    }
-
-    if(remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT)){
+float ControlOperatorInterface::getDrivetrainRotationalTranslation()
+{
+    if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
+    {
         return -0.3f;
-    } else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT))
+    {
         return -0.6f;
-    } else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT))
+    {
         return 0.3f;
-    } else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT)){
+    }
+    else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT))
+    {
         return 0.6f;
-    } else {
+    }
+    else
+    {
         return 0.0f;
     }
 }
-
 
 float ControlOperatorInterface::getMecanumRotationKeyBoard()
 {
@@ -294,14 +310,11 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
 
     if (prevUpdateCounterR != updateCounter)
     {
-        chassisRInput.update(
-            -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL),
-            currTime);
+        chassisRInput.update(-remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL), currTime);
         prevUpdateCounterR = updateCounter;
     }
 
-    float keyInput =
-        remote.keyPressed(Remote::Key::Q) - remote.keyPressed(Remote::Key::E);
+    float keyInput = remote.keyPressed(Remote::Key::Q) - remote.keyPressed(Remote::Key::E);
 
     const float maxChassisSpeed = 2500;
 
@@ -319,27 +332,29 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
     return chassisRInputRamp.getValue();
 }
 
+bool ControlOperatorInterface::isRightSwitchUp()
+{
+    return (remote.getSwitch(Remote::Switch::RIGHT_SWITCH) == Remote::SwitchState::UP);
+}
 
+bool ControlOperatorInterface::isGKeyPressed() { return (remote.keyPressed(Remote::Key::G)); }
 
-    bool ControlOperatorInterface::isRightSwitchUp(){
-        return (remote.getSwitch(Remote::Switch::RIGHT_SWITCH) == Remote::SwitchState::UP);
-    }
-
-    bool ControlOperatorInterface::isGKeyPressed(){
-        return (remote.keyPressed(Remote::Key::G));
-    }
-
-    void ControlOperatorInterface::checkToggleBeyBlade(){
-        if (remote.keyPressed(Remote::Key::B)){
-            if (!isHeld) {
-                beyBlade = !beyBlade;
-                isHeld = true;
-            } 
-        } else {
-            isHeld = false;
+void ControlOperatorInterface::checkToggleBeyBlade()
+{
+    if (remote.keyPressed(Remote::Key::B))
+    {
+        if (!isHeld)
+        {
+            beyBlade = !beyBlade;
+            isHeld = true;
         }
     }
-    
+    else
+    {
+        isHeld = false;
+    }
+}
+
 }  // namespace control
 
-} //namespace src
+}  // namespace src

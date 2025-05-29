@@ -17,8 +17,6 @@
  * along with NorthStarFleet2025.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// This is for the Spark Max Branch
-
 #ifdef PLATFORM_HOSTED
 /* hosted environment (simulator) includes --------------------------------- */
 #include <iostream>
@@ -50,12 +48,14 @@
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
-
-// control::Robot robot(*src::DoNotUse_getDrivers());
-
+tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
 
 #ifdef TARGET_STANDARD
 using namespace src::standard;
+#elif TARGET_SENTRY
+using namespace src::sentry;
+#elif TARGET_HERO
+using namespace src::hero;
 #elif TURRET
 #include "communication/can/chassis/chassis_mcb_can_comm.hpp"
 using namespace src::gyro;
@@ -103,48 +103,61 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
-            #ifdef TURRET
+            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
+#ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
-            #else
-            PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
-            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus1.sendData, ());
+#else
+            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
-            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ()); //todo figuer out if this causes issues
-            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
-            #endif
+#endif
         }
-        // if(sendMotorTimeoutREV.execute())
-        // {
-            
-        //     PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ()); //todo figuer out if this causes issues
-        // }
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+        if (revTxPublisherTimeout.execute())
+        {
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
+        }
+#endif
 
+        // if(!drivers->turretMCBCanCommBus2.isConnected()){
+        //     std::cout<<"poop";
+        // }
         modm::delay_us(10);
     }
     return 0;
 }
-
 static void initializeIo(Drivers *drivers)
 {
-    drivers->analog.init();
-    drivers->pwm.init();
-    drivers->digital.init();
-    drivers->leds.init();
     drivers->can.initialize();
+    drivers->leds.init();
+    drivers->digital.init();
+    drivers->pwm.init();
+    drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
-    drivers->remote.initialize();
-    drivers->bmi088.initialize(500, 0.5, 0);
-    drivers->refSerial.initialize();
     drivers->terminalSerial.initialize();
+#ifdef TARGET_STANDARD
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+#elif TARGET_SENTRY
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+#elif TARGET_HERO
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
+#endif
+#if defined(TARGET_STANDARD) || defined(TARGET_HERO)
+    drivers->turretMCBCanCommBus2.init();
+#endif
+#ifdef TURRET
+    chassisMcbCanComm.init();
+#else
+    drivers->analog.init();
+    drivers->remote.initialize();
+    drivers->refSerial.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
-    #ifdef TARGET_STANDARD
-    drivers->turretMCBCanCommBus1.init();
-    #endif
-    #ifdef TURRET
-    chassisMcbCanComm.init();
-    #endif
+#endif
 }
 
 static void updateIo(Drivers *drivers)
@@ -154,7 +167,9 @@ static void updateIo(Drivers *drivers)
 #endif
 
     drivers->canRxHandler.pollCanData();
+    drivers->bmi088.read();
+#ifndef TURRET
     drivers->refSerial.updateSerial();
     drivers->remote.read();
-    drivers->bmi088.read();
+#endif
 }

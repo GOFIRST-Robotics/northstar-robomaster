@@ -8,22 +8,19 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
 #else
-#include "tap/motor/rev_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 #endif
 
 // class Drivers;
 
 namespace Communications::Rev
 {
-
 ///
 /// @brief This subsystem encapsulates four motors that control the chassis.
 ///
 class RevMotorTester : public tap::control::Subsystem
 {
 public:
-    
-
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
     using Motor = testing::NiceMock<tap::mock::DjiMotorMock>;
 #else
@@ -46,6 +43,8 @@ public:
 
 private:
     Motor motor1;
-   
+    Motor motor2;
+    Motor motor3;
+
 };  // class ChassisSubsystem
-}  // namespace control::chassis
+}  // namespace Communications::Rev

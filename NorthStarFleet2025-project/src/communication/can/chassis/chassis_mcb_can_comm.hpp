@@ -122,7 +122,7 @@
          uint8_t seq;
      } modm_packed;
  
-     static constexpr tap::can::CanBus CHASSIS_IMU_CAN_BUS = tap::can::CanBus::CAN_BUS1;
+     static constexpr tap::can::CanBus CHASSIS_IMU_CAN_BUS = tap::can::CanBus::CAN_BUS2;
      static constexpr uint32_t DISCONNECT_TIMEOUT_PERIOD = 1000;
      static constexpr uint32_t SYNC_REQUEST_PERIOD = 100;
  

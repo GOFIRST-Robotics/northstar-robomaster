@@ -41,6 +41,38 @@
             ]
         },
         {
+            "name": "sentry",
+            "includePath": [
+                "${default}",
+                "NorthStarFleet2025-project/taproot/modm/src",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/core",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/device",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/dsp"        
+            ],
+            "compilerPath": "arm-none-eabi-g++",
+            "intelliSenseMode": "gcc-arm",
+            "browse": { "limitSymbolsToIncludedHeaders": true },
+            "defines": [
+                "TARGET_SENTRY"
+            ]
+        },
+        {
+            "name": "hero",
+            "includePath": [
+                "${default}",
+                "NorthStarFleet2025-project/taproot/modm/src",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/core",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/device",
+                "NorthStarFleet2025-project/taproot/modm/ext/cmsis/dsp"        
+            ],
+            "compilerPath": "arm-none-eabi-g++",
+            "intelliSenseMode": "gcc-arm",
+            "browse": { "limitSymbolsToIncludedHeaders": true },
+            "defines": [
+                "TARGET_HERO"
+            ]
+        },
+        {
             "name": "gyro",
             "includePath": [
                 "${default}",

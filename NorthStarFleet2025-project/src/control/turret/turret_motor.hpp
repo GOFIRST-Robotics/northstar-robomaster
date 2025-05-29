@@ -107,7 +107,7 @@ public:
      */
     mockable inline float getChassisFrameVelocity() const
     {
-        return (M_TWOPI / 60) * motor->getShaftRPM();
+        return motor->getEncoder()->getVelocity() / static_cast<float>(M_TWOPI) * 60.f;
     }
 
     /// @return turret controller controlling this motor (as specified by `attachTurretController`)
@@ -163,6 +163,9 @@ private:
 
     /// Associated turret controller interface that is being used by a command to control this motor
     const algorithms::TurretControllerInterface *turretController = nullptr;
+
+    /// ratio of motor rotations per rotation of controled pivot
+    float ratio;
 
     /// Unwrapped chassis frame setpoint specified by the user and limited to `[config.minAngle,
     /// config.maxAngle]`. Units radians.
