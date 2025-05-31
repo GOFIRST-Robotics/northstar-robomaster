@@ -32,6 +32,9 @@ FlywheelSubsystem::FlywheelSubsystem(
 
 void FlywheelSubsystem::initialize()
 {
+    leftWheel.setControlMode(tap::motor::RevMotor::ControlMode::DUTY_CYCLE);
+    rightWheel.setControlMode(tap::motor::RevMotor::ControlMode::DUTY_CYCLE);
+    upWheel.setControlMode(tap::motor::RevMotor::ControlMode::DUTY_CYCLE);
     leftWheel.initialize();
     rightWheel.initialize();
     upWheel.initialize();

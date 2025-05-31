@@ -27,12 +27,12 @@ static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
 
 static constexpr src::agitator::HeroAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .agitatorServoId = tap::gpio::Pwm::Pin::C1,
-    .maximumPwm = 1.0f,
-    .minimumPwm = 0.0f,
+    .shootPwm = 0.6f,
+    .reloadPwm = 0.208f,
     .pwmRampSpeed = 0.001f,
     .isAgitatorServoInverted = false,
     .agitatorMotorId = tap::motor::MOTOR4,
-    .canBus = tap::can::CanBus::CAN_BUS1,
+    .canBus = tap::can::CanBus::CAN_BUS2,
     .agitatorMotorInverted = true,
     .agitatorGearRatio = 19.0f,
     .pin = tap::gpio::Digital::InputPin::PF0,

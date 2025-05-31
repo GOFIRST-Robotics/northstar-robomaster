@@ -19,7 +19,7 @@ class ChassisSubsystem;
 class ChassisDriveCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
+    static constexpr float MAX_CHASSIS_SPEED_MPS = 6.0f;
 
     ChassisDriveCommand(
         ChassisSubsystem *chassis,

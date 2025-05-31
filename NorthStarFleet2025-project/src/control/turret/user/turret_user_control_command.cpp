@@ -75,7 +75,7 @@ void TurretUserControlCommand::execute()
     const WrappedFloat yawSetpoint =
         yawController->getSetpoint() +
         userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
-    // yawController->runController(dt, yawSetpoint);
+    yawController->runController(dt, yawSetpoint);
 }
 bool debugpitchController = false;
 bool debugyawController = false;

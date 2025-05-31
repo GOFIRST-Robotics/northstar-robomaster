@@ -13,12 +13,13 @@ HeroAgitatorSubsystem::HeroAgitatorSubsystem(
     const tap::algorithms::SmoothPidConfig& pidConfig)
     : tap::control::Subsystem(drivers),
       config(config),
-      agitatorServo(
-          drivers,
-          config.agitatorServoId,
-          config.maximumPwm,
-          config.minimumPwm,
-          config.pwmRampSpeed),
+      pwm(config.reloadPwm),
+      //   agitatorServo(
+      //       drivers,
+      //       config.agitatorServoId,
+      //       config.maximumPwm,
+      //       config.minimumPwm,
+      //       config.pwmRampSpeed),
       agitatorMotor(
           drivers,
           config.agitatorMotorId,
@@ -29,16 +30,25 @@ HeroAgitatorSubsystem::HeroAgitatorSubsystem(
       pid(pidConfig)
 
 {
-    agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
+    // agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
 }
 
-void HeroAgitatorSubsystem::initialize() { agitatorMotor.initialize(); }
+void HeroAgitatorSubsystem::initialize()
+{
+    agitatorMotor.initialize();
+    drivers->pwm.setTimerFrequency(tap::gpio::Pwm::Timer::TIMER1, 330);  // Timer 1 for C1 Pin
+}
 
-void HeroAgitatorSubsystem::shoot() { agitatorServo.setTargetPwm(agitatorServo.getMaxPWM()); }
+void HeroAgitatorSubsystem::shoot() { pwm = config.shootPwm; }
+
+void HeroAgitatorSubsystem::setPWM(float dutyCycle)
+{
+    drivers->pwm.write(dutyCycle, tap::gpio::Pwm::Pin::C1);
+}
 
 void HeroAgitatorSubsystem::reload()
 {
-    agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
+    pwm = config.reloadPwm;
     velocitySetpoint = M_TWOPI * 1.5;
     loaded = false;
     reloadTimeout.restart(config.reloadTimeout);
@@ -54,7 +64,8 @@ void HeroAgitatorSubsystem::refresh()
     {
         velocitySetpoint = 0;
     }
-    agitatorServo.updateSendPwmRamp();
+    setPWM(pwm);
+    // agitatorServo.updateSendPwmRamp();
     runVelocityPidControl();
 }
 float HeroAgitatorSubsystem::getUncalibratedAgitatorAngle() const

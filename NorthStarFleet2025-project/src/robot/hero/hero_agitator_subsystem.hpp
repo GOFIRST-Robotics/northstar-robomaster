@@ -32,6 +32,8 @@ public:
 
     const char* getName() const override { return "hero agitator"; }
 
+    void setPWM(float dutyCycle);
+
     /**
      * Sets the velocity setpoint to the specified velocity
      *
@@ -55,7 +57,7 @@ private:
 
     HeroAgitatorSubsystemConfig config;
 
-    tap::motor::Servo agitatorServo;
+    // tap::motor::Servo agitatorServo;
 
     tap::motor::DjiMotor agitatorMotor;
 
@@ -64,6 +66,8 @@ private:
     tap::arch::MilliTimeout reloadTimeout;
 
     uint32_t prevTime = 0;
+
+    float pwm;
 
     float velocitySetpoint = 0;
 

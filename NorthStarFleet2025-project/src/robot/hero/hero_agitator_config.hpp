@@ -16,9 +16,9 @@ struct HeroAgitatorSubsystemConfig
     tap::gpio::Pwm::Pin agitatorServoId;
 
     /// The maximum allowable PWM output. This is limited between 0 and 1.
-    float maximumPwm;
+    float shootPwm;
     /// The minimum allowable PWM output. This is limited between 0 and 1.
-    float minimumPwm;
+    float reloadPwm;
     /// The speed in PWM percent per millisecond.
     float pwmRampSpeed;
     /// If `true` positive rotation is clockwise when looking at the servo shaft opposite the

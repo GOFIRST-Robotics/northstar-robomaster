@@ -159,6 +159,10 @@ static void initializeIo(Drivers *drivers)
 float debugYaw = 0.0f;
 float debugPitch = 0.0f;
 float debugRoll = 0.0f;
+float debugYawV = 0.0f;
+float debugPitchV = 0.0f;
+float debugRollV = 0.0f;
+
 bool cal = false;
 static void updateIo(Drivers *drivers)
 {
@@ -177,11 +181,11 @@ static void updateIo(Drivers *drivers)
         cal = false;
         drivers->bmi088.requestCalibration();
     }
-    debugYaw = drivers->bmi088.getGz();
-    ;  // modm::toDegree(drivers->bmi088.getYaw());
-    debugPitch = drivers->bmi088.getGy();
-    ;  // modm::toDegree(drivers->bmi088.getPitch());
-    debugRoll = drivers->bmi088.getGx();
-    ;  // modm::toDegree(drivers->bmi088.getRoll());
+    debugYawV = drivers->bmi088.getGz();
+    debugYaw = modm::toDegree(drivers->bmi088.getYaw());
+    debugPitchV = drivers->bmi088.getGy();
+    debugPitch = modm::toDegree(drivers->bmi088.getPitch());
+    debugRollV = drivers->bmi088.getGx();
+    debugRoll = modm::toDegree(drivers->bmi088.getRoll());
 #endif
 }

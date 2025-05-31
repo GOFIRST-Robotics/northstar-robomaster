@@ -162,7 +162,7 @@ ToggleCommandMapping gPressed(
 
 HoldRepeatCommandMapping leftMousePressed(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},
+    {&rotateAndUnjamAgitator},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
@@ -335,7 +335,6 @@ ToggleCommandMapping bPressed(
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
-        // &getTurretMCBCanComm(),
         &turret,
         &chassisFrameYawTurretController,
         &chassisFramePitchTurretController,

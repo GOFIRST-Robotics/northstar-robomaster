@@ -23,7 +23,7 @@ static constexpr float VELOCITY_PID_KS = 0.0f;                  // 350.0f;
 static constexpr float VELOCITY_PID_MAX_OUTPUT = DjiMotor::MAX_OUTPUT_C620;
 
 static const float DIST_TO_CENTER = .34f;  // from wheel to center
-static const float WHEEL_DIAMETER_M = 0.0575f;
+static const float WHEEL_DIAMETER_M = 0.1016f;
 }  // namespace src::chassis
 
 #endif

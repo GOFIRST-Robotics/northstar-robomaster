@@ -45,6 +45,7 @@ public:
 
     bool isReady() final
     {
+        return true;
         return
             // left
             (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedLeft(), .0f, 1) &&
