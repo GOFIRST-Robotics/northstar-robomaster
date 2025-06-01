@@ -32,11 +32,11 @@ enum Spin : u_int8_t
     SPIN_COUNT
 };
 
-static std::array<std::array<modm::Pair<float, float>, 5>, SPIN_COUNT>
+static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
     SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
-        {{{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {30.0f, .64f}, {32.0f, .7f}}},    // SPIN_90
-         {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {30.0f, .64f}, {32.0f, .7f}}},    // SPIN_100
-         {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {30.0f, .64f}, {32.0f, .7f}}}}};  // SPIN_110
+        {{{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}},    // SPIN_90
+         {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}},    // SPIN_100
+         {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}}}};  // SPIN_110
 
 inline std::optional<Spin> toSpinPreset(int value)
 {

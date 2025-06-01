@@ -107,7 +107,7 @@ private:
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
 
-    std::array<std::array<modm::Pair<float, float>, 5>, SPIN_COUNT> spinToRPMMap;
+    std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> spinToRPMMap;
 };
 
 }  // namespace src::control::flywheel
