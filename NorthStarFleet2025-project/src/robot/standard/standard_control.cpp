@@ -369,7 +369,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret

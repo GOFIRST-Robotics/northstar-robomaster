@@ -21,7 +21,7 @@ FlywheelSubsystem::FlywheelSubsystem(
     : tap::control::Subsystem(drivers),
       spinToRPMMap(SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
       leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
-      rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
+      rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
       upWheel(drivers, upMotorId, canBus, true, "Up Flywheel"),
       desiredLaunchSpeedLeft(0),
       desiredLaunchSpeedRight(0),
