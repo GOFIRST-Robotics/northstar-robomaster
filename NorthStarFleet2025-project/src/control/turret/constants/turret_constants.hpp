@@ -32,6 +32,8 @@
 #include "robot/hero/hero_turret_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_turret_constants.hpp"
+#else
+#include "robot/standard/standard_turret_constants.hpp"
 
 #endif
 

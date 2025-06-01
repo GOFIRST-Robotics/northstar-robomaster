@@ -26,7 +26,9 @@
  */
 
 #include "rev_motor_tx_handler.hpp"
-// DO I WANT THIS?
+//DO I WANT THIS?
+#include "rev_motor.hpp"
+
 #include <cassert>
 
 #include "tap/algorithms/math_user_utils.hpp"

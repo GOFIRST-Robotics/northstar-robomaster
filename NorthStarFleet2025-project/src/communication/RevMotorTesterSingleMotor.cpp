@@ -1,4 +1,4 @@
-#include "RevMotorTester.hpp"
+#include "RevMotorTesterSingleMotor.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 
@@ -13,34 +13,22 @@ using tap::algorithms::limitVal;
 namespace Communications::Rev
 {
 // STEP 1 (Tank Drive): create constructor
-RevMotorTester::RevMotorTester(tap::Drivers* drivers)
+RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
     : Subsystem(drivers),
-      motor1(
+      singularMotor(
           drivers,
-          tap::motor::REVMotorId::REV_MOTOR1,
+          tap::motor::REVMotorId::REV_MOTOR6,
           tap::can::CanBus::CAN_BUS2,
           false,
-          "REV Motor 1"),
-      motor2(
-          drivers,
-          tap::motor::REVMotorId::REV_MOTOR2,
-          tap::can::CanBus::CAN_BUS2,
-          true,
-          "REV Motor 2"),
-      motor3(
-          drivers,
-          tap::motor::REVMotorId::REV_MOTOR5,
-          tap::can::CanBus::CAN_BUS2,
-          false,
-          "REV Motor 3")
+          "SingleRevMotor")
 {
 }
 
 // STEP 2 (Tank Drive): initialize function
-    void RevMotorTester::initialize() {
-        motor1.initialize();
-        motor1.setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
-        motor1.setControlValue(0.0f); // Initialize control value to 0.0f
+    void RevMotorTesterSingleMotor::initialize() {
+        singularMotor.initialize();
+        singularMotor.setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
+        singularMotor.setControlValue(0.05f); // Initialize control value to 0.0f
         
         // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
     }
@@ -56,7 +44,7 @@ RevMotorTester::RevMotorTester(tap::Drivers* drivers)
 //     motor3.setControlValue(0.25f);
 // }
 
-void RevMotorTester::refresh()
+void RevMotorTesterSingleMotor::refresh()
 {
     // motor1.setTargetVoltage(0.1f);
 }

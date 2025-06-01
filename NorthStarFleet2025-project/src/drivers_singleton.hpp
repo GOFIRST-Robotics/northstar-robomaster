@@ -36,6 +36,9 @@ namespace src::hero
 #elif TURRET
 #include "robot/turret/turret_drivers.hpp"
 namespace src::gyro
+#elif TARGET_TEST_BED
+#include "robot/testbed/testbed_drivers.hpp"
+namespace src::testbed
 #endif
 {
 /**

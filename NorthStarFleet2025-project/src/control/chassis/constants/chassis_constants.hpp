@@ -11,6 +11,8 @@
 #include "robot/hero/hero_chassis_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_chassis_constants.hpp"
+#else
+#include "robot/standard/standard_chassis_constants.hpp"
 #endif
 
 namespace src::chassis
