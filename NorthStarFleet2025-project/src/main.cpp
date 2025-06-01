@@ -115,7 +115,7 @@ int main()
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
-#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY) || defined(TARGET_TEST_BED)
         if (revTxPublisherTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
@@ -137,12 +137,6 @@ static void initializeIo(Drivers *drivers)
     drivers->pwm.init();
     drivers->errorController.init();
     drivers->terminalSerial.initialize();
-#ifdef TARGET_STANDARD
-
-#elif TARGET_SENTRY
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
-#endif
     drivers->bmi088.initialize(500, .001, 0);
 
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
