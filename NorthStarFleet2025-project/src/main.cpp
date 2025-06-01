@@ -111,7 +111,7 @@ int main()
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
 #else
-            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
+            // PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }

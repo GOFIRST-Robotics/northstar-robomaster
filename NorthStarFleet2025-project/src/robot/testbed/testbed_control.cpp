@@ -19,7 +19,9 @@
 #include "control/flywheel/flywheel_subsystem.hpp"
 
 // safe disconnect
+#include "communication/RevMotorTesterSingleMotor.hpp"
 #include "control/safe_disconnect.hpp"
+
 
 src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
 
@@ -37,6 +39,8 @@ using namespace src::control::flywheel;
 
 namespace testbed_control
 {
+Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers());
+
 src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
 FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
@@ -50,7 +54,10 @@ ToggleCommandMapping fPressed(
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
-void initializeSubsystems(src::testbed::Drivers *drivers) {}
+void initializeSubsystems(src::testbed::Drivers *drivers)
+{
+    revMotorTesterSingleMotor.initialize();
+}
 
 void registerTestSubsystems(src::testbed::Drivers *drivers) {}
 
