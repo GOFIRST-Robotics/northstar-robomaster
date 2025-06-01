@@ -412,6 +412,9 @@ public:
      */
     float getControlValue() const;
 
+    float getPosition() const { return period2_.position; }
+    float getVelocity() const { return period1_.velocity; }
+
     /**
      * calculates the 29 bit ID for the REV Spark max motor controller. The basis for this is that in the
      * id is the control mode with some 28 bit number for a specific control mode like voltage or setpoint.

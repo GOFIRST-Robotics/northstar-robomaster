@@ -1,6 +1,7 @@
 #include "RevMotorTesterSingleMotor.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "drivers.hpp"
 
@@ -27,8 +28,15 @@ RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
 // STEP 2 (Tank Drive): initialize function
     void RevMotorTesterSingleMotor::initialize() {
         singularMotor.initialize();
-        singularMotor.setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
-        singularMotor.setControlValue(0.05f); // Initialize control value to 0.0f
+        singularMotor.setParameter(tap::motor::Parameter::kP_0, 0.01f);
+        singularMotor.setParameter(tap::motor::Parameter::kI_0, 0.00f);
+        singularMotor.setParameter(tap::motor::Parameter::kD_0, 0.00f);
+        singularMotor.setParameter(tap::motor::Parameter::kF_0, 0.00f);
+        singularMotor.setParameter(tap::motor::Parameter::kOutputMin_0, -0.1f);
+        singularMotor.setParameter(tap::motor::Parameter::kOutputMax_0, 0.1f);
+        // singularMotor.setParameter(tap::motor::Parameter::, 0.1f);
+        singularMotor.setControlMode(tap::motor::RevMotor::ControlMode::POSITION); // Set control mode to DUTY_CYCLE
+        singularMotor.setControlValue(1.0f); // Initialize control value to 0.0f
         
         // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
     }

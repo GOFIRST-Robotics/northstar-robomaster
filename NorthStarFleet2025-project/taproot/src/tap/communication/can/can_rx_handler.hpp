@@ -105,7 +105,7 @@ public:
         if (canId >= MIN_DJI_CAN_ID && canId <= MAX_DJI_CAN_ID)
         {
             return canId - MIN_DJI_CAN_ID;
-        } else if (canId >= MIN_REV_CAN_ID && canId > MAX_REV_CAN_ID)
+        } else if (canId >= MIN_REV_CAN_ID && canId < MAX_REV_CAN_ID)
         {
             return canId - MIN_REV_CAN_ID;
         } else {

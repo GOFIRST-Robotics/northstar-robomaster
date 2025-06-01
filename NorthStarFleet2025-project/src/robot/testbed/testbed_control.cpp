@@ -13,17 +13,22 @@
 // safe disconnect
 #include "control/safe_disconnect.hpp"
 
-
+#include "communication/RevMotorTesterSingleMotor.hpp"
 
 src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
 
+
+
 namespace testbed_control
 {
+
+Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers());
 
 src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
 void initializeSubsystems(src::testbed::Drivers *drivers)
 {
+    revMotorTesterSingleMotor.initialize();
 }
 
 void registerStandardSubsystems(src::testbed::Drivers *drivers)

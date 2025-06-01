@@ -66,7 +66,9 @@ RevMotor::RevMotor(
 void RevMotor::initialize()
 {
     drivers->revMotorTxHandler.addMotorToManager(this);
+    attachSelfToRxHandler();
 }
+
 
 void RevMotor::processMessage(const modm::can::Message& message)
 {
@@ -192,9 +194,9 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor) {
     if(parameters.size() > 0 && paramVals.size() > 0){
         // If there are parameters to set, we will use the first one
         Parameter firstParam = parameters.front();
-        parameters.pop();
-        float firstParamVal = paramVals.front();
-        paramVals.pop();
+        // parameters.pop();
+        // float firstParamVal = paramVals.front();
+        // paramVals.pop();
         RevArbitrationId = CreateArbitrationParameterId(firstParam, motor);
     } else {
         // If no parameters, use the control mode
