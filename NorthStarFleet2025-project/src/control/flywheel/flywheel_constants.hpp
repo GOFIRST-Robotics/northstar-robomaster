@@ -5,12 +5,11 @@
 
 #include "modm/math/interpolation/linear.hpp"
 
-
-#ifdef TARGET_STANDARD
+#ifdef STANDARD_CONSTANTS
 #include "robot/standard/standard_flywheel_constants.hpp"
-#elif TARGET_SENTRY
+#elif SENTRY_CONSTANTS
 #include "robot/sentry/sentry_flywheel_constants.hpp"
-#elif TARGET_HERO
+#elif HERO_CONSTANTS
 #include "robot/hero/hero_flywheel_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_flywheel_constants.hpp"

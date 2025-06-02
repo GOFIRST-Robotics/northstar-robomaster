@@ -1,11 +1,11 @@
 #ifndef AGITATOR_CONSTANTS_HPP_
 #define AGITATOR_CONSTANTS_HPP_
 
-#ifdef TARGET_STANDARD
+#ifdef STANDARD_CONSTANTS
 #include "robot/standard/standard_agitator_constants.hpp"
-#elif TARGET_SENTRY
+#elif SENTRY_CONSTANTS
 #include "robot/sentry/sentry_agitator_constants.hpp"
-#elif TARGET_HERO
+#elif HERO_CONSTANTS
 #include "robot/hero/hero_agitator_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_agitator_constants.hpp"
