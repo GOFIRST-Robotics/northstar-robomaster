@@ -86,6 +86,9 @@ float FlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
     return MPSToRPMInterpolator.interpolate(launchSpeed);
 }
 float upRpm = 0;
+float rightRpm = 0;
+float leftRpm = 0;
+
 void FlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -94,6 +97,9 @@ void FlywheelSubsystem::refresh()
         return;
     }
     upRpm = upWheel.getVelocity();
+    rightRpm = rightWheel.getVelocity();
+    leftRpm = leftWheel.getVelocity();
+
     desiredRpmRampLeft.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     desiredRpmRampRight.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     desiredRpmRampUp.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
