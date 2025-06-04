@@ -331,7 +331,11 @@ void setDefaultTestCommands(src::testbed::Drivers *drivers)
     sentryTurrets.setDefaultCommand(&turretWRChassisImuCommand);
 }
 
-void startTestCommands(src::testbed::Drivers *drivers) {}
+void startTestCommands(src::testbed::Drivers *drivers)
+{
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+}
 
 void registerTestIoMappings(src::testbed::Drivers *drivers)
 {
