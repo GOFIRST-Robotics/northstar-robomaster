@@ -34,6 +34,8 @@
 #include "tap/architecture/profiler.hpp"
 
 /* communication includes ---------------------------------------------------*/
+#include "communication/serial/fly_sky.hpp"
+
 #include "drivers_singleton.hpp"
 
 /* error handling includes --------------------------------------------------*/
@@ -74,7 +76,6 @@ static void initializeIo(Drivers *drivers);
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
 static void updateIo(Drivers *drivers);
-
 int main()
 {
 #ifdef PLATFORM_HOSTED
@@ -131,6 +132,7 @@ int main()
 }
 static void initializeIo(Drivers *drivers)
 {
+    drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
     drivers->can.initialize();
     drivers->leds.init();
     drivers->digital.init();
@@ -148,6 +150,7 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
+    drivers->vissionComs.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
 #endif
@@ -158,6 +161,7 @@ float debugRoll = 0.0f;
 float debugYawV = 0.0f;
 float debugPitchV = 0.0f;
 float debugRollV = 0.0f;
+bool conneccc = false;
 
 bool cal = false;
 static void updateIo(Drivers *drivers)
@@ -171,6 +175,7 @@ static void updateIo(Drivers *drivers)
 
 #ifndef TURRET
     drivers->refSerial.updateSerial();
+    drivers->vissionComs.updateSerial();
     drivers->remote.read();
     if (cal)
     {
@@ -183,5 +188,6 @@ static void updateIo(Drivers *drivers)
     debugPitch = modm::toDegree(drivers->bmi088.getPitch());
     debugRollV = drivers->bmi088.getGx();
     debugRoll = modm::toDegree(drivers->bmi088.getRoll());
+    conneccc = drivers->remote.isConnected();
 #endif
 }

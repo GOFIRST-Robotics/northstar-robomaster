@@ -17,8 +17,8 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STANDARD_TURRET_CONSTANTS_HPP_
-#define STANDARD_TURRET_CONSTANTS_HPP_
+#ifndef SENTRY_TURRET_CONSTANTS_HPP_
+#define SENTRY_TURRET_CONSTANTS_HPP_
 
 #include "tap/algorithms/smooth_pid.hpp"
 #include "tap/motor/dji_motor.hpp"
@@ -29,7 +29,7 @@
 // Do not include this file directly: use turret_constants.hpp instead.
 #ifndef TURRET_CONSTANTS_HPP_
 // uncomment this
-// #error "Do not include this file directly! Use turret_controller_constants.hpp instead."
+#error "Do not include this file directly! Use turret_controller_constants.hpp instead."
 #endif
 
 using tap::motor::DjiMotor;

@@ -101,7 +101,8 @@
             "intelliSenseMode": "gcc-arm",
             "browse": { "limitSymbolsToIncludedHeaders": true },
             "defines": [
-                "TARGET_TEST_BED"
+                "TARGET_TEST_BED",
+                "FLY_SKY"
             ]
         }
     ],
