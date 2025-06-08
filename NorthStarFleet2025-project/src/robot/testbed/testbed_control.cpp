@@ -41,6 +41,11 @@
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
 
+// governor
+#include "tap/control/governor/governor_limited_command.hpp"
+
+#include "control/governor/fire_rate_limit_governor.hpp"
+
 src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
 
 using namespace tap::control::setpoint;
@@ -53,17 +58,19 @@ using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::turret;
-// using namespace src::control::governor;
-// using namespace tap::control::governor;
+using namespace src::control::governor;
+using namespace tap::control::governor;
 
 // what to test
-//#define FLYWHEEL_TEST
-//#define AGITATOR_TEST
+#define FLYWHEEL_TEST
+#define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
-#define SENTRY_CONSTANTS
+// #define SENTRY_CONSTANTS
 
 namespace testbed_control
 {
+DummySubsystem dummySubsystem(drivers());
+
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
 Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers());
@@ -92,11 +99,47 @@ ConstantVelocityAgitatorCommand rotateAgitator(agitator, constants::AGITATOR_ROT
 
 UnjamSpokeAgitatorCommand unjamAgitator(agitator, constants::AGITATOR_UNJAM_CONFIG);
 
+ManualFireRateReselectionManager manualFireRateReselectionManager;
+
+SetFireRateCommand setFireRateCommandFullAuto(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    40,
+    &rotateAgitator);
+SetFireRateCommand setFireRateCommand10RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    10,
+    &rotateAgitator);
+
+FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
+
 MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     *drivers(),
     agitator,
     rotateAgitator,
     unjamAgitator);
+
+GovernorLimitedCommand<1> agitatorFireRate(
+    {&agitator},
+    rotateAndUnjamAgitator,
+    {&fireRateLimitGovernor});
+
+HoldRepeatCommandMapping leftMousePressed(
+    drivers(),
+    {&agitatorFireRate},  // TODO
+    RemoteMapState(RemoteMapState::MouseButton::LEFT),
+    false);
+
+ToggleCommandMapping vPressed(
+    drivers(),
+    {&setFireRateCommandFullAuto},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
+
+ToggleCommandMapping gPressed(
+    drivers(),
+    {&setFireRateCommand10RPS},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
 
 // turret subsystem
 // tap::motor::DjiMotor pitchMotorBottom(
@@ -284,24 +327,10 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
 //     {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
 
 // agitator mappings
-// ToggleCommandMapping vPressed(
-//     drivers(),
-//     {&setFireRateCommandFullAuto},
-//     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
-
-// ToggleCommandMapping gPressed(
-//     drivers(),
-//     {&setFireRateCommand10RPS},
-//     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
-
-HoldRepeatCommandMapping leftMousePressed(
-    drivers(),
-    {&rotateAndUnjamAgitator},  // TODO
-    RemoteMapState(RemoteMapState::MouseButton::LEFT),
-    false);
 
 void initializeSubsystems(src::testbed::Drivers *drivers)
 {
+    dummySubsystem.initialize();
 #ifdef AGITATOR_TEST
     agitator.initialize();
 #endif
@@ -316,6 +345,8 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 
 void registerTestSubsystems(src::testbed::Drivers *drivers)
 {
+    drivers->commandScheduler.registerSubsystem(&dummySubsystem);
+
 #ifdef AGITATOR_TEST
     drivers->commandScheduler.registerSubsystem(&agitator);
 #endif
@@ -342,6 +373,9 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 {
 #ifdef AGITATOR_TEST
     drivers->commandMapper.addMap(&leftMousePressed);
+    drivers->commandMapper.addMap(&vPressed);
+    drivers->commandMapper.addMap(&gPressed);
+
 #endif
 #ifdef FLYWHEEL_TEST
     drivers->commandMapper.addMap(&fPressed);

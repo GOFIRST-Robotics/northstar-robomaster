@@ -89,4 +89,6 @@ void VisionComms::sendRobotIdMessage()
         sizeof(robotTypeMessage));
 }
 
+bool VisionComms::isCvOnline() const { return !cvOfflineTimeout.isExpired(); }
+
 }  // namespace src::serial

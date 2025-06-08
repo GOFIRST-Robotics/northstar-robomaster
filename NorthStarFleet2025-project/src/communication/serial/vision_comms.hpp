@@ -11,7 +11,7 @@ namespace src::serial
 class VisionComms : public tap::communication::serial::DJISerial
 {
 public:
-    static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
+    static constexpr size_t VISION_COMMS_BAUD_RATE = 1'000'000;
 
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_TX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
@@ -34,7 +34,7 @@ public:
 
     void messageReceiveCallback(const ReceivedSerialMessage& completeMessage) override;
 
-    mockable void isCvOnline() const;
+    mockable bool isCvOnline() const;
 
     mockable inline const TurretAimData& getLastAimData(uint8_t turretID) const
     {
