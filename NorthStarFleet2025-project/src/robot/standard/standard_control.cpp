@@ -64,6 +64,10 @@
 
 #include "ref_system_constants.hpp"
 
+// HUD
+#include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/indicators/hud_indicator.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -80,6 +84,8 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
+using namespace src::control::client_display;
+using namespace tap::communication::serial;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -366,6 +372,10 @@ ToggleCommandMapping xPressed(
     drivers(),
     {&imuCalibrateCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
+
+// HUD
+ClientDisplaySubsystem clientDisplay(drivers());
+tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
 
 void initializeSubsystems(Drivers *drivers)
 {
