@@ -67,9 +67,12 @@
 // HUD
 #include "tap/communication/serial/ref_serial_transmitter.hpp"
 
+#include "control/clientDisplay/client_display_command.hpp"
 #include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/indicators/ammo_indicator.hpp"
+#include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/hud_indicator.hpp"
-
+#include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
@@ -379,6 +382,21 @@ ToggleCommandMapping xPressed(
 // HUD
 ClientDisplaySubsystem clientDisplay(drivers());
 tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
+
+AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
+
+CircleCrosshair circleCrosshair(refSerialTransmitter);
+
+TextHudIndicators textHudIndicators(
+    *drivers(),
+    agitator,
+    // imuCalibrateCommand,
+    {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
+    refSerialTransmitter);
+
+std::vector<HudIndicator *> hudIndicators = {&ammoIndicator, &circleCrosshair, &textHudIndicators};
+
+ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
 void initializeSubsystems(Drivers *drivers)
 {
