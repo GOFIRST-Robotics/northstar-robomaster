@@ -75,6 +75,8 @@ private:
     const float userPitchInputScalar;
 
     WrappedFloat userYawTopInput;
+
+    WrappedFloat prevTopWorldAngle;
 };
 }  // namespace src::control::turret::user
 
