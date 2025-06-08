@@ -70,7 +70,7 @@ public:
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    float getChassisTurretOffset();
+    float getChassisZeroTurretOffset(float offset);
 
     void refresh() override;
 

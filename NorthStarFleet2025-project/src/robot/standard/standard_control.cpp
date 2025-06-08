@@ -19,6 +19,7 @@
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
+#include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
 // agitator
@@ -206,7 +207,8 @@ src::chassis::ChassisDriveCommand chassisDriveCommand(
 
 src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
+    &drivers()->controlOperatorInterface,
+    0.0f);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
@@ -215,6 +217,12 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     -1,
     2,
     true);
+
+src::chassis::ChassisWiggleCommand chassisWiggleCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1.0f,
+    0.5f);
 
 // chassis Mappings
 ToggleCommandMapping beyBlade(
@@ -226,6 +234,11 @@ ToggleCommandMapping orientDrive(
     drivers(),
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
+
+ToggleCommandMapping wiggle(
+    drivers(),
+    {&chassisWiggleCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
