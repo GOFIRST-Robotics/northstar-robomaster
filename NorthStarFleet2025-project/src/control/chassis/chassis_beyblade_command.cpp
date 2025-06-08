@@ -38,13 +38,13 @@ void ChassisBeybladeCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
-    chassis->setVelocityFieldDrive(
+    chassis->setVelocityTurretDrive(
         scale(operatorInterface->getDrivetrainVerticalTranslation()),
         -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
         calculateBeyBladeRotationSpeed(1, dt));
 }
 
-void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityFieldDrive(0, 0, 0); }
+void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
 
 float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float distance, uint32_t dt)
 {

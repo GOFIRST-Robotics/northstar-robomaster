@@ -72,14 +72,14 @@ inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrap
 
 float ChassisSubsystem::getChassisZeroTurretOffset(float offset)
 {
-    float angle = -(getTurretYaw() + modm::toRadian(offset));
+    float angle = (getTurretYaw() + modm::toRadian(offset));
     return (angle > M_PI) ? angle - M_TWOPI : angle;
 }
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
     // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
-    float turretRot = -getTurretYaw();
+    float turretRot = getTurretYaw();
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 

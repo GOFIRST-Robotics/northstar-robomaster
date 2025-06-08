@@ -314,6 +314,12 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     2,
     true);
 
+src::chassis::ChassisWiggleCommand chassisWiggleCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    2.0f,
+    2.0f);
+
 // Chassis Governors
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
@@ -326,12 +332,6 @@ GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
     chassisBeyBladeFastCommand,
     {&firedRecentlyGovernor, &plateHitGovernor},
     true);
-
-src::chassis::ChassisWiggleCommand chassisWiggleCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1.0f,
-    0.5f);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
@@ -347,7 +347,7 @@ ToggleCommandMapping orientDrive(
 ToggleCommandMapping wiggle(
     drivers(),
     {&chassisWiggleCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -408,6 +408,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
     drivers->commandMapper.addMap(&xPressed);
+    drivers->commandMapper.addMap(&wiggle);
+    drivers->commandMapper.addMap(&orientDrive);
 }
 }  // namespace standard_control
 

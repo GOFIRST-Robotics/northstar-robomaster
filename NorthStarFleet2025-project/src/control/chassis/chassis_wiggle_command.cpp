@@ -34,13 +34,13 @@ void ChassisWiggleCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
-    chassis->setVelocityFieldDrive(
+    chassis->setVelocityTurretDrive(
         scale(operatorInterface->getDrivetrainVerticalTranslation()),
         -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
         calculateWiggle(dt));
 }
 
-void ChassisWiggleCommand::end(bool interrupted) { chassis->setVelocityFieldDrive(0, 0, 0); }
+void ChassisWiggleCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
 
 float ChassisWiggleCommand::calculateWiggle(uint32_t dt)
 {
@@ -49,7 +49,7 @@ float ChassisWiggleCommand::calculateWiggle(uint32_t dt)
         accumTime = 0;
         return 0;
     }
-    accumTime += (dt / 1000);
-    return maxWiggleSpeed * sin((1 / period) * accumTime * M_TWOPI);
+    accumTime += dt;
+    return maxWiggleSpeed * sin((1 / period) * ((float)accumTime / 1000.0f) * M_TWOPI);
 }
 };  // namespace src::chassis
