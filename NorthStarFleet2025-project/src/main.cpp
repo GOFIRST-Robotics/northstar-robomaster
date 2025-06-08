@@ -34,6 +34,8 @@
 #include "tap/architecture/profiler.hpp"
 
 /* communication includes ---------------------------------------------------*/
+#include "communication/serial/fly_sky.hpp"
+
 #include "drivers_singleton.hpp"
 
 /* error handling includes --------------------------------------------------*/
@@ -60,6 +62,8 @@ using namespace src::hero;
 #include "communication/can/chassis/chassis_mcb_can_comm.hpp"
 using namespace src::gyro;
 ChassisMcbCanComm chassisMcbCanComm(DoNotUse_getDrivers());
+#elif TARGET_TEST_BED
+using namespace src::testbed;
 #endif
 
 // using namespace std::chrono_literals;
@@ -72,7 +76,6 @@ static void initializeIo(Drivers *drivers);
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
 static void updateIo(Drivers *drivers);
-
 int main()
 {
 #ifdef PLATFORM_HOSTED
@@ -109,11 +112,11 @@ int main()
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
             PROFILE(drivers->profiler, chassisMcbCanComm.sendSynchronizationRequest, ());
 #else
-            PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
+            // PROFILE(drivers->profiler, drivers->turretMCBCanCommBus2.sendData, ());
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
-#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY) || defined(TARGET_TEST_BED)
         if (revTxPublisherTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
@@ -129,13 +132,15 @@ int main()
 }
 static void initializeIo(Drivers *drivers)
 {
+    drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
     drivers->can.initialize();
     drivers->leds.init();
     drivers->digital.init();
     drivers->pwm.init();
-    drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
     drivers->terminalSerial.initialize();
+    drivers->bmi088.initialize(500, .001, 0);
+
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();
 #endif
@@ -145,11 +150,20 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
+    drivers->vissionComs.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
+float debugYaw = 0.0f;
+float debugPitch = 0.0f;
+float debugRoll = 0.0f;
+float debugYawV = 0.0f;
+float debugPitchV = 0.0f;
+float debugRollV = 0.0f;
+bool conneccc = false;
 
+bool cal = false;
 static void updateIo(Drivers *drivers)
 {
 #ifdef PLATFORM_HOSTED
@@ -158,8 +172,22 @@ static void updateIo(Drivers *drivers)
 
     drivers->canRxHandler.pollCanData();
     drivers->bmi088.read();
+
 #ifndef TURRET
     drivers->refSerial.updateSerial();
+    drivers->vissionComs.updateSerial();
     drivers->remote.read();
+    if (cal)
+    {
+        cal = false;
+        drivers->bmi088.requestCalibration();
+    }
+    debugYawV = drivers->bmi088.getGz();
+    debugYaw = modm::toDegree(drivers->bmi088.getYaw());
+    debugPitchV = drivers->bmi088.getGy();
+    debugPitch = modm::toDegree(drivers->bmi088.getPitch());
+    debugRollV = drivers->bmi088.getGx();
+    debugRoll = modm::toDegree(drivers->bmi088.getRoll());
+    conneccc = drivers->remote.isConnected();
 #endif
 }

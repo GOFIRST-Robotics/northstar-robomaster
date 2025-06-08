@@ -44,6 +44,8 @@
 #include "tap/mock/terminal_serial_mock.hpp"
 #include "tap/mock/uart_mock.hpp"
 
+#include ""
+
 #else
 #include "tap/architecture/profiler.hpp"
 #include "tap/communication/can/can.hpp"
@@ -63,9 +65,10 @@
 #include "tap/errors/error_controller.hpp"
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
-#include "tap/motor/rev_motor_tx_handler.hpp"
+#include "tap/motor/sparkmax/rev_motor_tx_handler.hpp"
 
-// #include "../../src/communication/can/turret/turret_mcb_can_comm.hpp"
+#include "communication/serial/fly_sky.hpp"
+
 #endif
 
 namespace tap
@@ -123,6 +126,7 @@ protected:
     testing::StrictMock<mock::ErrorControllerMock> errorController;
     testing::NiceMock<mock::DjiMotorTerminalSerialHandlerMock> djiMotorTerminalSerialHandler;
     testing::NiceMock<mock::DjiMotorTxHandlerMock> djiMotorTxHandler;
+    revMotorTxHandler;
     testing::NiceMock<mock::Bmi088Mock> bmi088;
     testing::NiceMock<mock::CommandSchedulerMock> commandScheduler;
 #else
@@ -135,7 +139,12 @@ public:
     gpio::Leds leds;
     gpio::Pwm pwm;
     communication::serial::RefSerial refSerial;
+// #define FLY_SKY
+#ifdef FLY_SKY
+    communication::serial::FlySky remote;
+#else
     communication::serial::Remote remote;
+#endif
     communication::serial::Uart uart;
     communication::serial::TerminalSerial terminalSerial;
     control::CommandMapper commandMapper;

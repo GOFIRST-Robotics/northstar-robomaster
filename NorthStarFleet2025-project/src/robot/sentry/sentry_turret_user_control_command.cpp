@@ -48,7 +48,9 @@ SentryTurretUserControlCommand::SentryTurretUserControlCommand(
       pitchControllerTop(pitchControllerTop),
       userYawInputScalar(userYawInputScalar),
       userPitchInputScalar(userPitchInputScalar),
-      userYawTopInput(Angle(0))
+      userYawTopInput(Angle(0)),
+      prevTopWorldAngle(yawControllerTop->getMeasurement() + yawControllerBottom->getMeasurement())
+
 {
     addSubsystemRequirement(turretSubsystem);
 }
@@ -64,6 +66,15 @@ void SentryTurretUserControlCommand::initialize()
     yawControllerTop->initialize();
     pitchControllerTop->initialize();
     prevTime = tap::arch::clock::getTimeMilliseconds();
+}
+
+float delta_max_ = modm::toRadian(45.0f);
+
+inline double wrap_rad(double a)
+{
+    while (a <= -M_TWOPI) a += M_TWOPI;
+    while (a > M_TWOPI) a -= M_TWOPI;
+    return a;
 }
 
 void SentryTurretUserControlCommand::execute()
@@ -87,9 +98,28 @@ void SentryTurretUserControlCommand::execute()
         userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(1);
     pitchControllerTop->runController(dt, pitchSetpointTop);
 
-    userYawTopInput += userYawInputScalar * controlOperatorInterface.getTurretYawInput(1);
-    const WrappedFloat yawSetpointTop = userYawTopInput - yawSetpointBottom.getUnwrappedValue();
-    //     yawControllerTop->getSetpoint()
+    WrappedFloat topWorldAngle =
+        yawControllerTop->getMeasurement() + yawControllerBottom->getMeasurement();
+
+    WrappedFloat topWorldDiff = topWorldAngle - prevTopWorldAngle;
+
+    prevTopWorldAngle = topWorldAngle;
+
+    WrappedFloat yawSetpointTop =
+        yawControllerTop->getSetpoint() +
+        userYawInputScalar * controlOperatorInterface.getTurretYawInput(1) -
+        (topWorldDiff.getWrappedValue());
+
+    double delta = WrappedFloat(yawSetpointTop.getUnwrappedValue(), -M_PI, M_PI).getWrappedValue();
+    if (delta > delta_max_)
+    {
+        yawSetpointTop = Angle(delta_max_);
+    }
+    else if (delta < -delta_max_)
+    {
+        yawSetpointTop = Angle(-delta_max_);
+    }
+
     yawControllerTop->runController(dt, yawSetpointTop);
 }
 

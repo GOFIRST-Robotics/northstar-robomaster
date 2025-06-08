@@ -1,11 +1,12 @@
 #ifndef SENTRY_FLYWHEEL_CONSTANTS_HPP_
 #define SENTRY_FLYWHEEL_CONSTANTS_HPP_
+#include <modm/container/pair.hpp>
 
-#include "tap/motor/rev_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "modm/math/filter/pid.hpp"
 
-namespace src::flywheel
+namespace src::control::flywheel
 {
 static constexpr float FRICTION_WHEEL_RAMP_SPEED = .0001f;
 
@@ -21,6 +22,36 @@ static constexpr float FLYWHEEL_PID_KD = 0.0f;
 static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM = 5'000.0f;
 static constexpr float FLYWHEEL_PID_MAX_OUTPUT = 16'000.0f;
 
-}  // namespace src::flywheel
+// TODO make these correct
+enum Spin : u_int8_t
+{
+    SPIN_90 = 0,
+    SPIN_100 = 1,
+    SPIN_110 = 2,
+
+    SPIN_COUNT
+};
+
+static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
+    SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
+        {{{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}},    // SPIN_90
+         {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}},    // SPIN_100
+         {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}}}};  // SPIN_110
+
+inline std::optional<Spin> toSpinPreset(int value)
+{
+    switch (value)
+    {
+        case 90:
+            return SPIN_90;
+        case 100:
+            return SPIN_100;
+        case 110:
+            return SPIN_110;
+        default:
+            return SPIN_100;  // invalid input
+    }
+}
+}  // namespace src::control::flywheel
 
 #endif

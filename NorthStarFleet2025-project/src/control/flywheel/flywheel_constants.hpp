@@ -3,6 +3,8 @@
 
 #include "tap/motor/dji_motor.hpp"
 
+#include "modm/math/interpolation/linear.hpp"
+
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_flywheel_constants.hpp"
 #elif TARGET_SENTRY
@@ -10,6 +12,8 @@
 #elif TARGET_HERO
 #include "robot/hero/hero_flywheel_constants.hpp"
 #elif TURRET
+#include "robot/standard/standard_flywheel_constants.hpp"
+#else
 #include "robot/standard/standard_flywheel_constants.hpp"
 #endif
 

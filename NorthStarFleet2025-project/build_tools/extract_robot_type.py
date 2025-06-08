@@ -23,7 +23,8 @@ VALID_ROBOT_TYPES   = [ "TARGET_STANDARD",
                         "TARGET_ENGINEER",
                         "TARGET_SENTRY",
                         "TARGET_HERO",
-                        "TURRET"]
+                        "TURRET",
+                        "TARGET_TEST_BED"]
 
 def get_robot_type():
     robot_type = ARGUMENTS.get("robot")

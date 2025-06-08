@@ -107,7 +107,7 @@ public:
      */
     mockable inline float getChassisFrameVelocity() const
     {
-        return (M_TWOPI / 60) * motor->getShaftRPM();
+        return motor->getEncoder()->getVelocity();
     }
 
     /// @return turret controller controlling this motor (as specified by `attachTurretController`)

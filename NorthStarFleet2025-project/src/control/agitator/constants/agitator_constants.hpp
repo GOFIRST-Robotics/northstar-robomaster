@@ -9,6 +9,8 @@
 #include "robot/hero/hero_agitator_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_agitator_constants.hpp"
+#else
+#include "robot/standard/standard_agitator_constants.hpp"
 #endif
 
 #endif  // AGITATOR_CONSTANTS_HPP_

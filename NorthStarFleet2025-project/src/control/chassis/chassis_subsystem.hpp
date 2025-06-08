@@ -52,7 +52,7 @@ public:
     using Motor = tap::motor::DjiMotor;
 #endif
 
-    static constexpr float MAX_WHEELSPEED_RPM = 7000;
+    static constexpr float MAX_WHEELSPEED_RPM = 9000;
 
     ChassisSubsystem(
         tap::Drivers* drivers,

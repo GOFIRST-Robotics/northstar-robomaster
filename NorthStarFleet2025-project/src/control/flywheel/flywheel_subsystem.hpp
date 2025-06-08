@@ -1,10 +1,15 @@
+#ifndef TARGET_HERO
+
 #ifndef FLYWHEEL_SUBSYSTEM_HPP_
 #define FLYWHEEL_SUBSYSTEM_HPP_
 
+#include <modm/container/pair.hpp>
+
 #include "tap/algorithms/ramp.hpp"
 #include "tap/control/subsystem.hpp"
-#include "tap/motor/rev_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 
+#include "control/flywheel/flywheel_constants.hpp"
 #include "modm/math/filter/pid.hpp"
 
 namespace src::control::flywheel
@@ -21,15 +26,46 @@ public:
 
     void initialize() override;
 
-    mockable void setDesiredLaunchSpeedLeft(float speed);
-    mockable void setDesiredLaunchSpeedRight(float speed);
-    mockable void setDesiredLaunchSpeedUp(float speed);
+    mockable void setDesiredSpin(u_int16_t spin);
+
+    mockable float getDesiredSpin() const { return desiredSpin; }
+
+    mockable void setDesiredLaunchSpeed(float speed);
 
     mockable float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
     mockable float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
     mockable float getDesiredLaunchSpeedUp() const { return desiredLaunchSpeedUp; }
 
-    float getCurrentFlyWheelMotorRPM(tap::motor::RevMotor motor) const;
+    mockable float getDesiredFlywheelSpeedLeft() const
+    {
+        return launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft);
+    }
+    mockable float getDesiredFlywheelSpeedRight() const
+    {
+        return launchSpeedToFlywheelRpm(desiredLaunchSpeedRight);
+    }
+    mockable float getDesiredFlywheelSpeedUp() const
+    {
+        return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
+    }
+
+    float getCurrentLeftFlywheelMotorRPM() const
+    {
+        // return motor.getShaftRPM(); // TODO
+        return 0.0f;
+    }
+
+    float getCurrentRightFlywheelMotorRPM() const
+    {
+        // return motor.getShaftRPM(); // TODO
+        return 0.0f;
+    }
+
+    float getCurrentUpFlywheelMotorRPM() const
+    {
+        // return motor.getShaftRPM(); // TODO
+        return 0.0f;
+    }
 
     void refresh() override;
 
@@ -56,6 +92,9 @@ private:
     float desiredLaunchSpeedRight;
     float desiredLaunchSpeedUp;
 
+    Spin desiredSpin = SPIN_100;
+    u_int16_t desiredSpinValue = 100;  // percent of spin
+
     uint32_t prevTime = 0;
 
     tap::algorithms::Ramp desiredRpmRampLeft;
@@ -67,8 +106,12 @@ private:
     tap::motor::RevMotor upWheel;
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
+
+    std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> spinToRPMMap;
 };
 
 }  // namespace src::control::flywheel
+
+#endif
 
 #endif

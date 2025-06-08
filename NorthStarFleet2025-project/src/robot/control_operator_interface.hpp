@@ -1,3 +1,7 @@
+// #define FLY_SKY
+#ifdef FLY_SKY
+#include "robot/fly_sky_control_operator_interface.hpp"
+#else
 /*
  * Copyright (c) 2020-2021 Advanced Robotics at the University of Washington <robomstr@uw.edu>
  *
@@ -21,12 +25,13 @@
 #define CONTROL_OPERATOR_INTERFACE_HPP_
 
 // mm tasty imports
+#include <tap/algorithms/linear_interpolation_predictor.hpp>
+#include <tap/algorithms/ramp.hpp>
+
 #include "tap/algorithms/linear_interpolation_predictor.hpp"
 #include "tap/algorithms/ramp.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
-#include <tap/algorithms/linear_interpolation_predictor.hpp>
-#include <tap/algorithms/ramp.hpp>
 
 namespace src
 {
@@ -48,9 +53,7 @@ public:
     static constexpr float SPEED_REDUCTION_SCALAR = (1.0f / 3.0f);
     static constexpr float USER_STICK_SENTRY_DRIVE_SCALAR = 5000.0f;
 
-
     ControlOperatorInterface(tap::Drivers *drivers) : remote(drivers->remote) {}
-
 
     /**
      * @return the value used for turret yaw rotation, between about -1 and 1
@@ -66,8 +69,7 @@ public:
      */
     mockable float getTurretPitchInput(uint8_t turretID);
 
-
- static constexpr float MAX_ACCELERATION_X = 10'000.0f;
+    static constexpr float MAX_ACCELERATION_X = 10'000.0f;
     static constexpr float MAX_DECELERATION_X = 20'000.0f;
 
     static constexpr float MAX_ACCELERATION_Y = 9'000.0f;
@@ -108,7 +110,7 @@ public:
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */
     float applyChassisSpeedScaling(float value);
-    
+
 private:
     tap::communication::serial::Remote &remote;
 
@@ -133,6 +135,8 @@ private:
 };
 }  // namespace control
 
-} //namespace src
+}  // namespace src
 
 #endif  // CONTROL_OPERATOR_INTERFACE_HPP_
+
+#endif  // FLY_SKY

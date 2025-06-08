@@ -1,3 +1,5 @@
+// #define FLY_SKY
+#ifndef FLY_SKY
 
 /*
  * Copyright (c) 2020-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
@@ -358,3 +360,5 @@ void ControlOperatorInterface::checkToggleBeyBlade()
 }  // namespace control
 
 }  // namespace src
+
+#endif  // FLY_SKY
