@@ -3,11 +3,11 @@
 
 #include "tap/motor/dji_motor.hpp"
 
-#ifdef STANDARD_CONSTANTS
+#ifdef TARGET_STANDARD
 #include "robot/standard/standard_chassis_constants.hpp"
-#elif SENTRY_CONSTANTS
+#elif TARGET_SENTRY
 #include "robot/sentry/sentry_chassis_constants.hpp"
-#elif HERO_CONSTANTS
+#elif TARGET_HERO
 #include "robot/hero/hero_chassis_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_chassis_constants.hpp"

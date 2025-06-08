@@ -24,14 +24,16 @@
 
 #include "tap/util_macros.hpp"
 
-#ifdef STANDARD_CONSTANTS
+#ifdef TARGET_STANDARD
 #include "robot/standard/standard_turret_constants.hpp"
-#elif SENTRY_CONSTANTS
+#elif TARGET_SENTRY
 #include "robot/sentry/sentry_turret_constants.hpp"
-#elif HERO_CONSTANTS
+#elif TARGET_HERO
 #include "robot/hero/hero_turret_constants.hpp"
 #elif TURRET
 #include "robot/standard/standard_turret_constants.hpp"
+#elif TARGET_TEST_BED
+#include "robot/sentry/sentry_turret_constants.hpp"
 #else
 #include "robot/standard/standard_turret_constants.hpp"
 
