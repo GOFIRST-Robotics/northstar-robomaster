@@ -150,7 +150,7 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
-    // drivers->vissionComs.initialize();
+    drivers->vissionComs.initialize();
     drivers->schedulerTerminalHandler.init();
     drivers->djiMotorTerminalSerialHandler.init();
 #endif
@@ -175,7 +175,7 @@ static void updateIo(Drivers *drivers)
 
 #ifndef TURRET
     drivers->refSerial.updateSerial();
-    // drivers->vissionComs.updateSerial();
+    drivers->vissionComs.updateSerial();
     drivers->remote.read();
     if (cal)
     {
