@@ -65,8 +65,11 @@
 #include "ref_system_constants.hpp"
 
 // HUD
+#include "tap/communication/serial/ref_serial_transmitter.hpp"
+
 #include "control/clientDisplay/client_display_subsystem.hpp"
 #include "control/clientDisplay/indicators/hud_indicator.hpp"
+
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
