@@ -8,10 +8,10 @@
 
 namespace src::serial
 {
-class VisionComms : public tap::communication::serial::DJISerial
+class VisionComms  //: public tap::communication::serial::DJISerial
 {
 public:
-    static constexpr size_t VISION_COMMS_BAUD_RATE = 1'000'000;
+    static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
 
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_TX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
@@ -32,7 +32,8 @@ public:
 
     mockable void initializeCV();
 
-    void messageReceiveCallback(const ReceivedSerialMessage& completeMessage) override;
+    void messageReceiveCallback(const tap::communication::serial::DJISerial::SerialMessage<1024>&
+                                    completeMessage);  // override;
 
     mockable bool isCvOnline() const;
 
@@ -56,7 +57,13 @@ public:
         ROBOT_ID = 2
     };
 
+    void read();
+
+    void sendMessage();
+
 private:
+    tap::Drivers* drivers;
+
     static constexpr int16_t TIME_OFFLINE_CV_AIM_DATA_MS = 1'000;
 
     tap::arch::MilliTimeout cvOfflineTimeout;
@@ -65,7 +72,13 @@ private:
 
     mockable void sendRobotIdMessage();
 
-    bool decodeToTurretAimData(const ReceivedSerialMessage& message);
+    bool decodeToTurretAimData(
+        const tap::communication::serial::DJISerial::SerialMessage<1024>& message);
+
+    inline bool verifyCRC8(uint8_t* message, uint32_t messageLength, uint8_t expectedCRC8)
+    {
+        return tap::algorithms::calculateCRC8(message, messageLength) == expectedCRC8;
+    }
 };
 }  // namespace src::serial
 
