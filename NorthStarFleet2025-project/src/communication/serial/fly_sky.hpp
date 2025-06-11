@@ -1,3 +1,5 @@
+#ifdef FLY_SKY
+
 #ifndef FLYSKY_REMOTE_HPP_
 #define FLYSKY_REMOTE_HPP_
 
@@ -78,3 +80,5 @@ private:
 }  // namespace tap::communication::serial
 
 #endif
+
+#endif // FLY_SKY
