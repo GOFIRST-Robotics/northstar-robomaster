@@ -106,7 +106,7 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
-            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            // PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
 #ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
@@ -122,6 +122,7 @@ int main()
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
         }
 #endif
+        // PROFILE(drivers->profiler, drivers->visionComs.sendMessage, ());
 
         // if(!drivers->turretMCBCanCommBus2.isConnected()){
         //     std::cout<<"poop";
@@ -132,13 +133,13 @@ int main()
 }
 static void initializeIo(Drivers *drivers)
 {
-    drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
+    // drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
     drivers->can.initialize();
     drivers->leds.init();
     drivers->digital.init();
     drivers->pwm.init();
     drivers->errorController.init();
-    drivers->terminalSerial.initialize();
+    // drivers->terminalSerial.initialize();
     drivers->bmi088.initialize(500, .001, 0);
 
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
@@ -150,9 +151,9 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
-    drivers->vissionComs.initialize();
-    drivers->schedulerTerminalHandler.init();
-    drivers->djiMotorTerminalSerialHandler.init();
+    drivers->visionComs.initializeCV();
+    // drivers->schedulerTerminalHandler.init();
+    // drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
 float debugYaw = 0.0f;
@@ -162,6 +163,8 @@ float debugYawV = 0.0f;
 float debugPitchV = 0.0f;
 float debugRollV = 0.0f;
 bool conneccc = false;
+float debugLastAimDataYaw = 0.0f;
+float debugLastAimDataPitch = 0.0f;
 
 bool cal = false;
 static void updateIo(Drivers *drivers)
@@ -175,8 +178,12 @@ static void updateIo(Drivers *drivers)
 
 #ifndef TURRET
     drivers->refSerial.updateSerial();
-    drivers->vissionComs.updateSerial();
+    drivers->visionComs.updateSerial();
     drivers->remote.read();
+
+    debugLastAimDataYaw = drivers->visionComs.getLastAimData(0).yaw;
+    debugLastAimDataPitch = drivers->visionComs.getLastAimData(0).pitch;
+
     if (cal)
     {
         cal = false;

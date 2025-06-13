@@ -6,6 +6,7 @@
 #include "../algorithms/turret_controller_interface.hpp"
 #include "../turret_subsystem.hpp"
 #include "communication/serial/vision_comms.hpp"
+#include "robot/control_operator_interface.hpp"
 
 namespace src::control::turret::cv
 {
@@ -29,6 +30,7 @@ public:
      */
     TurretCVControlCommand(
         tap::Drivers *drivers,
+        ControlOperatorInterface &controlOperatorInterface,
         src::serial::VisionComms &visionComms,
         TurretSubsystem *turretSubsystem,
         algorithms::TurretYawControllerInterface *yawController,
@@ -47,10 +49,11 @@ public:
 
     bool isFinished() const override;
 
-    void end(bool) override;
+    void end(bool interrupted) override;
 
 private:
     tap::Drivers *drivers;
+    ControlOperatorInterface &controlOperatorInterface;
     src::serial::VisionComms &visionComms;
     TurretSubsystem *turretSubsystem;
 

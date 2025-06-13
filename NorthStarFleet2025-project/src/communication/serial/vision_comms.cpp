@@ -8,7 +8,7 @@ VisionComms::VisionComms(tap::Drivers* drivers)
 {
     for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
     {
-        this->lastAimData[i].updated = false;
+        // this->lastAimData[i].updated = false;
     }
 }
 
@@ -23,8 +23,6 @@ void VisionComms::initializeCV()
 
 void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMessage)
 {
-    cvOfflineTimeout.restart(TIME_OFFLINE_CV_AIM_DATA_MS);
-
     switch (completeMessage.messageType)
     {
         case MessageType::TURRET_DATA:
@@ -37,8 +35,9 @@ void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMe
             sendRobotIdMessage();
             return;
         }
-        case 3:
+        case MessageType::ALIVE:
         {
+            cvOfflineTimeout.restart(TIME_OFFLINE_CV_AIM_DATA_MS);
             return;
         }
         case 4:
@@ -72,7 +71,14 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
         memcpy(&aimData.pitch, &message.data[curreIndex], sizeof(float));
         curreIndex += sizeof(float);
 
-        aimData.updated = true;
+        if (aimData.yaw == 0 && aimData.pitch == 0)
+        {
+            aimDataUpdated[i] = false;
+        }
+        else
+        {
+            aimDataUpdated[i] = true;
+        }
     }
 }
 
@@ -81,7 +87,7 @@ void VisionComms::sendRobotIdMessage()
     DJISerial::SerialMessage<1> robotTypeMessage;
     robotTypeMessage.messageType = MessageType::ROBOT_ID;
     robotTypeMessage.data[0] =
-        static_cast<uint8_t>(1);  // drivers->refSerial.getRobotData().robotId);
+        static_cast<uint8_t>(101);  // drivers->refSerial.getRobotData().robotId);
     robotTypeMessage.setCRC16();
     drivers->uart.write(
         VISION_COMMS_TX_UART_PORT,
