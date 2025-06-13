@@ -1,3 +1,4 @@
+#ifdef FLY_SKY
 /*
  * FlySky iBUS receiver driver for Taproot.
  * Compatible with FS-iA6B receiver and FS-i6X transmitter.
@@ -106,3 +107,5 @@ void FlySky::parsePacket()
 }
 
 }  // namespace tap::communication::serial
+
+#endif // FLY_SKY

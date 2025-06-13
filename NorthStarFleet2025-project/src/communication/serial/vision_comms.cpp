@@ -18,7 +18,6 @@ void VisionComms::initializeCV()
 {
     cvOfflineTimeout.restart(TIME_OFFLINE_CV_AIM_DATA_MS);
     drivers->uart.init<VISION_COMMS_TX_UART_PORT, VISION_COMMS_BAUD_RATE>();
-    drivers->uart.init<VISION_COMMS_RX_UART_PORT, VISION_COMMS_BAUD_RATE>();
 }
 
 void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMessage)
