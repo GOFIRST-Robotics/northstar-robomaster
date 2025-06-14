@@ -25,6 +25,14 @@
 #include "control/flywheel/flywheel_run_command.hpp"
 #include "control/flywheel/flywheel_subsystem.hpp"
 
+// chassis
+#include "control/chassis/chassis_beyblade_command.hpp"
+#include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_orient_drive_command.hpp"
+#include "control/chassis/chassis_subsystem.hpp"
+#include "control/chassis/chassis_wiggle_command.hpp"
+#include "control/chassis/constants/chassis_constants.hpp"
+
 // safe disconnect
 #include "communication/RevMotorTesterSingleMotor.hpp"
 #include "control/safe_disconnect.hpp"
@@ -64,8 +72,11 @@ using namespace tap::control::governor;
 // what to test
 // #define FLYWHEEL_TEST
 // #define AGITATOR_TEST
-#define SENTRY_TURRET_TEST
-#define SENTRY_CONSTANTS
+// #define SENTRY_TURRET_TEST
+// #define SENTRY_CONSTANTS
+
+#define CHASSIS_TEST
+#define HERO_CHASSIS_CONSTANTS
 
 namespace testbed_control
 {
@@ -327,6 +338,54 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
 
 // agitator mappings
 
+src::chassis::ChassisSubsystem chassisSubsystem(
+    drivers(),
+    src::chassis::ChassisConfig{
+        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
+        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
+        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
+        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
+        .canBus = CanBus::CAN_BUS1,
+        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
+            src::chassis::VELOCITY_PID_KP,
+            src::chassis::VELOCITY_PID_KI,
+            src::chassis::VELOCITY_PID_KD,
+            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
+    },
+    &drivers()->turretMCBCanCommBus2,
+    &yawMotorBottom);
+
+src::chassis::ChassisDriveCommand chassisDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface);
+
+src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    0);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    1,
+    true);
+
+src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1,
+    -1,
+    M_TWOPI,
+    true);
+
+// chassis Mappings
+ToggleCommandMapping bPressed(
+    drivers(),
+    {&chassisBeyBladeFastCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
 void initializeSubsystems(src::testbed::Drivers *drivers)
 {
     dummySubsystem.initialize();
@@ -338,6 +397,9 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #endif
 #ifdef SENTRY_TURRET_TEST
     sentryTurrets.initialize();
+#endif
+#ifdef CHASSIS_TEST
+    chassisSubsystem.initialize();
 #endif
     // revMotorTesterSingleMotor.initialize();
 }
@@ -355,11 +417,19 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #ifdef SENTRY_TURRET_TEST
     drivers->commandScheduler.registerSubsystem(&sentryTurrets);
 #endif
+#ifdef CHASSIS_TEST
+    drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
+#endif
 }
 
 void setDefaultTestCommands(src::testbed::Drivers *drivers)
 {
+#ifdef SENTRY_TURRET_TEST
     sentryTurrets.setDefaultCommand(&turretWRChassisImuCommand);
+#endif
+#ifdef CHASSIS_TEST
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
+#endif
 }
 
 void startTestCommands(src::testbed::Drivers *drivers)
@@ -378,6 +448,9 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 #endif
 #ifdef FLYWHEEL_TEST
     drivers->commandMapper.addMap(&fPressed);
+#endif
+#ifdef CHASSIS_TEST
+    drivers->commandMapper.addMap(&bPressed);
 #endif
 }
 }  // namespace testbed_control

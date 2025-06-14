@@ -14,14 +14,12 @@ namespace src::chassis
 {
 ChassisOrientDriveCommand::ChassisOrientDriveCommand(
     ChassisSubsystem* chassis,
-    src::control::ControlOperatorInterface* operatorInterface,
-    float angleOffset)
+    src::control::ControlOperatorInterface* operatorInterface)
     : chassis(chassis),
-      operatorInterface(operatorInterface),
-      angleOffset(angleOffset)
+      operatorInterface(operatorInterface)
 {
     addSubsystemRequirement(chassis);
-    orientPid = modm::Pid<float>(0.9, 0, 0, 0, 1.0);
+    orientPid = modm::Pid<float>(0.85, 0, 0, 0, M_PI_4);
 }
 
 void ChassisOrientDriveCommand::execute()
@@ -29,7 +27,7 @@ void ChassisOrientDriveCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
-    float updateVal = chassis->getChassisZeroTurretOffset(angleOffset);
+    float updateVal = chassis->getChassisZeroTurret();
     short sign = 1;
     if (updateVal < 0)
     {

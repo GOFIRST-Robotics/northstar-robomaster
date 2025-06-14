@@ -295,8 +295,7 @@ src::chassis::ChassisDriveCommand chassisDriveCommand(
 
 src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0.0f);
+    &drivers()->controlOperatorInterface);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &chassisSubsystem,
@@ -387,7 +386,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret

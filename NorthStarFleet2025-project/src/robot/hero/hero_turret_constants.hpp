@@ -53,7 +53,7 @@ static constexpr tap::motor::MotorId YAW_MOTOR_ID = tap::motor::MOTOR6;    // 2
 
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
-    .startEncoderValue = 2700 - 2047,  // enc res 8191
+    .startEncoderValue = 2700,  // enc res 8191
     .minAngle = 0,
     .maxAngle = M_PI / 4,
     .limitMotorAngles = false,

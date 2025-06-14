@@ -70,9 +70,9 @@ float difference;
 
 inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
 
-float ChassisSubsystem::getChassisZeroTurretOffset(float offset)
+float ChassisSubsystem::getChassisZeroTurret()
 {
-    float angle = (getTurretYaw() + modm::toRadian(offset));
+    float angle = (getTurretYaw());
     return (angle > M_PI) ? angle - M_TWOPI : angle;
 }
 
@@ -80,6 +80,14 @@ void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, flo
 {
     // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
+    if (turretRot > M_TWOPI)
+    {
+        turretRot -= M_TWOPI;
+    }
+    else if (turretRot < 0.0f)
+    {
+        turretRot += M_TWOPI;
+    }
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
@@ -120,14 +128,25 @@ void ChassisSubsystem::driveBasedOnHeading(
 
 void ChassisSubsystem::refresh()
 {
-    auto runPid = [](Pid& pid, Motor& motor, float desiredOutput) {
-        pid.update(desiredOutput - motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI);
+    auto runPid = [](Pid& pid,
+                     tap::algorithms::Ramp& ramp,
+                     Motor& motor,
+                     float desiredOutput,
+                     float increment) {
+        ramp.setTarget(desiredOutput);
+        ramp.update(increment);
+        pid.update(ramp.getValue() - motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI);
         motor.setDesiredOutput(pid.getValue());
     };
 
     for (size_t ii = 0; ii < motors.size(); ii++)
     {
-        runPid(pidControllers[ii], motors[ii], desiredOutput[ii]);
+        runPid(
+            pidControllers[ii],
+            rampControllers[ii],
+            motors[ii],
+            desiredOutput[ii],
+            mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
     }
 }
 }  // namespace src::chassis

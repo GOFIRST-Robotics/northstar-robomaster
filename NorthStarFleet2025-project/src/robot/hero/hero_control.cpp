@@ -14,12 +14,13 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
+#include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
 // agitator
@@ -285,7 +286,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    1,
+    M_PI,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
@@ -293,8 +294,14 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    2,
+    M_PI,
     true);
+
+src::chassis::ChassisWiggleCommand chassisWiggleCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    0.6f,
+    M_PI * 4 / 3);
 
 // Chassis Governors
 
@@ -331,6 +338,11 @@ ToggleCommandMapping xPressed(
     {&imuCalibrateCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
 
+ToggleCommandMapping wiggle(
+    drivers(),
+    {&chassisWiggleCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
+
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
 void initializeSubsystems(Drivers *drivers)
@@ -351,7 +363,7 @@ void registerHeroSubsystems(Drivers *drivers)
 
 void setDefaultHeroCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);
@@ -363,9 +375,9 @@ void startHeroCommands(Drivers *drivers)
         0,
         0,
         0,
-        modm::toRadian(-90),
-        modm::toRadian(180),
-        0));
+        0,                      // modm::toRadian(-90),
+        0,                      // modm::toRadian(180),
+        modm::toRadian(180)));  // 0));
     // pitch up needs to be negitive
     // right neg
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
@@ -379,6 +391,7 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
     drivers->commandMapper.addMap(&xPressed);
+    drivers->commandMapper.addMap(&wiggle);
 }
 }  // namespace hero_control
 
