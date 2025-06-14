@@ -2,8 +2,6 @@
 
 #include "tap/control/command.hpp"
 
-#include "modm/math/filter/pid.hpp"
-
 namespace src
 {
 class Drivers;
@@ -18,18 +16,20 @@ namespace src::chassis
 {
 class ChassisSubsystem;
 
-class ChassisOrientDriveCommand : public tap::control::Command
+class ChassisWiggleCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 7.0f;
+    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
 
-    ChassisOrientDriveCommand(
+    ChassisWiggleCommand(
         ChassisSubsystem *chassis,
-        src::control::ControlOperatorInterface *operatorInterface);
+        src::control::ControlOperatorInterface *operatorInterface,
+        float period,
+        float maxWiggleSpeed);
 
     const char *getName() const override { return "Chassis tank drive"; }
 
-    void initialize() override {}
+    void initialize() override;
 
     void execute() override;
 
@@ -42,8 +42,14 @@ private:
 
     src::control::ControlOperatorInterface *operatorInterface;
 
-    modm::Pid<float> orientPid;
+    uint32_t prevTime;
 
-    float angleOffset;
+    uint32_t accumTime;
+
+    float period;
+
+    float maxWiggleSpeed;
+
+    float calculateWiggle(uint32_t dt);
 };
 }  // namespace src::chassis

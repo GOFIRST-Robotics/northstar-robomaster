@@ -19,6 +19,7 @@
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
+#include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
 // agitator
@@ -312,6 +313,12 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     2,
     true);
 
+src::chassis::ChassisWiggleCommand chassisWiggleCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    2.0f,
+    2.0f);
+
 // Chassis Governors
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
@@ -330,6 +337,16 @@ ToggleCommandMapping bPressed(
     drivers(),
     {&beyBladeSlowOutOfCombat},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+ToggleCommandMapping orientDrive(
+    drivers(),
+    {&chassisOrientDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
+
+ToggleCommandMapping wiggle(
+    drivers(),
+    {&chassisWiggleCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -369,7 +386,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -390,6 +407,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&bPressed);
     drivers->commandMapper.addMap(&gPressed);
     drivers->commandMapper.addMap(&xPressed);
+    drivers->commandMapper.addMap(&wiggle);
+    drivers->commandMapper.addMap(&orientDrive);
 }
 }  // namespace standard_control
 

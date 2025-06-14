@@ -28,6 +28,14 @@
 #include "control/flywheel/flywheel_run_command.hpp"
 #include "control/flywheel/flywheel_subsystem.hpp"
 
+// chassis
+#include "control/chassis/chassis_beyblade_command.hpp"
+#include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_orient_drive_command.hpp"
+#include "control/chassis/chassis_subsystem.hpp"
+#include "control/chassis/chassis_wiggle_command.hpp"
+#include "control/chassis/constants/chassis_constants.hpp"
+
 // safe disconnect
 #include "communication/RevMotorTesterSingleMotor.hpp"
 #include "control/safe_disconnect.hpp"
@@ -49,19 +57,6 @@
 // sentry turret
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
-
-// chasis
-#include "control/chassis/chassis_beyblade_command.hpp"
-#include "control/chassis/chassis_drive_command.hpp"
-#include "control/chassis/chassis_field_command.hpp"
-#include "control/chassis/chassis_orient_drive_command.hpp"
-#include "control/chassis/chassis_subsystem.hpp"
-#include "control/chassis/constants/chassis_constants.hpp"
-
-// governor
-#include "tap/control/governor/governor_limited_command.hpp"
-
-#include "control/governor/fire_rate_limit_governor.hpp"
 
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
@@ -86,17 +81,18 @@ using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::turret;
-using namespace src::control::turret;
 using namespace src::control::governor;
-using namespace tap::control::governor;
 using namespace tap::communication::serial;
 
 // what to test
 // #define FLYWHEEL_TEST
-#define AGITATOR_TEST
+// #define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
-#define STANDARD_TURRET_TEST
-#define SENTRY_CONSTANTS
+// #define SENTRY_CONSTANTS
+
+#define CHASSIS_TEST
+#define HERO_CHASSIS_CONSTANTS
+// #define STANDARD_TURRET_TEST
 
 namespace testbed_control
 {
@@ -449,9 +445,41 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
     &worldFramePitchChassisImuControllerTop,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
-#endif  // SENTRY_TURRET_TEST
 
-// chassis subsystem
+#endif
+
+FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
+
+PlateHitGovernor plateHitGovernor(drivers(), 5000);
+
+// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+//     {&chassisSubsystem},
+//     chassisBeyBladeSlowCommand,
+//     chassisBeyBladeFastCommand,
+//     {&firedRecentlyGovernor, &plateHitGovernor},
+//     true);
+
+// chassis Mappings
+ToggleCommandMapping bPressed(
+    drivers(),
+    {&beyBladeSlowOutOfCombat},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+
+// imu::ImuCalibrateCommand imuCalibrateCommand(
+//     drivers(),
+//     {{
+//         &turret,
+//         &chassisFrameYawTurretController,
+//         &chassisFramePitchTurretController,
+//         true,
+//     }},
+//     &chassisSubsystem);
+
+ToggleCommandMapping ctrlCPressed(
+    drivers(),
+    {&imuCalibrateCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::C})));
+
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
     src::chassis::ChassisConfig{
@@ -467,7 +495,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &yawMotorBottom);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -490,42 +518,14 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    2,
-    true);
-
-// Chassis Governors
-
-FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
-
-PlateHitGovernor plateHitGovernor(drivers(), 5000);
-
-GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-    {&chassisSubsystem},
-    chassisBeyBladeSlowCommand,
-    chassisBeyBladeFastCommand,
-    {&firedRecentlyGovernor, &plateHitGovernor},
+    M_TWOPI,
     true);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
     drivers(),
-    {&beyBladeSlowOutOfCombat},
+    {&chassisBeyBladeFastCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
-
-imu::ImuCalibrateCommand imuCalibrateCommand(
-    drivers(),
-    {{
-        &turret,
-        &chassisFrameYawTurretController,
-        &chassisFramePitchTurretController,
-        true,
-    }},
-    &chassisSubsystem);
-
-ToggleCommandMapping ctrlCPressed(
-    drivers(),
-    {&imuCalibrateCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::C})));
 
 void initializeSubsystems(src::testbed::Drivers *drivers)
 {
@@ -542,6 +542,9 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #ifdef STANDARD_TURRET_TEST
     turret.initialize();
 #endif  // STANDARD_TURRET_TEST
+#ifdef CHASSIS_TEST
+    chassisSubsystem.initialize();
+#endif
     // revMotorTesterSingleMotor.initialize();
 }
 
@@ -561,8 +564,9 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #ifdef STANDARD_TURRET_TEST
     drivers->commandScheduler.registerSubsystem(&turret);
 #endif  // STANDARD_TURRET_TEST
-
+#ifdef CHASSIS_TEST
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
+#endif
 }
 
 void setDefaultTestCommands(src::testbed::Drivers *drivers)
@@ -572,8 +576,10 @@ void setDefaultTestCommands(src::testbed::Drivers *drivers)
 #endif  // SENTRY_TURRET_TEST
 #ifdef STANDARD_TURRET_TEST
     turret.setDefaultCommand(&turretUserControlCommand);
-#endif                                                         // STANDARD_TURRET_TEST
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+#endif  // STANDARD_TURRET_TEST
+#ifdef CHASSIS_TEST
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
+#endif
 }
 
 void startTestCommands(src::testbed::Drivers *drivers)
@@ -598,12 +604,16 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
     drivers->commandMapper.addMap(&xPressed);
 #endif  // STANDARD_TURRET_TEST
     drivers->commandMapper.addMap(&ctrlCPressed);
+#ifdef CHASSIS_TEST
+    drivers->commandMapper.addMap(&bPressed);
+#endif
 }
 }  // namespace testbed_control
 
 namespace src::testbed
 {
-imu::ImuCalibrateCommand *getImuCalibrateCommand() { return &testbed_control::imuCalibrateCommand; }
+// imu::ImuCalibrateCommand *getImuCalibrateCommand() { return
+// &testbed_control::imuCalibrateCommand; }
 
 void initSubsystemCommands(src::testbed::Drivers *drivers)
 {
