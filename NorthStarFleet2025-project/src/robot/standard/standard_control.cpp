@@ -395,6 +395,11 @@ void registerStandardIoMappings(Drivers *drivers)
 
 namespace src::standard
 {
+imu::ImuCalibrateCommand *getImuCalibrateCommand()
+{
+    return &standard_control::imuCalibrateCommand;
+}
+
 void initSubsystemCommands(src::standard::Drivers *drivers)
 {
     drivers->commandScheduler.setSafeDisconnectFunction(

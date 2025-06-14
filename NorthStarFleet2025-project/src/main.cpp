@@ -167,8 +167,14 @@ float debugLastAimDataYaw = 0.0f;
 float debugLastAimDataPitch = 0.0f;
 
 bool cal = false;
+bool calibrated = false;
 static void updateIo(Drivers *drivers)
 {
+    if (!calibrated && drivers->remote.isConnected())
+    {
+        drivers->commandScheduler.addCommand(getImuCalibrateCommand());
+        calibrated = true;
+    }
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
 #endif

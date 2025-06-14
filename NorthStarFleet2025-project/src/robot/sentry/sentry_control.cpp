@@ -390,6 +390,8 @@ void registerSentryIoMappings(Drivers *drivers)
 
 namespace src::sentry
 {
+imu::ImuCalibrateCommand *getImuCalibrateCommand() { return &sentry_control::imuCalibrateCommand; }
+
 void initSubsystemCommands(src::sentry::Drivers *drivers)
 {
     drivers->commandScheduler.setSafeDisconnectFunction(

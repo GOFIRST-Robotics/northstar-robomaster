@@ -93,7 +93,7 @@ using namespace tap::communication::serial;
 
 // what to test
 // #define FLYWHEEL_TEST
-// #define AGITATOR_TEST
+#define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
 #define STANDARD_TURRET_TEST
 #define SENTRY_CONSTANTS
@@ -603,6 +603,8 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 
 namespace src::testbed
 {
+imu::ImuCalibrateCommand *getImuCalibrateCommand() { return &testbed_control::imuCalibrateCommand; }
+
 void initSubsystemCommands(src::testbed::Drivers *drivers)
 {
     drivers->commandScheduler.setSafeDisconnectFunction(

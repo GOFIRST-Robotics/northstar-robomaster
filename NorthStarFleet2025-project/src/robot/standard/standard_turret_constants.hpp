@@ -53,7 +53,7 @@ static constexpr tap::motor::MotorId YAW_MOTOR_ID = tap::motor::MOTOR6;    // 2
 
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
-    .startEncoderValue = 2700,  // enc res 8191
+    .startEncoderValue = 7519 + 341,  // enc res 8191
     .minAngle = 0,
     .maxAngle = M_PI / 4,
     .limitMotorAngles = false,
@@ -67,9 +67,9 @@ static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
     .limitMotorAngles = true,
 };
 
-static constexpr float TURRET_CG_X = 80.0f;                    // 30.17;
-static constexpr float TURRET_CG_Z = 0.0f;                     // 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 8000.0f;  // 7'000;
+static constexpr float TURRET_CG_X = 80.0f;                     // 30.17;
+static constexpr float TURRET_CG_Z = 0.0f;                      // 34.02;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = 12000.0f;  // 7'000;
 
 namespace world_rel_turret_imu
 {

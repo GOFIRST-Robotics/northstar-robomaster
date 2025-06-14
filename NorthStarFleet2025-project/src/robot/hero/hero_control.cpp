@@ -384,6 +384,8 @@ void registerHeroIoMappings(Drivers *drivers)
 
 namespace src::hero
 {
+imu::ImuCalibrateCommand *getImuCalibrateCommand() { return &hero_control::imuCalibrateCommand; }
+
 void initSubsystemCommands(src::hero::Drivers *drivers)
 {
     drivers->commandScheduler.setSafeDisconnectFunction(

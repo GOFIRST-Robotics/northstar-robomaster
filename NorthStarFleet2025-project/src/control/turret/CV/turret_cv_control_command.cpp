@@ -60,7 +60,7 @@ void TurretCVControlCommand::initialize()
     prevTime = tap::arch::clock::getTimeMilliseconds();
     drivers->leds.set(tap::gpio::Leds::Green, true);
 }
-
+float max_error = .1;
 void TurretCVControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -71,8 +71,8 @@ void TurretCVControlCommand::execute()
         // up has positive error so up positive
         const WrappedFloat pitchSetpoint = Angle(
             pitchController->getMeasurement().getUnwrappedValue() -
-            visionComms.getLastAimData(turretID).pitch);
-        // pitchController->runController(dt, pitchSetpoint);
+            limitVal(visionComms.getLastAimData(turretID).pitch, -max_error, max_error));
+        pitchController->runController(dt, pitchSetpoint);
         // left neg right post
         const WrappedFloat yawSetpoint = Angle(
             -yawController->getMeasurement().getUnwrappedValue() +
@@ -84,7 +84,7 @@ void TurretCVControlCommand::execute()
         const WrappedFloat pitchSetpoint =
             pitchController->getSetpoint() +
             userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(turretID);
-        // pitchController->runController(dt, pitchSetpoint);
+        pitchController->runController(dt, pitchSetpoint);
 
         const WrappedFloat yawSetpoint =
             yawController->getSetpoint() +
