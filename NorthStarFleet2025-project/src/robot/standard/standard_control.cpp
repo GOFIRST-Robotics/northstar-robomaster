@@ -302,7 +302,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    1,
+    M_PI,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
@@ -310,14 +310,14 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    2,
+    M_PI,
     true);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    2.0f,
-    2.0f);
+    1.0f,
+    M_TWOPI);
 
 // Chassis Governors
 
@@ -386,7 +386,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret

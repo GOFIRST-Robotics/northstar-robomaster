@@ -380,7 +380,7 @@ void startHeroCommands(Drivers *drivers)
         modm::toRadian(180)));  // 0));
     // pitch up needs to be negitive
     // right neg
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerHeroIoMappings(Drivers *drivers)
