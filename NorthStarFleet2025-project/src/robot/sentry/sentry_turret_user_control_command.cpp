@@ -68,14 +68,8 @@ void SentryTurretUserControlCommand::initialize()
     prevTime = tap::arch::clock::getTimeMilliseconds();
 }
 
-float delta_max_ = modm::toRadian(45.0f);
-
-inline double wrap_rad(double a)
-{
-    while (a <= -M_TWOPI) a += M_TWOPI;
-    while (a > M_TWOPI) a -= M_TWOPI;
-    return a;
-}
+float DELTA_MAX = modm::toRadian(M_TWOPI);
+float comp = 0;
 
 void SentryTurretUserControlCommand::execute()
 {
@@ -98,29 +92,33 @@ void SentryTurretUserControlCommand::execute()
         userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(1);
     pitchControllerTop->runController(dt, pitchSetpointTop);
 
-    WrappedFloat topWorldAngle =
-        yawControllerTop->getMeasurement() - yawControllerBottom->getMeasurement();
+    float bottomMeasurement = yawControllerBottom->getMeasurement().getUnwrappedValue();
+    float yawSetpointTop = yawControllerTop->getSetpoint().getUnwrappedValue();
 
-    WrappedFloat topWorldDiff = topWorldAngle - prevTopWorldAngle;
+    float delta = bottomMeasurement - yawControllerTop->getMeasurement().getUnwrappedValue();
+    float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(1);
 
-    prevTopWorldAngle = topWorldAngle;
-
-    WrappedFloat yawSetpointTop =
-        yawControllerTop->getSetpoint() +
-        userYawInputScalar * controlOperatorInterface.getTurretYawInput(1) -
-        (topWorldDiff.getWrappedValue());
-
-    double delta = WrappedFloat(yawSetpointTop.getUnwrappedValue(), -M_PI, M_PI).getWrappedValue();
-    if (delta > delta_max_)
+    if (delta <= -DELTA_MAX)
     {
-        yawSetpointTop = Angle(delta_max_);
+        comp = bottomMeasurement + DELTA_MAX;
     }
-    else if (delta < -delta_max_)
+    else if (delta >= DELTA_MAX)
     {
-        yawSetpointTop = Angle(-delta_max_);
+        comp = bottomMeasurement - DELTA_MAX;
     }
 
-    yawControllerTop->runController(dt, yawSetpointTop);
+    if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
+    {
+        comp += input;
+    }
+    else if (input != 0)
+    {
+        comp = getSign(input) * DELTA_MAX + yawSetpointBottom.getUnwrappedValue();
+    }
+
+    yawSetpointTop = limitVal(-yawSetpointBottom.getUnwrappedValue() + comp, -DELTA_MAX, DELTA_MAX);
+
+    yawControllerTop->runController(dt, Angle(yawSetpointTop));
 }
 
 bool SentryTurretUserControlCommand::isFinished() const
