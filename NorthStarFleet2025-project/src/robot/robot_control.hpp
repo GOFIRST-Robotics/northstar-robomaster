@@ -37,7 +37,7 @@ namespace src::testbed
 #endif
 {
 void initSubsystemCommands(Drivers *drivers);
-src::control::imu::ImuCalibrateCommand *getImuCalibrateCommand();
+src::control::imu::ImuCalibrateCommandBase *getImuCalibrateCommand();
 }  // namespace tbh whatever you want it to be
 
 #endif  // ROBOT_CONTROL_HPP_

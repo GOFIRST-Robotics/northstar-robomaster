@@ -612,7 +612,7 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 
 namespace src::testbed
 {
-// imu::ImuCalibrateCommand *getImuCalibrateCommand() { return
+// imu::ImuCalibrateCommandBase *getImuCalibrateCommand() { return
 // &testbed_control::imuCalibrateCommand; }
 
 void initSubsystemCommands(src::testbed::Drivers *drivers)

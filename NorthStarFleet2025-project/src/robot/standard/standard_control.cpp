@@ -414,7 +414,7 @@ void registerStandardIoMappings(Drivers *drivers)
 
 namespace src::standard
 {
-imu::ImuCalibrateCommand *getImuCalibrateCommand()
+imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
     return &standard_control::imuCalibrateCommand;
 }

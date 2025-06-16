@@ -99,7 +99,7 @@ void SentryTurretUserControlCommand::execute()
     pitchControllerTop->runController(dt, pitchSetpointTop);
 
     WrappedFloat topWorldAngle =
-        yawControllerTop->getMeasurement() + yawControllerBottom->getMeasurement();
+        yawControllerTop->getMeasurement() - yawControllerBottom->getMeasurement();
 
     WrappedFloat topWorldDiff = topWorldAngle - prevTopWorldAngle;
 

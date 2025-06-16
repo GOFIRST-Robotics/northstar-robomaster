@@ -42,7 +42,7 @@
 #include "control/flywheel/flywheel_subsystem.hpp"
 
 // imu
-#include "control/imu/imu_calibrate_command.hpp"
+#include "robot/sentry/sentry_imu_calibrate_command.hpp"
 
 // safe disconnect
 #include "control/safe_disconnect.hpp"
@@ -105,7 +105,7 @@ tap::motor::DjiMotor yawMotorBottom(
     drivers(),
     YAW_MOTOR_BOTTOM_ID,
     CAN_BUS_MOTORS,
-    false,
+    true,
     "Yaw Motor Bottom",
     false,
     1,
@@ -125,27 +125,11 @@ tap::motor::DjiMotor yawMotorTop(
     drivers(),
     YAW_MOTOR_TOP_ID,
     CAN_BUS_MOTORS,
-    false,
+    true,
     "Yaw Motor Top",
     false,
     1,
     YAW_MOTOR_CONFIG_TOP.startEncoderValue);
-
-// TurretSubsystem turretBottom(
-//     drivers(),
-//     &pitchMotorBottom,
-//     &yawMotorBottom,
-//     PITCH_MOTOR_CONFIG_BOTTOM,
-//     YAW_MOTOR_CONFIG_BOTTOM,
-//     &getTurretMCBCanComm());
-
-// TurretSubsystem turretTop(
-//     drivers(),
-//     &pitchMotorTop,
-//     &yawMotorTop,
-//     PITCH_MOTOR_CONFIG_TOP,
-//     YAW_MOTOR_CONFIG_TOP,
-//     &getTurretMCBCanComm());
 
 SentryTurretSubsystem sentryTurrets(
     drivers(),
@@ -197,10 +181,10 @@ algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuC
     world_rel_chassis_imu::PITCH_PID_CONFIG);
 
 tap::algorithms::SmoothPid worldFramePitchTurretImuPosPidBottom(
-    world_rel_turret_imu::PITCH_POS_PID_CONFIG);
+    world_rel_turret_imu::PITCH_POS_PID_CONFIG_BOTTOM);
 
 tap::algorithms::SmoothPid worldFramePitchTurretImuVelPidBottom(
-    world_rel_turret_imu::PITCH_VEL_PID_CONFIG);
+    world_rel_turret_imu::PITCH_VEL_PID_CONFIG_BOTTOM);
 
 algorithms::
     WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerBottom(
@@ -210,10 +194,10 @@ algorithms::
         worldFramePitchTurretImuVelPidBottom);
 
 tap::algorithms::SmoothPid worldFramePitchTurretImuPosPidTop(
-    world_rel_turret_imu::PITCH_POS_PID_CONFIG);
+    world_rel_turret_imu::PITCH_POS_PID_CONFIG_TOP);
 
 tap::algorithms::SmoothPid worldFramePitchTurretImuVelPidTop(
-    world_rel_turret_imu::PITCH_VEL_PID_CONFIG);
+    world_rel_turret_imu::PITCH_VEL_PID_CONFIG_TOP);
 
 algorithms::
     WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerTop(
@@ -223,10 +207,10 @@ algorithms::
         worldFramePitchTurretImuVelPidTop);
 
 tap::algorithms::SmoothPid worldFrameYawTurretImuPosPidBottom(
-    world_rel_turret_imu::YAW_POS_PID_CONFIG);
+    world_rel_turret_imu::YAW_POS_PID_CONFIG_BOTTOM);
 
 tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidBottom(
-    world_rel_turret_imu::YAW_VEL_PID_CONFIG);
+    world_rel_turret_imu::YAW_VEL_PID_CONFIG_BOTTOM);
 
 algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerBottom(
     *drivers(),
@@ -235,10 +219,10 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
     worldFrameYawTurretImuVelPidBottom);
 
 tap::algorithms::SmoothPid worldFrameYawTurretImuPosPidTop(
-    world_rel_turret_imu::YAW_POS_PID_CONFIG);
+    world_rel_turret_imu::YAW_POS_PID_CONFIG_TOP);
 
 tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidTop(
-    world_rel_turret_imu::YAW_VEL_PID_CONFIG);
+    world_rel_turret_imu::YAW_VEL_PID_CONFIG_TOP);
 
 algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerTop(
     *drivers(),
@@ -251,7 +235,7 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
     drivers(),
     drivers()->controlOperatorInterface,
     &sentryTurrets,
-    &worldFrameYawChassisImuControllerBottom,
+    &worldFrameYawTurretImuControllerBottom,
     &worldFramePitchChassisImuControllerBottom,
     &chassisFrameYawTurretControllerTop,  // controler for top turret
     &worldFramePitchChassisImuControllerTop,
@@ -280,7 +264,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
         .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
         .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
         .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS2,
+        .canBus = CanBus::CAN_BUS1,
         .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
             src::chassis::VELOCITY_PID_KP,
             src::chassis::VELOCITY_PID_KI,
@@ -318,23 +302,18 @@ ToggleCommandMapping orientDrive(
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
 // imu commands
-// imu::ImuCalibrateCommand imuCalibrateCommand(
-//     drivers(),
-//     {{
-//          &getTurretMCBCanComm(),
-//          &turretBottom,
-//          &chassisFrameYawTurretControllerBottom,
-//          &chassisFramePitchTurretControllerBottom,
-//          true,
-//      },
-//      {
-//          &getTurretMCBCanComm(),
-//          &turretTop,
-//          &chassisFrameYawTurretControllerTop,
-//          &chassisFramePitchTurretControllerTop,
-//          true,
-//      }},
-//     &chassisSubsystem);
+imu::SentryImuCalibrateCommand imuCalibrateCommand(
+    drivers(),
+    {{
+        &sentryTurrets,
+        &chassisFrameYawTurretControllerTop,
+        &chassisFramePitchTurretControllerTop,
+        &chassisFrameYawTurretControllerBottom,
+        &chassisFramePitchTurretControllerBottom,
+        true,
+        true,
+    }},
+    &chassisSubsystem);
 
 // flywheel
 // RevMotorTester revMotorTester(drivers());
@@ -374,6 +353,8 @@ void setDefaultSentryCommands(Drivers *drivers)
 
 void startSentryCommands(Drivers *drivers)
 {
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
     // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
@@ -390,7 +371,10 @@ void registerSentryIoMappings(Drivers *drivers)
 
 namespace src::sentry
 {
-imu::ImuCalibrateCommand *getImuCalibrateCommand() { return &sentry_control::imuCalibrateCommand; }
+imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
+{
+    return &sentry_control::imuCalibrateCommand;
+}
 
 void initSubsystemCommands(src::sentry::Drivers *drivers)
 {
