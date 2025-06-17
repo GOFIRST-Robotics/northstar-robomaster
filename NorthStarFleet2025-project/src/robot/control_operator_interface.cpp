@@ -55,7 +55,7 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
             }
             return 0;
         case 1:
-            input = remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
+            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) -
                     static_cast<float>(limitVal<int16_t>(
                         remote.getMouseX(),
                         -USER_MOUSE_YAW_MAX,

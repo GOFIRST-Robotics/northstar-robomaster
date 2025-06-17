@@ -16,7 +16,8 @@ SentryTurretUserWorldRelativeCommand::SentryTurretUserWorldRelativeCommand(
     algorithms::TurretPitchControllerInterface *chassisImuPitchControllerTop,
     algorithms::TurretPitchControllerInterface *turretImuPitchControllerTop,
     float userYawInputScalar,
-    float userPitchInputScalar)
+    float userPitchInputScalar,
+    float DELTA_MAX)
     : tap::control::ComprisedCommand(drivers),
       turretWRChassisImuCommand(
           drivers,
@@ -27,7 +28,8 @@ SentryTurretUserWorldRelativeCommand::SentryTurretUserWorldRelativeCommand(
           chassisFrameYawTurretControllerTop,  // controler for top turret
           chassisImuPitchControllerTop,
           userYawInputScalar,
-          userPitchInputScalar),
+          userPitchInputScalar,
+          DELTA_MAX),
       turretWRTurretImuCommand(
           drivers,
           controlOperatorInterface,
@@ -38,7 +40,8 @@ SentryTurretUserWorldRelativeCommand::SentryTurretUserWorldRelativeCommand(
           chassisFrameYawTurretControllerTop,  // controler for top turret
           chassisImuPitchControllerTop,        // turretImuPitchControllerTop,
           userYawInputScalar,
-          userPitchInputScalar)
+          userPitchInputScalar,
+          DELTA_MAX)
 
 {
     comprisedCommandScheduler.registerSubsystem(sentryTurretSubsystem);

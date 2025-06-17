@@ -240,7 +240,8 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
     &chassisFrameYawTurretControllerTop,  // controler for top turret
     &worldFramePitchChassisImuControllerTop,
     USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+    USER_PITCH_INPUT_SCALAR,
+    M_TWOPI);  // +- offset max rads
 
 user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
     drivers(),
@@ -254,7 +255,8 @@ user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
     &worldFramePitchChassisImuControllerTop,
     &worldFramePitchTurretImuControllerTop,
     USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+    USER_PITCH_INPUT_SCALAR,
+    M_TWOPI);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
@@ -310,8 +312,8 @@ imu::SentryImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretControllerTop,
         &chassisFrameYawTurretControllerBottom,
         &chassisFramePitchTurretControllerBottom,
-        true,
-        true,
+        false,
+        false,
     }},
     &chassisSubsystem);
 
