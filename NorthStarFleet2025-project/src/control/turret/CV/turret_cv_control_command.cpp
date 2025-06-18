@@ -49,7 +49,7 @@ TurretCVControlCommand::TurretCVControlCommand(
       userPitchInputScalar(userPitchInputScalar),
       turretID(turretID)
 {
-    addSubsystemRequirement(turretSubsystem);
+    TurretCVControlCommandTemplate::addSubsystemRequirement(turretSubsystem);
 }
 bool TurretCVControlCommand::isReady() { return !isFinished(); }
 
@@ -60,7 +60,6 @@ void TurretCVControlCommand::initialize()
     prevTime = tap::arch::clock::getTimeMilliseconds();
     drivers->leds.set(tap::gpio::Leds::Green, true);
 }
-float max_error = .1;
 void TurretCVControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -71,13 +70,17 @@ void TurretCVControlCommand::execute()
         // up has positive error so up positive
         const WrappedFloat pitchSetpoint = Angle(
             pitchController->getMeasurement().getUnwrappedValue() -
-            limitVal(visionComms.getLastAimData(turretID).pitch, -max_error, max_error));
+            limitVal(visionComms.getLastAimData(turretID).pitch, -0.1f, 0.1f));
         pitchController->runController(dt, pitchSetpoint);
         // left neg right post
         const WrappedFloat yawSetpoint = Angle(
             -yawController->getMeasurement().getUnwrappedValue() +
             visionComms.getLastAimData(turretID).yaw);
         yawController->runController(dt, yawSetpoint);
+
+        withinAimingTolerance =  // TODO calculate off the distance
+            (abs(visionComms.getLastAimData(turretID).yaw) < AIMING_TOLERANCE_YAW &&
+             abs(visionComms.getLastAimData(turretID).pitch) < AIMING_TOLERANCE_PITCH);
     }
     else
     {
@@ -90,19 +93,14 @@ void TurretCVControlCommand::execute()
             yawController->getSetpoint() +
             userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
         yawController->runController(dt, yawSetpoint);
+
+        withinAimingTolerance = false;
     }
 }
-bool debugpitchController = false;
-bool debugyawController = false;
 
 bool TurretCVControlCommand::isFinished() const
 {
-    debugpitchController = pitchController->isOnline();
-    debugyawController = yawController->isOnline();
-    return !pitchController->isOnline() &&
-           !yawController
-                ->isOnline();  //||
-                               //! visionComms.isCvOnline();  //&& TODO not shure if this is right
+    return !pitchController->isOnline() && !yawController->isOnline();
 }
 
 void TurretCVControlCommand::end(bool interrupted)

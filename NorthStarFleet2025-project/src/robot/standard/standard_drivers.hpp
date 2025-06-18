@@ -29,7 +29,7 @@ public:
     Drivers()
         : tap::Drivers(),
           controlOperatorInterface(this),
-          visionComs(this),
+          visionComms(this),
           turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2)
     {
     }
@@ -40,7 +40,7 @@ public:
 #else
 public:
     control::ControlOperatorInterface controlOperatorInterface;
-    serial::VisionComms visionComs;
+    serial::VisionComms visionComms;
     can::TurretMCBCanComm turretMCBCanCommBus2;
 #endif
 };  // class src::StandardDrivers

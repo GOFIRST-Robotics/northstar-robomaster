@@ -21,6 +21,7 @@
 #define SENTRY_TURRET_CONSTANTS_HPP_
 
 #include "tap/algorithms/smooth_pid.hpp"
+#include "tap/communication/serial/ref_serial_data.hpp"
 #include "tap/motor/dji_motor.hpp"
 
 #include "control/turret/turret_motor_config.hpp"
@@ -42,7 +43,16 @@ static constexpr uint16_t MAX_OUTPUT_GM6020 = 25000;
 
 namespace src::control::turret
 {
-static constexpr uint8_t NUM_TURRETS = 1;
+static constexpr uint8_t NUM_TURRETS = 2;
+
+static constexpr uint8_t topID = 1;
+static constexpr uint8_t bottomID = 0;
+
+static constexpr tap::communication::serial::RefSerialData::Rx::MechanismID barrelIdTop =
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_2;
+
+static constexpr tap::communication::serial::RefSerialData::Rx::MechanismID barrelIdBottom =
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1;
 
 static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = -0.02f;

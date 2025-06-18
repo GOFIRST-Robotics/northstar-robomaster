@@ -122,11 +122,6 @@ int main()
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
         }
 #endif
-        // PROFILE(drivers->profiler, drivers->visionComs.sendMessage, ());
-
-        // if(!drivers->turretMCBCanCommBus2.isConnected()){
-        //     std::cout<<"poop";
-        // }
         modm::delay_us(10);
     }
     return 0;
@@ -151,7 +146,7 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
-    drivers->visionComs.initializeCV();
+    drivers->visionComms.initializeCV();
     // drivers->schedulerTerminalHandler.init();
     // drivers->djiMotorTerminalSerialHandler.init();
 #endif
@@ -184,11 +179,11 @@ static void updateIo(Drivers *drivers)
 
 #ifndef TURRET
     drivers->refSerial.updateSerial();
-    drivers->visionComs.updateSerial();
+    drivers->visionComms.updateSerial();
     drivers->remote.read();
 
-    debugLastAimDataYaw = drivers->visionComs.getLastAimData(0).yaw;
-    debugLastAimDataPitch = drivers->visionComs.getLastAimData(0).pitch;
+    debugLastAimDataYaw = drivers->visionComms.getLastAimData(0).yaw;
+    debugLastAimDataPitch = drivers->visionComms.getLastAimData(0).pitch;
 
     if (cal)
     {

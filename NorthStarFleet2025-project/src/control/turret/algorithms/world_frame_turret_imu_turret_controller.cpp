@@ -264,6 +264,11 @@ WrappedFloat WorldFrameYawTurretImuCascadePidTurretController::getMeasurement() 
     return getBmi088Yaw();
 }
 
+WrappedFloat WorldFrameYawTurretImuCascadePidTurretController::getMeasurementMotor() const
+{
+    return turretMotor.getChassisFrameMeasuredAngle();
+}
+
 bool WorldFrameYawTurretImuCascadePidTurretController::isOnline() const
 {
     return turretMotor.isOnline() &&

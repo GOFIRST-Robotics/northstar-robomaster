@@ -269,7 +269,7 @@ user::TurretUserControlCommand turretUserControlCommand(
 cv::TurretCVControlCommand turretCVControlCommand(
     drivers(),
     drivers()->controlOperatorInterface,
-    drivers()->visionComs,
+    drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
     &worldFramePitchChassisImuController,
