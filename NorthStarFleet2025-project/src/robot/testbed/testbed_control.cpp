@@ -90,8 +90,8 @@ using namespace tap::communication::serial;
 // #define SENTRY_TURRET_TEST
 // #define SENTRY_CONSTANTS
 
-#define CHASSIS_TEST
-#define HERO_CHASSIS_CONSTANTS
+// #define CHASSIS_TEST
+// #define HERO_CHASSIS_CONSTANTS
 // #define STANDARD_TURRET_TEST
 
 namespace testbed_control
@@ -448,6 +448,7 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
 
 #endif
 
+#ifdef CHASSIS_TEST
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
@@ -526,6 +527,7 @@ ToggleCommandMapping bPressed(
     drivers(),
     {&chassisBeyBladeFastCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+#endif
 
 void initializeSubsystems(src::testbed::Drivers *drivers)
 {
@@ -586,7 +588,6 @@ void startTestCommands(src::testbed::Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
         tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerTestIoMappings(src::testbed::Drivers *drivers)
@@ -603,7 +604,7 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 #ifdef STANDARD_TURRET_TEST
     drivers->commandMapper.addMap(&xPressed);
 #endif  // STANDARD_TURRET_TEST
-    drivers->commandMapper.addMap(&ctrlCPressed);
+    // drivers->commandMapper.addMap(&ctrlCPressed);
 #ifdef CHASSIS_TEST
     drivers->commandMapper.addMap(&bPressed);
 #endif

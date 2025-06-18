@@ -363,7 +363,7 @@ void registerHeroSubsystems(Drivers *drivers)
 
 void setDefaultHeroCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);
@@ -371,14 +371,9 @@ void setDefaultHeroCommands(Drivers *drivers)
 
 void startHeroCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
-        0,
-        0,
-        0,
-        0,                      // modm::toRadian(-90),
-        0,                      // modm::toRadian(180),
-        modm::toRadian(180)));  // 0));
-    // pitch up needs to be negitive
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0, 0, 0, modm::toRadian(-90), 0, 0));
+    // pitch up needs to be negitive up is on motor side
     // right neg
     // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }

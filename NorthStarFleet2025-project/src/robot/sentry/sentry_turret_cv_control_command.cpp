@@ -1,3 +1,5 @@
+#ifdef TARGET_SENTRY
+
 #include "sentry_turret_cv_control_command.hpp"
 
 #include "tap/algorithms/wrapped_float.hpp"
@@ -203,3 +205,5 @@ void SentryTurretCVControlCommand::end(bool interrupted)
 }
 
 }  // namespace src::control::turret::cv
+
+#endif  // TARGET_SENTRY
