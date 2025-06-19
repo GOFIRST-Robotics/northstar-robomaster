@@ -146,7 +146,9 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
+#ifndef FLY_SKY
     drivers->visionComms.initializeCV();
+#endif
     // drivers->schedulerTerminalHandler.init();
     // drivers->djiMotorTerminalSerialHandler.init();
 #endif
@@ -165,11 +167,13 @@ bool cal = false;
 bool calibrated = false;
 static void updateIo(Drivers *drivers)
 {
+#ifndef TARGET_TEST_BED
     if (!calibrated && drivers->remote.isConnected())
     {
         drivers->commandScheduler.addCommand(getImuCalibrateCommand());
         calibrated = true;
     }
+#endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
 #endif
@@ -179,11 +183,11 @@ static void updateIo(Drivers *drivers)
 
 #ifndef TURRET
     drivers->refSerial.updateSerial();
+#ifndef FLY_SKY
     drivers->visionComms.updateSerial();
-    drivers->remote.read();
+#endif
 
-    debugLastAimDataYaw = drivers->visionComms.getLastAimData(0).yaw;
-    debugLastAimDataPitch = drivers->visionComms.getLastAimData(0).pitch;
+    drivers->remote.read();
 
     if (cal)
     {

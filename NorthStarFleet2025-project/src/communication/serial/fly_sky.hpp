@@ -1,3 +1,4 @@
+//#define FLY_SKY
 #ifdef FLY_SKY
 
 #ifndef FLYSKY_REMOTE_HPP_
@@ -15,6 +16,34 @@ namespace tap
 {
 class Drivers;
 }
+
+namespace SwitchState
+{
+constexpr double UP = 1.0;
+constexpr double MIDDLE = 0.5;
+constexpr double DOWN = 0.0;
+}  // namespace SwitchState
+
+namespace KeyValues
+{
+constexpr uint16_t W = 1;
+constexpr uint16_t S = 2;
+constexpr uint16_t A = 4;
+constexpr uint16_t D = 8;
+constexpr uint16_t SHIFT = 16;
+constexpr uint16_t CTRL = 32;
+constexpr uint16_t Q = 64;
+constexpr uint16_t E = 128;
+constexpr uint16_t R = 256;
+constexpr uint16_t F = 512;
+constexpr uint16_t G = 1024;
+constexpr uint16_t Z = 2048;
+constexpr uint16_t X = 4096;
+constexpr uint16_t C = 8192;
+constexpr uint16_t V = 16384;
+constexpr uint16_t B = 32768;
+
+}  // namespace KeyValues
 
 namespace tap::communication::serial
 {
@@ -42,13 +71,6 @@ public:
         SWITCH_D,
         WHEEL_A,
         WHEEL_B
-    };
-
-    enum SwitchState
-    {
-        UP = 2000,
-        MIDDLE = 1500,
-        DOWN = 1000,
     };
 
     void initialize();
@@ -81,4 +103,4 @@ private:
 
 #endif
 
-#endif // FLY_SKY
+#endif  // FLY_SKY

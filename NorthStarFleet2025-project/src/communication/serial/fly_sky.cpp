@@ -1,3 +1,4 @@
+//#define FLY_SKY
 #ifdef FLY_SKY
 /*
  * FlySky iBUS receiver driver for Taproot.
@@ -9,13 +10,14 @@
 #include "fly_sky.hpp"
 
 #include "tap/architecture/clock.hpp"
+#include "tap/communication/serial/remote.hpp"
 #include "tap/drivers.hpp"
 
 namespace tap::communication::serial
 {
 void FlySky::initialize()
 {
-    drivers->uart.init<Uart::UartPort::Uart1, 100000, Uart::Parity::Even>();
+    drivers->uart.init<Uart::UartPort::Uart1, 115200, Uart::Parity::Disabled>();
 }
 
 void FlySky::read()
@@ -60,7 +62,14 @@ void FlySky::read()
             if (dataIndex >= IBUS_PACKET_SIZE)
             {
                 parsePacket();
-                connected = true;
+                if (getChannel(Channel::SWITCH_D))
+                {
+                    connected = true;
+                }
+                else
+                {
+                    connected = false;
+                }
                 syncState = 0;
                 dataIndex = 0;
             }
@@ -83,8 +92,26 @@ float FlySky::getChannel(uint8_t ch) const
 
     // iBUS channels: typically ~1000 - 2000 → normalize to 0.0 - 1.0
     float value = (channels[ch] - 1000) / 1000.0f;
-    if (value < 0.0f) value = 0.0f;
+    if (ch < 4 && ch > -1)
+    {
+        value -= .5;
+        value *= -2;
+    }
+    // else if (ch < 8 && ch > 3)
+    // {
+    //     value *= -1;
+    // }
+    if (value < -1.0f) value = -1.0f;
     if (value > 1.0f) value = 1.0f;
+    switch (ch)
+    {
+        case Channel::SWITCH_A:
+            return KeyValues::F * value;
+            break;
+        case Channel::SWITCH_B:
+            return value;
+    }
+
     return value;
 }
 
@@ -103,9 +130,16 @@ void FlySky::parsePacket()
     }
     drivers->uart.discardReceiveBuffer(Uart::UartPort::Uart1);
 
+    drivers->commandMapper.handleKeyStateChange(
+        getChannel(Channel::SWITCH_A),
+        Remote::SwitchState::UNKNOWN,
+        Remote::SwitchState::UNKNOWN,
+        getChannel(Channel::SWITCH_B),
+        false);
+
     // (Optional) You can add safety checks here if needed.
 }
 
 }  // namespace tap::communication::serial
 
-#endif // FLY_SKY
+#endif  // FLY_SKY
