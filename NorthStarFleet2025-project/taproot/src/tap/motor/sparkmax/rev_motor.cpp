@@ -180,10 +180,8 @@ modm::can::Message RevMotor::constructRevMotorHeartBeat(const RevMotor* motor)
     return canMessage;
 }
 
-void RevMotor::setParameter(Parameter param, float paramVal)
-{
-    parameters.push(param);
-    paramVals.push(paramVal);
+void RevMotor::setParameter(Parameter param, float paramVal){
+    paramQueue.push({param, paramVal});
 }
 
 /**
@@ -196,10 +194,9 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
 {
     uint32_t RevArbitrationId;
 
-    if (parameters.size() > 0 && paramVals.size() > 0)
-    {
+    if(paramQueue.size() > 0){
         // If there are parameters to set, we will use the first one
-        Parameter firstParam = parameters.front();
+        Parameter firstParam = paramQueue.front().first;
         // parameters.pop();
         // float firstParamVal = paramVals.front();
         // paramVals.pop();
@@ -212,11 +209,14 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
     }
 
     uint8_t canRevIdLength = 8;
-    modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
-    if (paramVals.size() > 0 && parameters.size() > 0)
-    {
-        float parameterVal = paramVals.front();
-        parameters.pop();
+    modm::can::Message canMessage(
+        RevArbitrationId,
+        canRevIdLength,
+        0,
+        true);
+    if(paramQueue.size() > 0){
+        float parameterVal = paramQueue.front().second;
+        paramQueue.pop();
         std::memcpy(&canMessage.data[0], &parameterVal, sizeof(parameterVal));
         for (int i = sizeof(parameterVal); i < 8; i++)
         {
