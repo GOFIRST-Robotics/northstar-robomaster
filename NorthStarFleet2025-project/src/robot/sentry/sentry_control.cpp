@@ -533,7 +533,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    2,
+    M_PI,
     true);
 
 // chassis Mappings
