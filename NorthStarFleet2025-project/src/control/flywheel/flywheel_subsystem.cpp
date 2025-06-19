@@ -88,6 +88,9 @@ float FlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 float upRpm = 0;
 float rightRpm = 0;
 float leftRpm = 0;
+float upSetPoint = 0;
+float leftSetPoint = 0;
+float rightSetPoint = 0;
 
 void FlywheelSubsystem::refresh()
 {
@@ -96,9 +99,6 @@ void FlywheelSubsystem::refresh()
     {
         return;
     }
-    upRpm = upWheel.getVelocity();
-    rightRpm = rightWheel.getVelocity();
-    leftRpm = leftWheel.getVelocity();
 
     desiredRpmRampLeft.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     desiredRpmRampRight.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
@@ -107,6 +107,12 @@ void FlywheelSubsystem::refresh()
     leftWheel.setControlValue(desiredRpmRampLeft.getValue());
     rightWheel.setControlValue(desiredRpmRampRight.getValue());
     upWheel.setControlValue(desiredRpmRampUp.getValue());
+    upRpm = upWheel.getVelocity();
+    rightRpm = rightWheel.getVelocity();
+    leftRpm = leftWheel.getVelocity();
+    upSetPoint = desiredRpmRampUp.getValue();
+    rightSetPoint = desiredRpmRampRight.getValue();
+    leftSetPoint = desiredRpmRampLeft.getValue();
 }
 }  // namespace src::control::flywheel
 

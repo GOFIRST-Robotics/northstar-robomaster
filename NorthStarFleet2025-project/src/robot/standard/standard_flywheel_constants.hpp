@@ -34,7 +34,7 @@ enum Spin : u_int8_t
 
 static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
     SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
-        {{{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}},    // SPIN_90
+        {{{{0.0f, 0.0f}, {15.0f, .41f}, {18.0f, .50f}, {24.5f, .68f}}},    // SPIN_90
          {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}},    // SPIN_100
          {{{0.0f, 0.0f}, {15.0f, .45f}, {18.0f, .57f}, {24.5f, .78f}}}}};  // SPIN_110
 // SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
