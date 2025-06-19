@@ -30,6 +30,7 @@
 
 #include <string>
 #include <queue>
+#include <utility>
 
 #include "tap/architecture/timeout.hpp"
 #include "tap/communication/can/can_rx_listener.hpp"
@@ -476,8 +477,9 @@ private:
 
     bool isControlAndNotParam;
 
-    std::queue<Parameter> parameters;
-    std::queue<float> paramVals;
+    std::queue<std::pair<Parameter, float>> paramQueue;
+    // std::queue<Parameter> parameters;
+    // std::queue<float> paramVals;
 
 
 };
