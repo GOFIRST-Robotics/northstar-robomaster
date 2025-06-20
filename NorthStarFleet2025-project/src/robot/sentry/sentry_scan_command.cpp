@@ -10,7 +10,8 @@ SentryScanCommand::SentryScanCommand(
     algorithms::TurretYawControllerInterface *yawControllerTop,
     algorithms::TurretPitchControllerInterface *pitchControllerTop,
     float DELTA_MAX,
-    float MAX_ERROR)
+    float MAX_ERROR,
+    float ROT_SPEED)
     : drivers(drivers),
       turretSubsystem(turretSubsystem),
       yawControllerBottom(yawControllerBottom),
@@ -18,7 +19,8 @@ SentryScanCommand::SentryScanCommand(
       yawControllerTop(yawControllerTop),
       pitchControllerTop(pitchControllerTop),
       DELTA_MAX(DELTA_MAX),
-      MAX_ERROR(MAX_ERROR)
+      MAX_ERROR(MAX_ERROR),
+      ROTATION_SPEED(ROT_SPEED)
 {
     addSubsystemRequirement(turretSubsystem);
 }
@@ -40,7 +42,7 @@ void SentryScanCommand::initialize()
             yawControllerTop->getMeasurement().getUnwrappedValue());
     }
 }
-
+float debugbottomSetPoint = 0;
 void SentryScanCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -51,11 +53,11 @@ void SentryScanCommand::execute()
                               turretSubsystem->bottomMeasurementOffset;
     float topMeasurement = yawControllerTop->getMeasurement().getUnwrappedValue() -
                            turretSubsystem->topMeasurementOffset;
-    float bottomSetPoint = yawControllerBottom->getSetpoint().getUnwrappedValue() -
-                           turretSubsystem->bottomSetpointOffset;
+    float bottomSetPoint = yawControllerBottom->getSetpoint().getUnwrappedValue();
+    debugbottomSetPoint = bottomSetPoint;
     float topSetPoint = yawControllerTop->getSetpoint().getUnwrappedValue();
 
-    yawControllerBottom->runController(dt, Angle(bottomSetPoint + .0005));
+    yawControllerBottom->runController(dt, Angle(bottomSetPoint + ROTATION_SPEED));
 
     pitchControllerBottom->runController(
         dt,

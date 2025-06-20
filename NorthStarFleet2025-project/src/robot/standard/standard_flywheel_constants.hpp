@@ -22,13 +22,13 @@ static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
 // static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM = 5'000.0f;
 // static constexpr float FLYWHEEL_PID_MAX_OUTPUT = 16'000.0f;
 
-
-//pid constants for spark max flywheels in duty cycle mode
+// pid constants for spark max flywheels in duty cycle mode
 static constexpr float FLYWHEEL_DUTY_PID_KP = 0.00013f;
 static constexpr float FLYWHEEL_DUTY_PID_KI = 0.000005f;
 static constexpr float FLYWHEEL_DUTY_PID_KD = 0.0f;
 static constexpr float FLYWHEEL_DUTY_PID_MAX_ERROR_SUM = 0.05f;
-static constexpr float FLYWHEEL_DUTY_PID_MAX_OUTPUT = 0.15f; //does not affect feed forward, only the pid output
+static constexpr float FLYWHEEL_DUTY_PID_MAX_OUTPUT =
+    0.15f;  // does not affect feed forward, only the pid output
 
 // TODO make these correct
 enum Spin : u_int8_t
@@ -51,7 +51,6 @@ static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
         {{{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}},    // SPIN_90
          {{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}},    // SPIN_100
          {{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}}}};  // SPIN_110
-
 
 // SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
 //     {{{{0.0f, 0.0f},

@@ -71,6 +71,9 @@ void SentryTurretUserControlCommand::initialize()
             yawControllerBottom->getMeasurement().getUnwrappedValue(),
             yawControllerTop->getMeasurement().getUnwrappedValue());
     }
+    comp = yawControllerTop->getSetpoint().getUnwrappedValue() +
+           yawControllerBottom->getMeasurement().getUnwrappedValue() -
+           turretSubsystem->bottomMeasurementOffset;
 }
 
 void SentryTurretUserControlCommand::execute()
@@ -120,7 +123,6 @@ void SentryTurretUserControlCommand::execute()
     {
         comp = getSign(input) * DELTA_MAX + bottomMeasurement;
     }
-
     yawSetpointTop = limitVal(-(bottomMeasurement) + comp, -DELTA_MAX, DELTA_MAX);
 
     if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&

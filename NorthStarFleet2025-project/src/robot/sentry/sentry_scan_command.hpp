@@ -20,7 +20,8 @@ public:
         algorithms::TurretYawControllerInterface *yawControllerTop,
         algorithms::TurretPitchControllerInterface *pitchControllerTop,
         float DELTA_MAX,
-        float MAX_ERROR);
+        float MAX_ERROR,
+        float ROT_SPEED);
 
     bool isReady() override;
 
@@ -49,6 +50,7 @@ private:
     float yawSetpointTop = 0;
     float DELTA_MAX;
     float MAX_ERROR;
+    float ROTATION_SPEED;
 };
 }  // namespace src::control::turret::cv
 

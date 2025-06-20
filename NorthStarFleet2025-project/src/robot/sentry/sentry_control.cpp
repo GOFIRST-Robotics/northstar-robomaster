@@ -295,7 +295,8 @@ cv::SentryScanCommand turretScanCommand(
     &chassisFrameYawTurretControllerTop,  // controler for top turret
     &worldFramePitchChassisImuControllerTop,
     M_TWOPI,
-    .001);
+    .01,
+    .0016);
 
 // user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
 //     drivers(),
