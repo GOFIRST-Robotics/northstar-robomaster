@@ -101,6 +101,9 @@ private:
 
     WrappedFloat worldFrameSetpoint;
 
+    float worldFrameMeasurementIMU;
+    int32_t IMUrevolutions;
+
     inline WrappedFloat getBmi088Yaw(bool negitive = false) const
     {
         return negitive ? Angle(drivers.bmi088.getYaw() * -1) : Angle(drivers.bmi088.getYaw());

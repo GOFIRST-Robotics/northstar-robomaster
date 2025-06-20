@@ -72,9 +72,6 @@ private:
     algorithms::TurretYawControllerInterface *yawControllerTop;
     algorithms::TurretPitchControllerInterface *pitchControllerTop;
 
-    float bottomMeasurementOffset;
-    float topMeasurementOffset;
-    float bottomSetpointOffset;
     float comp = 0;
     float yawSetpointTop = 0;
     float DELTA_MAX;

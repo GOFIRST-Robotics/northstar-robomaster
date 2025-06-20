@@ -43,6 +43,7 @@
 // cv
 #include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "control/governor/cv_on_target_governor.hpp"
+#include "robot/sentry/sentry_scan_command.hpp"
 #include "robot/sentry/sentry_turret_cv_control_command.hpp"
 
 // flywheel
@@ -286,20 +287,35 @@ cv::SentryTurretCVControlCommand turretCVControlCommand(
     USER_PITCH_INPUT_SCALAR,
     M_TWOPI);  // +- offset max rads
 
-user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
+cv::SentryScanCommand turretScanCommand(
     drivers(),
-    drivers()->controlOperatorInterface,
     &sentryTurrets,
-    &worldFrameYawChassisImuControllerBottom,
-    &worldFramePitchChassisImuControllerBottom,
     &worldFrameYawTurretImuControllerBottom,
-    &worldFramePitchTurretImuControllerBottom,
-    &chassisFrameYawTurretControllerTop,
+    &worldFramePitchChassisImuControllerBottom,
+    &chassisFrameYawTurretControllerTop,  // controler for top turret
     &worldFramePitchChassisImuControllerTop,
-    &worldFramePitchTurretImuControllerTop,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR,
-    M_TWOPI);
+    M_TWOPI,
+    .001);
+
+// user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &sentryTurrets,
+//     &worldFrameYawChassisImuControllerBottom,
+//     &worldFramePitchChassisImuControllerBottom,
+//     &worldFrameYawTurretImuControllerBottom,
+//     &worldFramePitchTurretImuControllerBottom,
+//     &chassisFrameYawTurretControllerTop,
+//     &worldFramePitchChassisImuControllerTop,
+//     &worldFramePitchTurretImuControllerTop,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR,
+//     M_TWOPI);
+
+ToggleCommandMapping xCtrlPressed(
+    drivers(),
+    {&turretScanCommand},
+    RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
 
 HoldCommandMapping rightMousePressed(
     drivers(),
@@ -606,6 +622,7 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gOrVNotCtrlPressed);
     drivers->commandMapper.addMap(&beyBlade);
     drivers->commandMapper.addMap(&orientDrive);
+    drivers->commandMapper.addMap(&xCtrlPressed);
 }
 }  // namespace sentry_control
 

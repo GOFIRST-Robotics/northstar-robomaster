@@ -19,6 +19,7 @@
 
 #include "world_frame_turret_imu_turret_controller.hpp"
 
+#include "tap/algorithms/math_user_utils.hpp"
 #include "tap/drivers.hpp"
 
 #include "../turret_subsystem.hpp"
@@ -204,7 +205,8 @@ WorldFrameYawTurretImuCascadePidTurretController::WorldFrameYawTurretImuCascadeP
       drivers(drivers),
       positionPid(positionPid),
       velocityPid(velocityPid),
-      worldFrameSetpoint(Angle(0))
+      worldFrameSetpoint(Angle(0)),
+      worldFrameMeasurementIMU(0)
 {
 }
 
@@ -223,6 +225,12 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
+    if (abs(worldFrameMeasurementIMU - getBmi088Yaw(true).getWrappedValue()) > M_TWOPI * .7f)
+    {
+        IMUrevolutions += tap::algorithms::getSign(
+            worldFrameMeasurementIMU - getBmi088Yaw(true).getWrappedValue());
+    }
+    worldFrameMeasurementIMU = getBmi088Yaw(true).getWrappedValue();
     const WrappedFloat chassisFrameYaw = turretMotor.getChassisFrameMeasuredAngle();
     const WrappedFloat worldFrameYawAngle = getBmi088Yaw(true);  // negitive
     const float worldFrameYawVelocity = -getBmi088YawVelocity();
@@ -261,7 +269,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::setSetpoint(WrappedFloat 
 
 WrappedFloat WorldFrameYawTurretImuCascadePidTurretController::getMeasurement() const
 {
-    return getBmi088Yaw();
+    return Angle(worldFrameMeasurementIMU + M_TWOPI * IMUrevolutions);
 }
 
 WrappedFloat WorldFrameYawTurretImuCascadePidTurretController::getMeasurementMotor() const
