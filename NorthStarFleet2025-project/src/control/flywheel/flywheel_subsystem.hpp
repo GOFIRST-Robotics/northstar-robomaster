@@ -12,6 +12,8 @@
 #include "control/flywheel/flywheel_constants.hpp"
 #include "modm/math/filter/pid.hpp"
 
+#include "modm/math/filter/pid.hpp"
+
 namespace src::control::flywheel
 {
 class FlywheelSubsystem : public tap::control::Subsystem
@@ -79,7 +81,7 @@ public:
     const char *getName() const override { return "Flywheels"; }
 
 protected:
-    static constexpr float MAX_DESIRED_LAUNCH_SPEED = 5000;  // TODO
+    static constexpr float MAX_DESIRED_LAUNCH_SPEED = 8000;  // TODO
 
     tap::Drivers *drivers;
 
@@ -108,6 +110,19 @@ private:
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
 
     std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> spinToRPMMap;
+    std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> feedforwardmap;
+
+    modm::Pid<float> topFlyWheelPid;
+    modm::Pid<float> bottomLeftFlyWheelPid;
+    modm::Pid<float> bottomRightFlyWheelPid;
+
+    float previousTopSetPoint = 0.0f;
+    float previousLeftSetPoint = 0.0f;
+    float previousRightSetPoint = 0.0f;
+
+    float previousLaunchSpeedLeft = 0.0f;
+    float previousLaunchSpeedRight = 0.0f;
+    float previousLaunchSpeedUp = 0.0f;
 };
 
 }  // namespace src::control::flywheel
