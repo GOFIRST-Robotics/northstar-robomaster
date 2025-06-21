@@ -15,7 +15,6 @@
 
 #include "drivers_singleton.hpp"
 
-
 // chasis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
@@ -82,6 +81,7 @@
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/hud_indicator.hpp"
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
+#include "control/clientDisplay/indicators/vision_indicator.hpp"
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
@@ -436,6 +436,8 @@ ClientDisplaySubsystem clientDisplay(drivers());
 tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
 
 AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
+
+// VisionIndicator visionIndicator();
 
 CircleCrosshair circleCrosshair(refSerialTransmitter);
 
