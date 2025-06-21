@@ -37,6 +37,7 @@
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 // #include "control/turret/user/turret_quick_turn_command.hpp"
+#include "control/turret/algorithms/world_frame_pitch_chassis_imu_comp_turret_controller.hpp"
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
 
@@ -262,6 +263,13 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
     worldFrameYawTurretImuPosPidTop,
     worldFrameYawTurretImuVelPidTop);
 
+algorithms::
+    WorldFramePitchChassisImuCompTurretController worldFramePitchChassisImuCompControllerTop(
+        *drivers(),
+        sentryTurrets.pitchMotorBottom,
+        world_rel_chassis_imu::PITCH_PID_CONFIG,
+        &worldFrameYawTurretImuControllerTop);
+
 // turret commands
 user::SentryTurretUserControlCommand turretUserControlCommand(
     drivers(),
@@ -269,8 +277,8 @@ user::SentryTurretUserControlCommand turretUserControlCommand(
     &sentryTurrets,
     &worldFrameYawTurretImuControllerBottom,
     &worldFramePitchChassisImuControllerBottom,
-    &chassisFrameYawTurretControllerTop,  // controler for top turret
-    &worldFramePitchChassisImuControllerTop,
+    &chassisFrameYawTurretControllerTop,          // controler for top turret
+    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR,
     M_TWOPI);  // +- offset max rads
@@ -282,8 +290,8 @@ cv::SentryTurretCVControlCommand turretCVControlCommand(
     &sentryTurrets,
     &worldFrameYawTurretImuControllerBottom,
     &worldFramePitchChassisImuControllerBottom,
-    &chassisFrameYawTurretControllerTop,  // controler for top turret
-    &worldFramePitchChassisImuControllerTop,
+    &chassisFrameYawTurretControllerTop,          // controler for top turret
+    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR,
     .01,       // max error
@@ -294,8 +302,8 @@ cv::SentryScanCommand turretScanCommand(
     &sentryTurrets,
     &worldFrameYawTurretImuControllerBottom,
     &worldFramePitchChassisImuControllerBottom,
-    &chassisFrameYawTurretControllerTop,  // controler for top turret
-    &worldFramePitchChassisImuControllerTop,
+    &chassisFrameYawTurretControllerTop,          // controler for top turret
+    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
     M_TWOPI,
     .01,  // max error
     .0016);
@@ -307,8 +315,8 @@ cv::SentryCvManagerCommand cvManagerCommand(
     &sentryTurrets,
     &worldFrameYawTurretImuControllerBottom,
     &worldFramePitchChassisImuControllerBottom,
-    &chassisFrameYawTurretControllerTop,  // controler for top turret
-    &worldFramePitchChassisImuControllerTop,
+    &chassisFrameYawTurretControllerTop,          // controler for top turret
+    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR,
     M_TWOPI,
