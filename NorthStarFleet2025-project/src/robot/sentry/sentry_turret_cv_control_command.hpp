@@ -9,7 +9,6 @@
 #include "robot/control_operator_interface.hpp"
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 
-
 namespace src::control::turret::cv
 {
 /**
@@ -41,12 +40,13 @@ public:
         ControlOperatorInterface &controlOperatorInterface,
         src::serial::VisionComms &visionComms,
         SentryTurretSubsystem *turretSubsystem,
-        algorithms::TurretYawControllerInterface *yawControllerTop,
-        algorithms::TurretPitchControllerInterface *pitchControllerTop,
         algorithms::TurretYawControllerInterface *yawControllerBottom,
         algorithms::TurretPitchControllerInterface *pitchControllerBottom,
+        algorithms::TurretYawControllerInterface *yawControllerTop,
+        algorithms::TurretPitchControllerInterface *pitchControllerTop,
         float userYawInputScalar,
         float userPitchInputScalar,
+        float MAX_ERROR,
         float DELTA_MAX);
 
     bool isReady() override;
@@ -85,6 +85,7 @@ private:
     float comp = 0;
     float yawSetpointTop = 0;
     float DELTA_MAX;
+    float MAX_ERROR;
 
     const float userYawInputScalar;
     const float userPitchInputScalar;

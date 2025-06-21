@@ -2,6 +2,7 @@
 
 #include "sentry_turret_cv_control_command.hpp"
 
+#include "tap/algorithms/math_user_utils.hpp"
 #include "tap/algorithms/wrapped_float.hpp"
 #include "tap/drivers.hpp"
 
@@ -17,12 +18,13 @@ SentryTurretCVControlCommand::SentryTurretCVControlCommand(
     ControlOperatorInterface &controlOperatorInterface,
     src::serial::VisionComms &visionComms,
     SentryTurretSubsystem *turretSubsystem,
-    algorithms::TurretYawControllerInterface *yawControllerTop,
-    algorithms::TurretPitchControllerInterface *pitchControllerTop,
     algorithms::TurretYawControllerInterface *yawControllerBottom,
     algorithms::TurretPitchControllerInterface *pitchControllerBottom,
+    algorithms::TurretYawControllerInterface *yawControllerTop,
+    algorithms::TurretPitchControllerInterface *pitchControllerTop,
     float userYawInputScalar,
     float userPitchInputScalar,
+    float MAX_ERROR,
     float DELTA_MAX)
     : drivers(drivers),
       controlOperatorInterface(controlOperatorInterface),
@@ -34,6 +36,7 @@ SentryTurretCVControlCommand::SentryTurretCVControlCommand(
       pitchControllerBottom(pitchControllerBottom),
       userYawInputScalar(userYawInputScalar),
       userPitchInputScalar(userPitchInputScalar),
+      MAX_ERROR(MAX_ERROR),
       DELTA_MAX(DELTA_MAX)
 {
     TurretCVControlCommandTemplate::addSubsystemRequirement(turretSubsystem);
@@ -46,9 +49,20 @@ void SentryTurretCVControlCommand::initialize()
     pitchControllerTop->initialize();
     yawControllerBottom->initialize();
     pitchControllerBottom->initialize();
-
     prevTime = tap::arch::clock::getTimeMilliseconds();
     drivers->leds.set(tap::gpio::Leds::Green, true);
+
+    yawSetpointTop = yawControllerTop->getSetpoint().getUnwrappedValue();
+    if (!turretSubsystem->offsets)
+    {
+        turretSubsystem->setOffsets(
+            yawControllerBottom->getSetpoint().getUnwrappedValue(),
+            yawControllerBottom->getMeasurement().getUnwrappedValue(),
+            yawControllerTop->getMeasurement().getUnwrappedValue());
+    }
+    comp = yawControllerTop->getSetpoint().getUnwrappedValue() +
+           yawControllerBottom->getMeasurement().getUnwrappedValue() -
+           turretSubsystem->bottomMeasurementOffset;
 }
 
 void SentryTurretCVControlCommand::execute()
@@ -79,17 +93,43 @@ void SentryTurretCVControlCommand::execute()
     }
     else
     {
-        pitchSetpointBottom =
-            pitchControllerBottom->getSetpoint() +
-            userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(bottomID);
-        pitchControllerBottom->runController(dt, pitchSetpointBottom);
+        if (visionComms.isAimDataUpdated(topID))
+        {
+            pitchControllerBottom->runController(
+                dt,
+                Angle(turretSubsystem->pitchMotorBottom.getConfig().startAngle));
 
-        yawSetpointBottom =
-            yawControllerBottom->getSetpoint() +
-            userYawInputScalar * controlOperatorInterface.getTurretYawInput(bottomID);
-        yawControllerBottom->runController(dt, yawSetpointBottom);
+            float topSetPoint = yawControllerTop->getSetpoint().getUnwrappedValue();
+            float error = limitVal(
+                yawControllerBottom->getSetpoint().getUnwrappedValue() - topSetPoint + comp,
+                -MAX_ERROR,
+                MAX_ERROR);
+            if (yawControllerBottom->getSetpoint().getUnwrappedValue() - topSetPoint + comp >
+                    -.01 &&
+                yawControllerBottom->getSetpoint().getUnwrappedValue() - topSetPoint + comp < .01)
+            {
+                error =
+                    -yawControllerBottom->getSetpoint().getUnwrappedValue() - topSetPoint + comp;
+            }
 
-        bottomWithinAimingTolerance = false;
+            yawControllerBottom->runController(
+                dt,
+                Angle(yawControllerBottom->getSetpoint().getUnwrappedValue() + error));
+        }
+        else
+        {
+            pitchSetpointBottom =
+                pitchControllerBottom->getSetpoint() +
+                userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(bottomID);
+            pitchControllerBottom->runController(dt, pitchSetpointBottom);
+
+            yawSetpointBottom =
+                yawControllerBottom->getSetpoint() +
+                userYawInputScalar * controlOperatorInterface.getTurretYawInput(bottomID);
+            yawControllerBottom->runController(dt, yawSetpointBottom);
+
+            bottomWithinAimingTolerance = false;
+        }
     }
     if (visionComms.isAimDataUpdated(topID))
     {
@@ -141,50 +181,70 @@ void SentryTurretCVControlCommand::execute()
     }
     else
     {
-        pitchSetpointTop =
-            pitchControllerTop->getSetpoint() +
-            userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(topID);
-        pitchControllerTop->runController(dt, pitchSetpointTop);
-
-        float bottomMeasurement = yawControllerBottom->getMeasurementMotor().getUnwrappedValue() -
-                                  bottomMeasurementOffset;
-
-        float delta =
-            -(yawControllerTop->getMeasurement().getUnwrappedValue() - topMeasurementOffset);
-
-        float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(topID);
-
-        if (delta <= -DELTA_MAX)
+        if (visionComms.isAimDataUpdated(bottomID))
         {
-            comp = bottomMeasurement + DELTA_MAX;
-        }
-        else if (delta >= DELTA_MAX)
-        {
-            comp = bottomMeasurement - DELTA_MAX;
-        }
+            pitchControllerTop->runController(
+                dt,
+                Angle(turretSubsystem->pitchMotorTop.getConfig().startAngle));
 
-        if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
-        {
-            comp += input;
-        }
-        else if (input != 0)
-        {
-            comp = getSign(input) * DELTA_MAX + yawSetpointBottom.getUnwrappedValue() -
-                   bottomSetpointOffset;
-        }
+            float topSetPoint = yawControllerTop->getSetpoint().getUnwrappedValue();
 
-        yawSetpointTop = limitVal(
-            -(yawSetpointBottom.getUnwrappedValue() - bottomSetpointOffset) + comp,
-            -DELTA_MAX,
-            DELTA_MAX);
+            float error = limitVal(float(-topSetPoint), -MAX_ERROR, MAX_ERROR);
+            if (topSetPoint > -.01 && topSetPoint < .01)
+            {
+                error = -topSetPoint;
+            }
 
-        if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&
-            yawSetpointTop + input > -DELTA_MAX)
-        {
-            yawSetpointTop += input;
+            yawControllerTop->runController(dt, Angle(topSetPoint + error));
         }
+        else
+        {
+            pitchSetpointTop =
+                pitchControllerTop->getSetpoint() +
+                userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(topID);
+            pitchControllerTop->runController(dt, pitchSetpointTop);
 
-        yawControllerTop->runController(dt, Angle(yawSetpointTop));
+            float bottomMeasurement =
+                yawControllerBottom->getMeasurementMotor().getUnwrappedValue() -
+                bottomMeasurementOffset;
+
+            float delta =
+                -(yawControllerTop->getMeasurement().getUnwrappedValue() - topMeasurementOffset);
+
+            float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(topID);
+
+            if (delta <= -DELTA_MAX)
+            {
+                comp = bottomMeasurement + DELTA_MAX;
+            }
+            else if (delta >= DELTA_MAX)
+            {
+                comp = bottomMeasurement - DELTA_MAX;
+            }
+
+            if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
+            {
+                comp += input;
+            }
+            else if (input != 0)
+            {
+                comp = getSign(input) * DELTA_MAX + yawSetpointBottom.getUnwrappedValue() -
+                       bottomSetpointOffset;
+            }
+
+            yawSetpointTop = limitVal(
+                -(yawSetpointBottom.getUnwrappedValue() - bottomSetpointOffset) + comp,
+                -DELTA_MAX,
+                DELTA_MAX);
+
+            if (abs(yawSetpointTop) == DELTA_MAX && input != 0 &&
+                yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
+            {
+                yawSetpointTop += input;
+            }
+
+            yawControllerTop->runController(dt, Angle(yawSetpointTop));
+        }
     }
 }
 

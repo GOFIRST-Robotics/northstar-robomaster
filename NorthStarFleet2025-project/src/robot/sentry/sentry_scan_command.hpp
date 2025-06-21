@@ -50,7 +50,7 @@ private:
     float yawSetpointTop = 0;
     float DELTA_MAX;
     float MAX_ERROR;
-    float ROTATION_SPEED;
+    float ROT_SPEED;
 };
 }  // namespace src::control::turret::cv
 

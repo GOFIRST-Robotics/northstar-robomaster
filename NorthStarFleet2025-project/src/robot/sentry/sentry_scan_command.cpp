@@ -20,7 +20,7 @@ SentryScanCommand::SentryScanCommand(
       pitchControllerTop(pitchControllerTop),
       DELTA_MAX(DELTA_MAX),
       MAX_ERROR(MAX_ERROR),
-      ROTATION_SPEED(ROT_SPEED)
+      ROT_SPEED(ROT_SPEED)
 {
     addSubsystemRequirement(turretSubsystem);
 }
@@ -57,7 +57,7 @@ void SentryScanCommand::execute()
     debugbottomSetPoint = bottomSetPoint;
     float topSetPoint = yawControllerTop->getSetpoint().getUnwrappedValue();
 
-    yawControllerBottom->runController(dt, Angle(bottomSetPoint + ROTATION_SPEED));
+    yawControllerBottom->runController(dt, Angle(bottomSetPoint + ROT_SPEED));
 
     pitchControllerBottom->runController(
         dt,

@@ -43,6 +43,7 @@
 // cv
 #include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "control/governor/cv_on_target_governor.hpp"
+#include "robot/sentry/sentry_cv_manager_command.hpp"
 #include "robot/sentry/sentry_scan_command.hpp"
 #include "robot/sentry/sentry_turret_cv_control_command.hpp"
 
@@ -285,6 +286,7 @@ cv::SentryTurretCVControlCommand turretCVControlCommand(
     &worldFramePitchChassisImuControllerTop,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR,
+    .01,       // max error
     M_TWOPI);  // +- offset max rads
 
 cv::SentryScanCommand turretScanCommand(
@@ -295,7 +297,22 @@ cv::SentryScanCommand turretScanCommand(
     &chassisFrameYawTurretControllerTop,  // controler for top turret
     &worldFramePitchChassisImuControllerTop,
     M_TWOPI,
-    .01,
+    .01,  // max error
+    .0016);
+
+cv::SentryCvManagerCommand cvManagerCommand(
+    drivers(),
+    drivers()->controlOperatorInterface,
+    drivers()->visionComms,
+    &sentryTurrets,
+    &worldFrameYawTurretImuControllerBottom,
+    &worldFramePitchChassisImuControllerBottom,
+    &chassisFrameYawTurretControllerTop,  // controler for top turret
+    &worldFramePitchChassisImuControllerTop,
+    USER_YAW_INPUT_SCALAR,
+    USER_PITCH_INPUT_SCALAR,
+    M_TWOPI,
+    .01,  // max error
     .0016);
 
 // user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
@@ -317,6 +334,11 @@ ToggleCommandMapping xCtrlPressed(
     drivers(),
     {&turretScanCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
+
+ToggleCommandMapping xPressed(
+    drivers(),
+    {&turretUserControlCommand},
+    RemoteMapState({Remote::Key::X}));
 
 HoldCommandMapping rightMousePressed(
     drivers(),
@@ -602,7 +624,7 @@ void registerSentrySubsystems(Drivers *drivers)
 void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    sentryTurrets.setDefaultCommand(&turretUserControlCommand);
+    sentryTurrets.setDefaultCommand(&cvManagerCommand);  // turretUserControlCommand);
 }
 
 void startSentryCommands(Drivers *drivers)
@@ -623,6 +645,7 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gOrVNotCtrlPressed);
     drivers->commandMapper.addMap(&beyBlade);
     drivers->commandMapper.addMap(&orientDrive);
+    drivers->commandMapper.addMap(&xPressed);
     drivers->commandMapper.addMap(&xCtrlPressed);
 }
 }  // namespace sentry_control

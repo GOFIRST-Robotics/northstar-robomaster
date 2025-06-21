@@ -123,6 +123,8 @@ void SentryTurretUserControlCommand::execute()
     {
         comp = getSign(input) * DELTA_MAX + bottomMeasurement;
     }
+    // comp - bottommeaushument = yspt
+    //b = yspt +comp
     yawSetpointTop = limitVal(-(bottomMeasurement) + comp, -DELTA_MAX, DELTA_MAX);
 
     if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&
