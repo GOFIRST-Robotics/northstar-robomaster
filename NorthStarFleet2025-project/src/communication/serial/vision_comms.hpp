@@ -2,6 +2,7 @@
 #define VISION_COMMS_HPP
 
 #include "tap/communication/serial/dji_serial.hpp"
+#include "tap/communication/serial/ref_serial_data.hpp"
 #include "tap/drivers.hpp"
 
 #include "control/turret/constants/turret_constants.hpp"
@@ -22,6 +23,22 @@ public:
     {
         float yaw;
         float pitch;
+        float distance;
+        tap::communication::serial::RefSerialData::RobotId robotId;
+        float maxErrorYaw;
+        float maxErrorPitch;
+    };
+
+    struct PlateDims
+    {
+        float width;
+        float height;
+    };
+
+    std::unordered_map<int, PlateDims> plateLookup{
+        {1, {200.0f, 100.0f}},  // hero plate dimentions in mm
+        {7, {100.0f, 100.0f}},  // sentry plate dimentions in mm
+        {3, {100.0f, 100.0f}},  // don't know id 3 is correct
     };
 
     VisionComms(tap::Drivers* drivers);
