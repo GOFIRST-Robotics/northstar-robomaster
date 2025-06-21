@@ -21,7 +21,9 @@
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
+#include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
+
 
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
@@ -574,6 +576,12 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     -1,
     M_PI,
     true);
+
+src::chassis::ChassisWiggleCommand chassisWiggleCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    1.0f,
+    M_TWOPI);
 
 // chassis Mappings
 ToggleCommandMapping beyBlade(
