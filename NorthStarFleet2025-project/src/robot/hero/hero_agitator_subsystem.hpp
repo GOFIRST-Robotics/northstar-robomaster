@@ -48,6 +48,8 @@ public:
 
     void reload();
 
+    bool isReady = true;
+
 private:
     tap::algorithms::SmoothPid pid;
 
@@ -60,6 +62,7 @@ private:
     src::communication::sensors::limit_switch::LimitSwitch limitSwitch;
 
     tap::arch::MilliTimeout agitatorTimeout;
+    tap::arch::MilliTimeout jamTimeout;
 
     uint32_t prevTime = 0;
 

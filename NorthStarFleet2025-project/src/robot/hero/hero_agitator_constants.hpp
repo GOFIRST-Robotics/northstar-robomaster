@@ -27,7 +27,7 @@ static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
 
 static constexpr src::agitator::HeroAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .agitatorServoId = tap::gpio::Pwm::Pin::C1,
-    .shootPwm = 0.6f,
+    .shootPwm = 0.56f,
     .reloadPwm = 0.208f,
     .pwmRampSpeed = 0.001f,
     .isAgitatorServoInverted = false,

@@ -13,7 +13,7 @@ HeroAgitatorSubsystem::HeroAgitatorSubsystem(
     const tap::algorithms::SmoothPidConfig& pidConfig)
     : tap::control::Subsystem(drivers),
       config(config),
-      pwm(config.reloadPwm),
+      pwm(0.42f),
       //   agitatorServo(
       //       drivers,
       //       config.agitatorServoId,
@@ -43,6 +43,7 @@ void HeroAgitatorSubsystem::initialize()
 
 void HeroAgitatorSubsystem::shoot()
 {
+    isReady = false;
     pwm = config.shootPwm;
     agitatorTimeout.restart(config.reloadTimeout);
     loaded = false;
@@ -56,21 +57,40 @@ void HeroAgitatorSubsystem::setPWM(float dutyCycle)
 void HeroAgitatorSubsystem::reload()
 {
     pwm = config.reloadPwm;
-    velocitySetpoint = M_TWOPI * 0.5f;
     reloading = true;
 }
 
 void HeroAgitatorSubsystem::refresh()
 {
-    if (reloading && !loaded && !limitSwitch.getLimitSwitchDepressed())
+    if (reloading && !loaded && !limitSwitch.getLimitSwitchDepressed() &&
+        agitatorTimeout.timeRemaining() < config.reloadTimeout - 600)
     {
+        velocitySetpoint = M_TWOPI * 2;
         loaded = true;
         reloading = false;
     }
-    if ((agitatorTimeout.isExpired() || loaded) && limitSwitch.getLimitSwitchDepressed())
+    if (loaded && limitSwitch.getLimitSwitchDepressed())
     {
-        pwm = 0.4f;
+        pwm = 0.42f;
         velocitySetpoint = 0;
+        jamTimeout.restart(200);
+    }
+    if (agitatorTimeout.isExpired())
+    {
+        velocitySetpoint = 0.0f;
+    }
+    if (jamTimeout.isExpired() && loaded)
+    {
+        if (limitSwitch.getLimitSwitchDepressed())
+        {
+            pwm = config.reloadPwm;
+            velocitySetpoint = 1;
+            agitatorTimeout.restart(config.reloadTimeout);
+        }
+        else if (pwm == 0.42)
+        {
+            isReady = true;
+        }
     }
     setPWM(pwm);
     // agitatorServo.updateSendPwmRamp();

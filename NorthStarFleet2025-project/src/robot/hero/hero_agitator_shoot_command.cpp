@@ -22,9 +22,11 @@ void HeroAgitatorShootCommand::execute() {}
 // set the hopper servo to the close position
 void HeroAgitatorShootCommand::end(bool) { agitator->reload(); }
 
+bool HeroAgitatorShootCommand::isReady() { return agitator->isReady; }
+
 bool HeroAgitatorShootCommand::isFinished() const
 {
-    return tap::arch::clock::getTimeMilliseconds() - startTime >= 500;
+    return tap::arch::clock::getTimeMilliseconds() - startTime >= 200;
 }
 
 }  // namespace src::control::agitator
