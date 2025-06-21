@@ -2,6 +2,7 @@
 
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
+#include "tap/control/press_command_mapping.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
@@ -12,6 +13,7 @@
 #include "robot/standard/standard_drivers.hpp"
 
 #include "drivers_singleton.hpp"
+
 
 // chasis
 #include "control/chassis/chassis_beyblade_command.hpp"
@@ -397,6 +399,11 @@ TextHudIndicators textHudIndicators(
 std::vector<HudIndicator *> hudIndicators = {&ammoIndicator, &circleCrosshair, &textHudIndicators};
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
+
+PressCommandMapping bCtrlPressed(
+    drivers(),
+    {&clientDisplayCommand},
+    RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
 
 void initializeSubsystems(Drivers *drivers)
 {
