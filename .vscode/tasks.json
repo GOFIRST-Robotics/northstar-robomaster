@@ -16,6 +16,58 @@
                 "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         },
+               {
+            "label": "Build - Release (standard)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=release robot=TARGET_STANDARD",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Release (sentry)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=release robot=TARGET_SENTRY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Release (hero)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=release robot=TARGET_HERO",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Release (testbed)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=release robot=TARGET_TEST_BED",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
         {
             "label": "Program - Release",
             "type": "shell",
@@ -163,6 +215,58 @@
             }
         },
         {
+            "label": "Build - Debug (standard, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Debug (sentry, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Debug (hero, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_HERO remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
+            "label": "Build - Debug (testbed, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+            }
+        },
+        {
             "label": "lbuild build",
             "type": "shell",
             "presentation": {
@@ -188,5 +292,6 @@
                 "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
             }
         }
+ 
     ]
 }
