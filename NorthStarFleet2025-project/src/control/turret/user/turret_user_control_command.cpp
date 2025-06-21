@@ -77,15 +77,10 @@ void TurretUserControlCommand::execute()
         userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
     yawController->runController(dt, yawSetpoint);
 }
-bool debugpitchController = false;
-bool debugyawController = false;
 
 bool TurretUserControlCommand::isFinished() const
 {
-    debugpitchController = pitchController->isOnline();
-    debugyawController = yawController->isOnline();
-    return !pitchController->isOnline() &&
-           !yawController->isOnline();  //&& TODO not shure if this is right
+    return !pitchController->isOnline() && !yawController->isOnline();
 }
 
 void TurretUserControlCommand::end(bool)

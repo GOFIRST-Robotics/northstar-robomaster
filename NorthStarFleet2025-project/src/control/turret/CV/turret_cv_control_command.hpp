@@ -6,6 +6,9 @@
 #include "../algorithms/turret_controller_interface.hpp"
 #include "../turret_subsystem.hpp"
 #include "communication/serial/vision_comms.hpp"
+#include "robot/control_operator_interface.hpp"
+
+#include "turret_cv_control_command_template.hpp"
 
 namespace src::control::turret::cv
 {
@@ -13,7 +16,7 @@ namespace src::control::turret::cv
  * Command that takes user input from the `ControlOperatorInterface` to control the pitch and yaw
  * axis of some turret using some passed in yaw and pitch controller upon construction.
  */
-class TurretCVControlCommand : public tap::control::Command
+class TurretCVControlCommand : public TurretCVControlCommandTemplate
 {
 public:
     /**
@@ -29,6 +32,7 @@ public:
      */
     TurretCVControlCommand(
         tap::Drivers *drivers,
+        ControlOperatorInterface &controlOperatorInterface,
         src::serial::VisionComms &visionComms,
         TurretSubsystem *turretSubsystem,
         algorithms::TurretYawControllerInterface *yawController,
@@ -47,10 +51,13 @@ public:
 
     bool isFinished() const override;
 
-    void end(bool) override;
+    void end(bool interrupted) override;
+
+    bool isAimingWithinLaunchingTolerance(uint8_t turretID) const { return withinAimingTolerance; }
 
 private:
     tap::Drivers *drivers;
+    ControlOperatorInterface &controlOperatorInterface;
     src::serial::VisionComms &visionComms;
     TurretSubsystem *turretSubsystem;
 
@@ -63,6 +70,11 @@ private:
     const float userPitchInputScalar;
 
     const uint8_t turretID;
+
+    float AIMING_TOLERANCE_YAW = .05;
+    float AIMING_TOLERANCE_PITCH = .05;
+
+    bool withinAimingTolerance = false;
 };
 }  // namespace src::control::turret::cv
 

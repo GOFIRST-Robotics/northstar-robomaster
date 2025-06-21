@@ -1,4 +1,4 @@
-// #define FLY_SKY
+//#define FLY_SKY
 #ifdef FLY_SKY
 
 #include "robot/fly_sky_control_operator_interface.hpp"
@@ -24,14 +24,16 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
     switch (turretID)
     {
         case 0:
-            input = -remote.getChannel(FlySky::Channel::RIGHT_HORIZONTAL);
+            input = -remote.getChannel(FlySky::Channel::RIGHT_HORIZONTAL) *
+                    remote.getChannel(FlySky::Channel::WHEEL_B);
             if (!compareFloatClose(input, 0, .01))
             {
                 return input;
             }
             return 0;
         case 1:
-            input = -remote.getChannel(FlySky::Channel::LEFT_HORIZONTAL);
+            input = -remote.getChannel(FlySky::Channel::LEFT_HORIZONTAL) *
+                    remote.getChannel(FlySky::Channel::WHEEL_B);
             if (!compareFloatClose(input, 0, .01))
             {
                 return input;
@@ -48,14 +50,16 @@ float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
     switch (turretID)
     {
         case 0:
-            input = -remote.getChannel(FlySky::Channel::RIGHT_VERTICAL);
+            input = -remote.getChannel(FlySky::Channel::RIGHT_VERTICAL) *
+                    remote.getChannel(FlySky::Channel::WHEEL_B);
             if (!compareFloatClose(input, 0, .01))
             {
                 return input;
             }
             return 0;
         case 1:
-            input = -remote.getChannel(FlySky::Channel::LEFT_VERTICAL);
+            input = -remote.getChannel(FlySky::Channel::LEFT_VERTICAL) *
+                    remote.getChannel(FlySky::Channel::WHEEL_B);
             if (!compareFloatClose(input, 0, .01))
             {
                 return input;
@@ -115,8 +119,9 @@ static inline void applyAccelerationToRamp(
 float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
 {
     float input;
-    input = -remote.getChannel(FlySky::Channel::LEFT_HORIZONTAL);
-    if (!compareFloatClose(input, 0, .01))
+    input = -remote.getChannel(FlySky::Channel::LEFT_HORIZONTAL) *
+            remote.getChannel(FlySky::Channel::WHEEL_A);
+    if (!compareFloatClose(input, 0, .05))
     {
         return input;
     }
@@ -158,8 +163,9 @@ float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
 float ControlOperatorInterface::getDrivetrainVerticalTranslation()
 {
     float input;
-    input = -remote.getChannel(FlySky::Channel::LEFT_VERTICAL);
-    if (!compareFloatClose(input, 0, .01))
+    input = -remote.getChannel(FlySky::Channel::LEFT_VERTICAL) *
+            remote.getChannel(FlySky::Channel::WHEEL_A);
+    if (!compareFloatClose(input, 0, .05))
     {
         return input;
     }
@@ -221,11 +227,11 @@ bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation()
 {
-    if (remote.getChannel(FlySky::Channel::SWITCH_C) == FlySky::SwitchState::UP)
+    if (remote.getChannel(FlySky::Channel::SWITCH_C) == SwitchState::UP)
     {
         return -0.3f;
     }
-    else if (remote.getChannel(FlySky::Channel::SWITCH_C) == FlySky::SwitchState::DOWN)
+    else if (remote.getChannel(FlySky::Channel::SWITCH_C) == SwitchState::DOWN)
     {
         return 0.3f;
     }

@@ -11,7 +11,7 @@ namespace src::serial
 class VisionComms : public tap::communication::serial::DJISerial
 {
 public:
-    static constexpr size_t VISION_COMMS_BAUD_RATE = 1'000'000;
+    static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
 
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_TX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
@@ -22,8 +22,6 @@ public:
     {
         float yaw;
         float pitch;
-
-        bool updated;  // whether or not this was recived on the current cycle
     };
 
     VisionComms(tap::Drivers* drivers);
@@ -41,19 +39,26 @@ public:
         return lastAimData[turretID];
     }
 
+    mockable inline bool isAimDataUpdated(uint8_t turretID) const
+    {
+        return aimDataUpdated[turretID];
+    }
+
     mockable inline bool getSomeTurretHasTarget() const
     {
-        bool hasTarget = false;
-        for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
-        {
-            hasTarget |= lastAimData[i].updated;
-        }
+        // bool hasTarget = false;
+        // for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
+        // {
+        //     hasTarget |= lastAimData[i].updated;
+        // }
+        return false;
     }
 
     enum MessageType : uint16_t
     {
         TURRET_DATA = 1,
-        ROBOT_ID = 2
+        ROBOT_ID = 2,
+        ALIVE = 3
     };
 
 private:
@@ -62,6 +67,8 @@ private:
     tap::arch::MilliTimeout cvOfflineTimeout;
 
     TurretAimData lastAimData[control::turret::NUM_TURRETS] = {};
+
+    bool aimDataUpdated[control::turret::NUM_TURRETS] = {};
 
     mockable void sendRobotIdMessage();
 

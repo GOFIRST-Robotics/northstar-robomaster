@@ -1,24 +1,5 @@
-/*
- * Copyright (c) 2020-2021 Advanced Robotics at the University of Washington <robomstr@uw.edu>
- *
- * This file is part of aruw-mcb.
- *
- * aruw-mcb is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * aruw-mcb is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-#ifndef IMU_CALIBRATE_COMMAND_HPP_
-#define IMU_CALIBRATE_COMMAND_HPP_
+#ifndef SENTRY_IMU_CALIBRATE_COMMAND_HPP_
+#define SENTRY_IMU_CALIBRATE_COMMAND_HPP_
 
 #include <vector>
 
@@ -28,12 +9,10 @@
 #include "tap/control/command.hpp"
 #include "tap/drivers.hpp"
 
-#include "communication/can/turret/turret_mcb_can_comm.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
+#include "control/imu/imu_calibrate_template.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
-#include "control/turret/turret_subsystem.hpp"
-
-#include "imu_calibrate_template.hpp"
+#include "robot/sentry/sentry_turret_subsystem.hpp"
 
 using namespace tap::algorithms;
 
@@ -53,7 +32,7 @@ namespace src::control::imu
  * 6. Send signal to onboard IMU to recalibrate.
  * 7. Wait until calibration is complete and then end the command.
  */
-class ImuCalibrateCommand : public ImuCalibrateCommandBase
+class SentryImuCalibrateCommand : public ImuCalibrateCommandBase
 {
 public:
     /**
@@ -87,22 +66,37 @@ public:
      */
     const float positionZeroThreshold;
 
+    static constexpr float DEFAULT_VELOCITY_ZERO_THRESHOLD = modm::toRadian(1e-2);
+    static constexpr float DEFAULT_POSITION_ZERO_THRESHOLD = modm::toRadian(3.0f);
+
     struct TurretIMUCalibrationConfig
     {
         /// The turret mounted IMU to be calibrated.
         // src::can::TurretMCBCanComm *turretMCBCanComm;
-        /// A `TurretSubsystem` that this command will control (will lock the turret).
-        turret::TurretSubsystem *turret;
+        /// A `SentryTurretSubsystem` that this command will control (will lock the turret).
+        turret::SentryTurretSubsystem *turret;
         /// A chassis relative yaw controller used to lock the turret.
-        turret::algorithms::ChassisFrameYawTurretController *yawController;
+        turret::algorithms::ChassisFrameYawTurretController *yawControllerTop;
         /// A chassis relative pitch controller used to lock the turret.
-        turret::algorithms::ChassisFramePitchTurretController *pitchController;
+        turret::algorithms::ChassisFramePitchTurretController *pitchControllerTop;
+        /// A chassis relative yaw controller used to lock the turret.
+        turret::algorithms::ChassisFrameYawTurretController *yawControllerBottom;
+        /// A chassis relative pitch controller used to lock the turret.
+        turret::algorithms::ChassisFramePitchTurretController *pitchControllerBottom;
+
         /**
-         * `true` if the turret IMU is mounted on the pitch axis of the
+         * `true` if the turret IMU is mounted on the Top pitch axis of the
          * turret. In this case the pitch controller doesn't have to reach the horizontal setpoint
          * before calibration is performed.
          */
-        bool turretImuOnPitch;
+        bool turretImuOnTopPitch;
+
+        /**
+         * `true` if the turret IMU is mounted on the Bottom pitch axis of the
+         * turret. In this case the pitch controller doesn't have to reach the horizontal setpoint
+         * before calibration is performed.
+         */
+        bool turretImuOnBottomPitch;
     };
 
     /**
@@ -116,12 +110,12 @@ public:
      * @param[in] positionZeroThreshold Threshold around 0 where turret pitch and yaw position from
      * the center considered to be 0, in radians.
      */
-    ImuCalibrateCommand(
+    SentryImuCalibrateCommand(
         tap::Drivers *drivers,
         const std::vector<TurretIMUCalibrationConfig> &turretsAndControllers,
         chassis::ChassisSubsystem *chassis,
-        float velocityZeroThreshold = ImuCalibrateCommand::DEFAULT_VELOCITY_ZERO_THRESHOLD,
-        float positionZeroThreshold = ImuCalibrateCommand::DEFAULT_POSITION_ZERO_THRESHOLD);
+        float velocityZeroThreshold = SentryImuCalibrateCommand::DEFAULT_VELOCITY_ZERO_THRESHOLD,
+        float positionZeroThreshold = SentryImuCalibrateCommand::DEFAULT_POSITION_ZERO_THRESHOLD);
 
     const char *getName() const override { return "Calibrate IMU"; }
 
@@ -183,21 +177,37 @@ protected:
      */
     tap::arch::MilliTimeout calibrationLongTimeout;
 
-    inline bool turretReachedCenterAndNotMoving(turret::TurretSubsystem *turret, bool ignorePitch)
-        const
+    inline bool turretReachedCenterAndNotMoving(
+        turret::SentryTurretSubsystem *turret,
+        bool ignorePitchTop,
+        bool ignorePitchBottom) const
     {
-        return compareFloatClose(
-                   0.0f,
-                   turret->yawMotor.getChassisFrameVelocity(),
-                   velocityZeroThreshold) &&
-               (turret->yawMotor.getChassisFrameMeasuredAngle().minDifference(0) <
-                positionZeroThreshold) &&
-               (ignorePitch || (compareFloatClose(
-                                    0.0f,
-                                    turret->pitchMotor.getChassisFrameVelocity(),
-                                    velocityZeroThreshold) &&
-                                (turret->pitchMotor.getChassisFrameMeasuredAngle().minDifference(
-                                     0) < positionZeroThreshold)));
+        return (compareFloatClose(
+                    0.0f,
+                    turret->yawMotorTop.getChassisFrameVelocity(),
+                    velocityZeroThreshold) &&
+                (turret->yawMotorTop.getChassisFrameMeasuredAngle().minDifference(0) <
+                 positionZeroThreshold) &&
+                compareFloatClose(
+                    0.0f,
+                    turret->yawMotorBottom.getChassisFrameVelocity(),
+                    velocityZeroThreshold) &&
+                (turret->yawMotorBottom.getChassisFrameMeasuredAngle().minDifference(0) <
+                 positionZeroThreshold)) &&
+               (ignorePitchTop ||
+                (compareFloatClose(
+                     0.0f,
+                     turret->pitchMotorTop.getChassisFrameVelocity(),
+                     velocityZeroThreshold) &&
+                 (turret->pitchMotorTop.getChassisFrameMeasuredAngle().minDifference(0) <
+                  positionZeroThreshold))) &&
+               (ignorePitchBottom ||
+                (compareFloatClose(
+                     0.0f,
+                     turret->pitchMotorBottom.getChassisFrameVelocity(),
+                     velocityZeroThreshold) &&
+                 (turret->pitchMotorBottom.getChassisFrameMeasuredAngle().minDifference(0) <
+                  positionZeroThreshold)));
     }
 };
 }  // namespace src::control::imu

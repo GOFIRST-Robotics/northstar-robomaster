@@ -31,6 +31,7 @@ namespace src::control::turret::cv
 {
 TurretCVControlCommand::TurretCVControlCommand(
     tap::Drivers *drivers,
+    ControlOperatorInterface &controlOperatorInterface,
     src::serial::VisionComms &visionComms,
     TurretSubsystem *turretSubsystem,
     algorithms::TurretYawControllerInterface *yawController,
@@ -39,6 +40,7 @@ TurretCVControlCommand::TurretCVControlCommand(
     float userPitchInputScalar,
     uint8_t turretID)
     : drivers(drivers),
+      controlOperatorInterface(controlOperatorInterface),
       visionComms(visionComms),
       turretSubsystem(turretSubsystem),
       yawController(yawController),
@@ -47,49 +49,68 @@ TurretCVControlCommand::TurretCVControlCommand(
       userPitchInputScalar(userPitchInputScalar),
       turretID(turretID)
 {
-    addSubsystemRequirement(turretSubsystem);
+    TurretCVControlCommandTemplate::addSubsystemRequirement(turretSubsystem);
 }
-bool TurretCVControlCommand::isReady()
-{
-    return !isFinished();  //&& this->yawController->isOnline();  // TODO hero needs comented out
-}
+bool TurretCVControlCommand::isReady() { return !isFinished(); }
 
 void TurretCVControlCommand::initialize()
 {
     yawController->initialize();
     pitchController->initialize();
     prevTime = tap::arch::clock::getTimeMilliseconds();
+    drivers->leds.set(tap::gpio::Leds::Green, true);
 }
-
 void TurretCVControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
     uint32_t dt = currTime - prevTime;
     prevTime = currTime;
+    if (visionComms.isAimDataUpdated(turretID))
+    {
+        // up has positive error so up positive
+        const WrappedFloat pitchSetpoint = Angle(
+            pitchController->getMeasurement().getUnwrappedValue() -
+            limitVal(visionComms.getLastAimData(turretID).pitch, -0.1f, 0.1f));
+        pitchController->runController(dt, pitchSetpoint);
+        // left neg right post
+        const WrappedFloat yawSetpoint = Angle(
+            -yawController->getMeasurement().getUnwrappedValue() +
+            visionComms.getLastAimData(turretID).yaw);
+        yawController->runController(dt, yawSetpoint);
 
-    const WrappedFloat pitchSetpoint =
-        pitchController->getMeasurement() + visionComms.getLastAimData(0).pitch;
-    pitchController->runController(dt, pitchSetpoint);
+        withinAimingTolerance =  // TODO calculate off the distance
+            (abs(visionComms.getLastAimData(turretID).yaw) < AIMING_TOLERANCE_YAW &&
+             abs(visionComms.getLastAimData(turretID).pitch) < AIMING_TOLERANCE_PITCH);
+    }
+    else
+    {
+        const WrappedFloat pitchSetpoint =
+            pitchController->getSetpoint() +
+            userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(turretID);
+        pitchController->runController(dt, pitchSetpoint);
 
-    const WrappedFloat yawSetpoint =
-        yawController->getMeasurement() + visionComms.getLastAimData(0).yaw;
-    yawController->runController(dt, yawSetpoint);
+        const WrappedFloat yawSetpoint =
+            yawController->getSetpoint() +
+            userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
+        yawController->runController(dt, yawSetpoint);
+
+        withinAimingTolerance = false;
+    }
 }
-bool debugpitchController = false;
-bool debugyawController = false;
 
 bool TurretCVControlCommand::isFinished() const
 {
-    debugpitchController = pitchController->isOnline();
-    debugyawController = yawController->isOnline();
-    return !pitchController->isOnline() && !yawController->isOnline() ||
-           !visionComms.isCvOnline();  //&& TODO not shure if this is right
+    return !pitchController->isOnline() && !yawController->isOnline();
 }
 
-void TurretCVControlCommand::end(bool)
+void TurretCVControlCommand::end(bool interrupted)
 {
-    turretSubsystem->yawMotor.setMotorOutput(0);
-    turretSubsystem->pitchMotor.setMotorOutput(0);
+    if (!interrupted)
+    {
+        turretSubsystem->yawMotor.setMotorOutput(0);
+        turretSubsystem->pitchMotor.setMotorOutput(0);
+    }
+    drivers->leds.set(tap::gpio::Leds::Green, false);
 }
 
 }  // namespace src::control::turret::cv

@@ -48,6 +48,19 @@ public:
         return pitchMotorBottom.isOnline() && yawMotorBottom.isOnline() &&
                pitchMotorTop.isOnline() && yawMotorTop.isOnline();
     }
+    // bottomMeasurementOffset = yawControllerBottom->getMeasurementMotor().getUnwrappedValue();
+    // topMeasurementOffset = yawControllerTop->getMeasurement().getUnwrappedValue();
+    // bottomSetpointOffset = yawControllerBottom->getSetpoint().getUnwrappedValue();
+    mockable void setOffsets(
+        float bottomSetpointOffset,
+        float bottomMeasurementOffset,
+        float topMeasurementOffset)
+    {
+        offsets = true;
+        this->bottomSetpointOffset = bottomSetpointOffset;
+        this->bottomMeasurementOffset = bottomMeasurementOffset;
+        this->topMeasurementOffset = topMeasurementOffset;
+    }
 
     /// Associated with and contains logic for controlling the turret's pitch motor
     TurretMotor pitchMotorBottom;
@@ -57,6 +70,12 @@ public:
     TurretMotor pitchMotorTop;
     /// Associated with and contains logic for controlling the turret's yaw motor
     TurretMotor yawMotorTop;
+
+    bool offsets = false;
+
+    float bottomSetpointOffset = 0;
+    float bottomMeasurementOffset = 0;
+    float topMeasurementOffset = 0;
 
 protected:
     const src::can::TurretMCBCanComm *turretMCB;

@@ -21,12 +21,11 @@ class ChassisSubsystem;
 class ChassisOrientDriveCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
+    static constexpr float MAX_CHASSIS_SPEED_MPS = 7.0f;
 
     ChassisOrientDriveCommand(
         ChassisSubsystem *chassis,
-        src::control::ControlOperatorInterface *operatorInterface,
-        float angleOffset);
+        src::control::ControlOperatorInterface *operatorInterface);
 
     const char *getName() const override { return "Chassis tank drive"; }
 

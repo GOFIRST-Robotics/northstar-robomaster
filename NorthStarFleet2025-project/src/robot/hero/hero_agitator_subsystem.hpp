@@ -39,18 +39,16 @@ public:
      *
      * @param[in] velocity The desired velocity in radians / second.
      */
-    void setVelocity(float velocity) { velocitySetpoint = velocity * config.agitatorGearRatio; }
+    void setVelocity(float velocity) { velocitySetpoint = velocity; }
 
     /// @return The agitator velocity in radians / second.
-    inline float getVelocity() const
-    {
-        return agitatorMotor.getEncoder()->getVelocity() * 60.0f / M_TWOPI /
-               config.agitatorGearRatio;
-    }
+    inline float getVelocity() const { return agitatorMotor.getEncoder()->getVelocity(); }
 
     void shoot();
 
     void reload();
+
+    bool isReady = true;
 
 private:
     tap::algorithms::SmoothPid pid;
@@ -63,7 +61,8 @@ private:
 
     src::communication::sensors::limit_switch::LimitSwitch limitSwitch;
 
-    tap::arch::MilliTimeout reloadTimeout;
+    tap::arch::MilliTimeout agitatorTimeout;
+    tap::arch::MilliTimeout jamTimeout;
 
     uint32_t prevTime = 0;
 
@@ -78,6 +77,8 @@ private:
     void runVelocityPidControl();
 
     bool loaded = false;
+
+    bool reloading = false;
 };
 
 }  // namespace src::agitator

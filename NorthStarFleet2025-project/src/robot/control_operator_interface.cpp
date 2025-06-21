@@ -1,4 +1,4 @@
-// #define FLY_SKY
+//#define FLY_SKY
 #ifndef FLY_SKY
 
 /*
@@ -43,9 +43,9 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
     switch (turretID)
     {
         case 0:
-            input = -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
+            input = remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseX(),
+                        remote.getMouseX(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
@@ -55,9 +55,9 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
             }
             return 0;
         case 1:
-            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
+            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) -
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseX(),
+                        remote.getMouseX(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
@@ -77,9 +77,9 @@ float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
     switch (turretID)
     {
         case 0:
-            input = -remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
+            input = remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseY(),
+                        remote.getMouseY(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
@@ -89,9 +89,9 @@ float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
             }
             return 0;
         case 1:
-            input = -remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
+            input = remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseY(),
+                        remote.getMouseY(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);

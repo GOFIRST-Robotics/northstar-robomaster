@@ -78,9 +78,13 @@ public:
     /// @return World frame yaw angle setpoint, refer to top level documentation for more details.
     inline WrappedFloat getSetpoint() const final { return worldFrameSetpoint; }
 
-    /// @return World frame yaw angle measurement, refer to top level documentation for more
-    /// details.
+    /// @return World frame yaw angle measurement from IMU, refer to top level documentation for
+    /// more details.
     WrappedFloat getMeasurement() const final;
+
+    /// @return World frame yaw angle measurement from MOTOR, refer to top level documentation for
+    /// more details.
+    WrappedFloat getMeasurementMotor() const override final;
 
     bool isOnline() const final;
 
@@ -96,6 +100,9 @@ private:
     SmoothPid &velocityPid;
 
     WrappedFloat worldFrameSetpoint;
+
+    float worldFrameMeasurementIMU;
+    int32_t IMUrevolutions;
 
     inline WrappedFloat getBmi088Yaw(bool negitive = false) const
     {

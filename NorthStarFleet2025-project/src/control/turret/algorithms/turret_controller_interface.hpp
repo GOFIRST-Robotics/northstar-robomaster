@@ -87,6 +87,10 @@ public:
      */
     virtual WrappedFloat getMeasurement() const = 0;
 
+    /// @return World frame yaw angle measurement, refer to top level documentation for more
+    /// details.
+    virtual WrappedFloat getMeasurementMotor() const {};
+
     /**
      * @return `false` if the turret controller should not be running, whether this is because the
      * turret is offline or some sensor the turret controller is using is invalid. Otherwise return

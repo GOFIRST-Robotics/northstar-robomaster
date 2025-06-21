@@ -106,7 +106,7 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
-            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            // PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
 #ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
@@ -122,23 +122,19 @@ int main()
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
         }
 #endif
-
-        // if(!drivers->turretMCBCanCommBus2.isConnected()){
-        //     std::cout<<"poop";
-        // }
         modm::delay_us(10);
     }
     return 0;
 }
 static void initializeIo(Drivers *drivers)
 {
-    drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
+    // drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
     drivers->can.initialize();
     drivers->leds.init();
     drivers->digital.init();
     drivers->pwm.init();
     drivers->errorController.init();
-    drivers->terminalSerial.initialize();
+    // drivers->terminalSerial.initialize();
     drivers->bmi088.initialize(500, .001, 0);
 
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
@@ -150,9 +146,11 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
-    // drivers->vissionComs.initialize();
-    drivers->schedulerTerminalHandler.init();
-    drivers->djiMotorTerminalSerialHandler.init();
+#ifndef FLY_SKY
+    drivers->visionComms.initializeCV();
+#endif
+    // drivers->schedulerTerminalHandler.init();
+    // drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
 float debugYaw = 0.0f;
@@ -162,10 +160,20 @@ float debugYawV = 0.0f;
 float debugPitchV = 0.0f;
 float debugRollV = 0.0f;
 bool conneccc = false;
+float debugLastAimDataYaw = 0.0f;
+float debugLastAimDataPitch = 0.0f;
 
 bool cal = false;
+bool calibrated = false;
 static void updateIo(Drivers *drivers)
 {
+#ifndef TARGET_TEST_BED
+    if (!calibrated && drivers->remote.isConnected())
+    {
+        drivers->commandScheduler.addCommand(getImuCalibrateCommand());
+        calibrated = true;
+    }
+#endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
 #endif
@@ -175,8 +183,12 @@ static void updateIo(Drivers *drivers)
 
 #ifndef TURRET
     drivers->refSerial.updateSerial();
-    // drivers->vissionComs.updateSerial();
+#ifndef FLY_SKY
+    drivers->visionComms.updateSerial();
+#endif
+
     drivers->remote.read();
+
     if (cal)
     {
         cal = false;

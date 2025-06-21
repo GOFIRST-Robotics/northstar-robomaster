@@ -9,6 +9,7 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
+#include "control/cycle_state_command_mapping.hpp"
 #include "control/dummy_subsystem.hpp"
 #include "robot/standard/standard_drivers.hpp"
 
@@ -27,6 +28,7 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
+#include "control/agitator/manual_fire_rate_reselection_manager.hpp"
 #include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
 #include "control/agitator/velocity_agitator_subsystem.hpp"
@@ -41,6 +43,11 @@
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
 #include "robot/standard/standard_turret_subsystem.hpp"
+
+// cv
+#include "control/agitator/multi_shot_cv_command_mapping.hpp"
+#include "control/governor/cv_on_target_governor.hpp"
+#include "control/turret/cv/turret_cv_control_command.hpp"
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
@@ -114,72 +121,6 @@ ToggleCommandMapping fPressed(
     drivers(),
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
-
-// agitator subsystem
-VelocityAgitatorSubsystem agitator(
-    drivers(),
-    constants::AGITATOR_PID_CONFIG,
-    constants::AGITATOR_CONFIG);
-
-// agitator commands
-ConstantVelocityAgitatorCommand rotateAgitator(agitator, constants::AGITATOR_ROTATE_CONFIG);
-
-UnjamSpokeAgitatorCommand unjamAgitator(agitator, constants::AGITATOR_UNJAM_CONFIG);
-
-MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
-    *drivers(),
-    agitator,
-    rotateAgitator,
-    unjamAgitator);
-
-// agitator governors
-HeatLimitGovernor heatLimitGovernor(
-    *drivers(),
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
-    constants::HEAT_LIMIT_BUFFER);
-
-FlywheelOnGovernor flywheelOnGovernor(flywheel);
-
-RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
-    drivers()->refSerial,
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1);
-
-ManualFireRateReselectionManager manualFireRateReselectionManager;
-
-SetFireRateCommand setFireRateCommandFullAuto(
-    &dummySubsystem,
-    manualFireRateReselectionManager,
-    40,
-    &rotateAgitator);
-SetFireRateCommand setFireRateCommand10RPS(
-    &dummySubsystem,
-    manualFireRateReselectionManager,
-    10,
-    &rotateAgitator);
-
-FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
-
-GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
-    {&agitator},
-    rotateAndUnjamAgitator,
-    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
-
-// agitator mappings
-ToggleCommandMapping vPressed(
-    drivers(),
-    {&setFireRateCommandFullAuto},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
-
-ToggleCommandMapping gPressed(
-    drivers(),
-    {&setFireRateCommand10RPS},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
-
-HoldRepeatCommandMapping leftMousePressed(
-    drivers(),
-    {&rotateAndUnjamAgitator},  // TODO
-    RemoteMapState(RemoteMapState::MouseButton::LEFT),
-    false);
 
 // turret subsystem
 tap::motor::DjiMotor pitchMotor(
@@ -274,6 +215,16 @@ user::TurretUserControlCommand turretUserControlCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+cv::TurretCVControlCommand turretCVControlCommand(
+    drivers(),
+    drivers()->controlOperatorInterface,
+    drivers()->visionComms,
+    &turret,
+    &worldFrameYawTurretImuController,
+    &worldFramePitchChassisImuController,
+    USER_YAW_INPUT_SCALAR,
+    USER_PITCH_INPUT_SCALAR);
+
 user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     drivers(),
     drivers()->controlOperatorInterface,
@@ -284,6 +235,106 @@ user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     &worldFramePitchTurretCanImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
+
+// agitator subsystem
+VelocityAgitatorSubsystem agitator(
+    drivers(),
+    constants::AGITATOR_PID_CONFIG,
+    constants::AGITATOR_CONFIG);
+
+// agitator commands
+ConstantVelocityAgitatorCommand rotateAgitator(agitator, constants::AGITATOR_ROTATE_CONFIG);
+
+UnjamSpokeAgitatorCommand unjamAgitator(agitator, constants::AGITATOR_UNJAM_CONFIG);
+
+MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
+    *drivers(),
+    agitator,
+    rotateAgitator,
+    unjamAgitator);
+
+// agitator governors
+HeatLimitGovernor heatLimitGovernor(
+    *drivers(),
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
+    constants::HEAT_LIMIT_BUFFER);
+
+FlywheelOnGovernor flywheelOnGovernor(flywheel);
+
+RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
+    drivers()->refSerial,
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1);
+
+ManualFireRateReselectionManager manualFireRateReselectionManager;
+
+SetFireRateCommand setFireRateCommandFullAuto(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    40,
+    &rotateAgitator);
+SetFireRateCommand setFireRateCommand10RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    10,
+    &rotateAgitator);
+
+FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
+
+GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+    {&agitator},
+    rotateAndUnjamAgitator,
+    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor /*,&flywheelOnGovernor*/});
+
+CvOnTargetGovernor cvOnTargetGovernor(drivers(), drivers()->visionComms, turretCVControlCommand);
+
+CycleStateCommandMapping<bool, 2, CvOnTargetGovernor> rPressed(
+    drivers(),
+    RemoteMapState({Remote::Key::R}),
+    true,
+    &cvOnTargetGovernor,
+    &CvOnTargetGovernor::setGovernorEnabled);
+
+GovernorLimitedCommand<2> rotateAndUnjamAgitatorWithHeatAndCVLimiting(
+    {&agitator},
+    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched,
+    {&heatLimitGovernor, &cvOnTargetGovernor});
+
+MultiShotCvCommandMapping leftMousePressed(
+    *drivers(),
+    rotateAndUnjamAgitatorWithHeatAndCVLimiting,
+    RemoteMapState(RemoteMapState::MouseButton::LEFT),
+    &manualFireRateReselectionManager,
+    cvOnTargetGovernor,
+    &rotateAgitator);
+
+CycleStateCommandMapping<
+    MultiShotCvCommandMapping::LaunchMode,
+    MultiShotCvCommandMapping::NUM_SHOOTER_STATES,
+    MultiShotCvCommandMapping>
+    gOrVPressed(
+        drivers(),
+        RemoteMapState({Remote::Key::G}),
+        MultiShotCvCommandMapping::SINGLE,
+        &leftMousePressed,
+        &MultiShotCvCommandMapping::setShooterState,
+        RemoteMapState({Remote::Key::V}));
+
+// agitator mappings
+ToggleCommandMapping vPressed(
+    drivers(),
+    {&setFireRateCommandFullAuto},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
+
+ToggleCommandMapping gPressed(
+    drivers(),
+    {&setFireRateCommand10RPS},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
+
+// HoldRepeatCommandMapping leftMousePressed(
+//     drivers(),
+//     {&rotateAndUnjamAgitator},  // TODO
+//     RemoteMapState(RemoteMapState::MouseButton::LEFT),
+//     false);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
@@ -309,15 +360,14 @@ src::chassis::ChassisDriveCommand chassisDriveCommand(
 
 src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0.0f);
+    &drivers()->controlOperatorInterface);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    1,
+    M_PI,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
@@ -325,14 +375,14 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    2,
+    M_PI,
     true);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    2.0f,
-    2.0f);
+    1.0f,
+    M_TWOPI);
 
 // Chassis Governors
 
@@ -441,11 +491,13 @@ void startStandardCommands(Drivers *drivers)
 void registerStandardIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressed);
-    drivers->commandMapper.addMap(&vPressed);
+    // drivers->commandMapper.addMap(&vPressed);
     drivers->commandMapper.addMap(&fPressed);
     drivers->commandMapper.addMap(&bPressed);
-    drivers->commandMapper.addMap(&gPressed);
+    // drivers->commandMapper.addMap(&gPressed);
     drivers->commandMapper.addMap(&xPressed);
+    drivers->commandMapper.addMap(&rPressed);
+    drivers->commandMapper.addMap(&gOrVPressed);
     drivers->commandMapper.addMap(&wiggle);
     drivers->commandMapper.addMap(&orientDrive);
 }
@@ -453,6 +505,11 @@ void registerStandardIoMappings(Drivers *drivers)
 
 namespace src::standard
 {
+imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
+{
+    return &standard_control::imuCalibrateCommand;
+}
+
 void initSubsystemCommands(src::standard::Drivers *drivers)
 {
     drivers->commandScheduler.setSafeDisconnectFunction(
