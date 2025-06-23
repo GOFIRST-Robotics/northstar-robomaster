@@ -521,6 +521,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gOrVPressed);
     drivers->commandMapper.addMap(&wiggle);
     drivers->commandMapper.addMap(&orientDrive);
+    drivers->commandMapper.addMap(&bCtrlPressed);
 }
 }  // namespace standard_control
 
