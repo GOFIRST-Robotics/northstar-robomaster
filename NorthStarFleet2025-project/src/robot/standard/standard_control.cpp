@@ -79,7 +79,10 @@
 #include "control/clientDisplay/client_display_subsystem.hpp"
 #include "control/clientDisplay/indicators/ammo_indicator.hpp"
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
+#include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
+#include "control/clientDisplay/indicators/flywheel_indicator.hpp"
 #include "control/clientDisplay/indicators/hud_indicator.hpp"
+#include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 #include "control/clientDisplay/indicators/vision_indicator.hpp"
 
@@ -437,9 +440,18 @@ tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers())
 
 AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
 
-// VisionIndicator visionIndicator();
+VisionIndicator visionIndicator(refSerialTransmitter, drivers()->refSerial, drivers()->visionComms);
 
 CircleCrosshair circleCrosshair(refSerialTransmitter);
+
+FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, flywheelOnGovernor);
+
+ShootingModeIndicator shootingModeIndicator(
+    refSerialTransmitter,
+    drivers()->refSerial,
+    leftMousePressed);
+
+CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial, cvOnTargetGovernor);
 
 TextHudIndicators textHudIndicators(
     *drivers(),
@@ -448,7 +460,14 @@ TextHudIndicators textHudIndicators(
     {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
     refSerialTransmitter);
 
-std::vector<HudIndicator *> hudIndicators = {&ammoIndicator, &circleCrosshair, &textHudIndicators};
+std::vector<HudIndicator *> hudIndicators = {
+    &ammoIndicator,
+    &circleCrosshair,
+    &textHudIndicators,
+    &visionIndicator,
+    &flyWheelIndicator,
+    &shootingModeIndicator,
+    &cvAimingIndicator};
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 

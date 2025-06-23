@@ -17,13 +17,13 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FLYWHEEL_INDICATOR_HPP_
-#define FLYWHEEL_INDICATOR_HPP_
+#ifndef SHOOTING_MODE_INDICATOR_HPP_
+#define SHOOTING_MODE_INDICATOR_HPP_
 
 #include "tap/communication/referee/state_hud_indicator.hpp"
 #include "tap/communication/serial/ref_serial.hpp"
-#include "tap/control/governor/command_governor_interface.hpp"
 
+#include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "modm/processing/resumable.hpp"
 
 #include "hud_indicator.hpp"
@@ -32,7 +32,11 @@ using namespace tap::communication::serial;
 
 namespace src::control::client_display
 {
-class FlywheelIndicator : public HudIndicator, protected modm::Resumable<2>
+/**
+ * Adds text to show in bright yellow the number of bullets currently the robot has.
+ * Displays up to 3 digits, in the format "AMMO: 123" or "AMMO: -12".
+ */
+class ShootingModeIndicator : public HudIndicator, protected modm::Resumable<2>
 {
 public:
     /**
@@ -40,10 +44,10 @@ public:
      *
      * @param[in] refSerialTransmitter RefSerialTransmitter instance.
      */
-    FlywheelIndicator(
+    ShootingModeIndicator(
         tap::communication::serial::RefSerialTransmitter &refSerialTransmitter,
         const tap::communication::serial::RefSerial &refSerial,
-        tap::control::governor::CommandGovernorInterface &governor);
+        control::agitator::MultiShotCvCommandMapping &shootCommand);
 
     void initialize() override final;
 
@@ -55,33 +59,36 @@ private:
     // X position of the text
     static constexpr uint16_t TEXT_X = SCREEN_WIDTH / 2 - 150;
     // Y position of the text
-    static constexpr uint16_t TEXT_Y = 400;
+    static constexpr uint16_t TEXT_Y = 600;
     // WIDTH of the text
-    static constexpr uint16_t WIDTH = 6;
+    static constexpr uint16_t WIDTH = 4;
     // SIZE of the text
     static constexpr uint16_t SIZE = 40;
 
     Tx::GraphicCharacterMessage textGraphic;
-    const char *visisonTarget = "FLYWHEEL ";
+    const char *fireratetext = "FIREMODE: ";
 
-    static constexpr uint16_t CIRCLE_X = TEXT_X + 175;
+    Tx::Graphic1Message numberGraphic;
+    tap::communication::referee::StateHUDIndicator<int32_t> numberIndicator;
 
-    static constexpr uint16_t CRICLE_Y = TEXT_Y;
-    // SIZE of the circle
-    static constexpr uint16_t CRICLE_SIZE = 2;
-    // Thickness of the line
-    static constexpr uint16_t LINE_THICKNESS = 5;
+    static constexpr uint16_t NUMBER_X = TEXT_X + 175;
+
+    int firemode = 0;
 
     const tap::communication::serial::RefSerial &refSerial;
 
-    tap::control::governor::CommandGovernorInterface &governor;
+    control::agitator::MultiShotCvCommandMapping &shootCommand;
 
-public:
-    uint8_t circleName[3];
-
-    Tx::GraphicColor circleColor;
-
-    Tx::Graphic1Message circleGraphics;
+    static inline void updateAmmoCount(int32_t value, RefSerialData::Tx::Graphic1Message *graphic)
+    {
+        RefSerialTransmitter::configInteger(
+            SIZE,
+            WIDTH,
+            NUMBER_X,
+            TEXT_Y,
+            value,
+            &graphic->graphicData);
+    }
 };
 
 }  // namespace src::control::client_display

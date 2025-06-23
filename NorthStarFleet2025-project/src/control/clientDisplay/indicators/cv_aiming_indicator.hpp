@@ -17,13 +17,13 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FLYWHEEL_INDICATOR_HPP_
-#define FLYWHEEL_INDICATOR_HPP_
+#ifndef CV_AIMING_INDICATOR_HPP_
+#define CV_AIMING_INDICATOR_HPP_
 
 #include "tap/communication/referee/state_hud_indicator.hpp"
 #include "tap/communication/serial/ref_serial.hpp"
-#include "tap/control/governor/command_governor_interface.hpp"
 
+#include "control/governor/cv_on_target_governor.hpp"
 #include "modm/processing/resumable.hpp"
 
 #include "hud_indicator.hpp"
@@ -32,7 +32,11 @@ using namespace tap::communication::serial;
 
 namespace src::control::client_display
 {
-class FlywheelIndicator : public HudIndicator, protected modm::Resumable<2>
+/**
+ * Adds text to show in bright yellow the number of bullets currently the robot has.
+ * Displays up to 3 digits, in the format "AMMO: 123" or "AMMO: -12".
+ */
+class CvAimingIndicator : public HudIndicator, protected modm::Resumable<2>
 {
 public:
     /**
@@ -40,10 +44,10 @@ public:
      *
      * @param[in] refSerialTransmitter RefSerialTransmitter instance.
      */
-    FlywheelIndicator(
+    CvAimingIndicator(
         tap::communication::serial::RefSerialTransmitter &refSerialTransmitter,
         const tap::communication::serial::RefSerial &refSerial,
-        tap::control::governor::CommandGovernorInterface &governor);
+        src::control::governor::CvOnTargetGovernor &cvAimingGovorner);
 
     void initialize() override final;
 
@@ -55,14 +59,14 @@ private:
     // X position of the text
     static constexpr uint16_t TEXT_X = SCREEN_WIDTH / 2 - 150;
     // Y position of the text
-    static constexpr uint16_t TEXT_Y = 400;
+    static constexpr uint16_t TEXT_Y = 700;
     // WIDTH of the text
     static constexpr uint16_t WIDTH = 6;
     // SIZE of the text
     static constexpr uint16_t SIZE = 40;
 
     Tx::GraphicCharacterMessage textGraphic;
-    const char *visisonTarget = "FLYWHEEL ";
+    const char *visisonTarget = "CV control ";
 
     static constexpr uint16_t CIRCLE_X = TEXT_X + 175;
 
@@ -74,7 +78,7 @@ private:
 
     const tap::communication::serial::RefSerial &refSerial;
 
-    tap::control::governor::CommandGovernorInterface &governor;
+    src::control::governor::CvOnTargetGovernor &cvAimingGovorner;
 
 public:
     uint8_t circleName[3];
