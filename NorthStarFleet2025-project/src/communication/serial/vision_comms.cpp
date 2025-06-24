@@ -58,7 +58,8 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
     int curreIndex = 0;
     for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
     {
-        if (curreIndex + sizeof(TurretAimData) > message.header.dataLength)
+        if ((curreIndex + sizeof(TurretAimData) - sizeof(float) * 2 - 2) >
+            message.header.dataLength)
         {
             return false;  // Not enough data for another turret aim data
         }
@@ -82,7 +83,7 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
         memcpy(&aimData.distance, &message.data[curreIndex], sizeof(float));
         curreIndex += sizeof(float);
 
-        memcpy(&aimData.robotId, &message.data[curreIndex], sizeof(float));
+        memcpy(&aimData.robotId, &message.data[curreIndex], sizeof(aimData.robotId));
         curreIndex += sizeof(aimData.robotId);
 
         if (aimData.distance != 0)

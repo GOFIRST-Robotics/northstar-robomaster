@@ -52,6 +52,10 @@
 #include "control/flywheel/flywheel_run_command.hpp"
 #include "control/flywheel/flywheel_subsystem.hpp"
 
+// hopper
+#include "control/hopper/hopper_subsystem.hpp"
+#include "control/hopper/hopper_toggle_command.hpp"
+
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
@@ -87,6 +91,7 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
+using namespace src::control::hopper;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -399,6 +404,15 @@ ToggleCommandMapping wiggle(
     {&chassisWiggleCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
 
+HopperSubsystem hopperSubsystem(drivers(), 0.0585f, 0.025, tap::gpio::Pwm::Pin::C7);
+
+HopperToggleCommand hopperToggleCommand(&hopperSubsystem);
+
+ToggleCommandMapping ctrlVPressed(
+    drivers(),
+    {&hopperToggleCommand},
+    RemoteMapState(RemoteMapState({Remote::Key::CTRL, Remote::Key::V})));
+
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
@@ -424,6 +438,7 @@ void initializeSubsystems(Drivers *drivers)
     agitator.initialize();
     flywheel.initialize();
     turret.initialize();
+    hopperSubsystem.initialize();
 }
 
 void registerStandardSubsystems(Drivers *drivers)
@@ -433,6 +448,7 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
+    drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
@@ -460,6 +476,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&xPressed);
     drivers->commandMapper.addMap(&rPressed);
     drivers->commandMapper.addMap(&gOrVPressed);
+    drivers->commandMapper.addMap(&ctrlVPressed);
     drivers->commandMapper.addMap(&wiggle);
     drivers->commandMapper.addMap(&orientDrive);
 }
