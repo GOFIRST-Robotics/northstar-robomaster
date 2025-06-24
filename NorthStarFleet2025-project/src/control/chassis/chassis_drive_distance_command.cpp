@@ -14,16 +14,18 @@ ChassisDriveDistanceCommand::ChassisDriveDistanceCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface,
     float xDist,
-    float yDist)
+    float yDist,
+    float maxError)
     : chassis(chassis),
       operatorInterface(operatorInterface),
       xDist(xDist),
-      yDist(yDist)
+      yDist(yDist),
+      maxError(maxError)
 
 {
     addSubsystemRequirement(chassis);
-    xPid = Pid(0.5f, 0.0f, 0.0f, 0.0f, 1.0f);
-    yPid = Pid(0.5f, 0.0f, 0.0f, 0.0f, 1.0f);
+    xPid = Pid(2.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+    yPid = Pid(2.0f, 0.0f, 0.0f, 0.0f, 1.f);
 }
 
 void ChassisDriveDistanceCommand::initialize()
@@ -41,13 +43,19 @@ void ChassisDriveDistanceCommand::execute()
     prevTime = curTime;
     xPid.update(xDist - xDistanceCounter);
     yPid.update(yDist - yDistanceCounter);
-    chassis->setVelocityTurretDrive(scale(xPid.getValue()), scale(yPid.getValue()), scale(0));
-    xDistanceCounter = xPid.getValue() * dt / 1000;
-    yDistanceCounter = yPid.getValue() * dt / 1000;
+    chassis->setVelocityTurretDrive(scale(xPid.getValue()), scale(yPid.getValue()), 0);
+    xDistanceCounter += xPid.getValue() * 0.5f * (dt / 1000.0);
+    yDistanceCounter += yPid.getValue() * 0.5f * (dt / 1000.0);
 }
 
 void ChassisDriveDistanceCommand::end(bool interrupted)
 {
     chassis->setVelocityTurretDrive(0, 0, 0);
 }
+
+bool ChassisDriveDistanceCommand::isFinished() const
+{
+    return abs(xDist - xDistanceCounter) <= maxError && abs(yDist - yDistanceCounter) <= maxError;
+}
+
 };  // namespace src::chassis

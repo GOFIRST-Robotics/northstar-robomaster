@@ -47,7 +47,7 @@ public:
 
     bool isReady() final { return enoughTimeSinceLastHit(); }
 
-    bool isFinished() final { return !enoughTimeSinceLastHit(); }
+    bool isFinished() final { return enoughTimeSinceLastHit(); }
 
 private:
     tap::Drivers* drivers;

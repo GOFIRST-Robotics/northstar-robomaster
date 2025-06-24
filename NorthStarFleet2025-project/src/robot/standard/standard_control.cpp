@@ -3,6 +3,7 @@
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/press_command_mapping.hpp"
+#include "tap/control/sequential_command.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
@@ -18,6 +19,7 @@
 // chasis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_drive_distance_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
@@ -370,7 +372,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    M_PI,
+    M_PI_2,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
@@ -387,23 +389,51 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
+src::chassis::ChassisDriveDistanceCommand driveDist1(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    3,
+    0,
+    0.2);
+
+src::chassis::ChassisDriveDistanceCommand driveDist2(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    0,
+    3,
+    0.2);
+
+src::chassis::ChassisDriveDistanceCommand driveDist3(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    -3,
+    0,
+    0.2);
+
+src::chassis::ChassisDriveDistanceCommand driveDist4(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    0,
+    -3,
+    0.2);
+
 // Chassis Governors
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
-GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-    {&chassisSubsystem},
-    chassisBeyBladeSlowCommand,
-    chassisBeyBladeFastCommand,
-    {&firedRecentlyGovernor, &plateHitGovernor},
-    true);
+// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+//     {&chassisSubsystem},
+//     chassisBeyBladeSlowCommand,
+//     chassisBeyBladeFastCommand,
+//     {&firedRecentlyGovernor, &plateHitGovernor},
+//     false);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
     drivers(),
-    {&beyBladeSlowOutOfCombat},
+    {&chassisBeyBladeFastCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 
 ToggleCommandMapping orientDrive(
@@ -415,6 +445,14 @@ ToggleCommandMapping wiggle(
     drivers(),
     {&chassisWiggleCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
+
+// tap::control::SequentialCommand driveSquare({&driveDist1, &driveDist2, &driveDist3,
+// &driveDist4});
+
+PressCommandMapping driveDistBindC(
+    drivers(),
+    {&driveSquare},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::C})));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -522,6 +560,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&wiggle);
     drivers->commandMapper.addMap(&orientDrive);
     drivers->commandMapper.addMap(&bCtrlPressed);
+    drivers->commandMapper.addMap(&driveDistBindC);
 }
 }  // namespace standard_control
 

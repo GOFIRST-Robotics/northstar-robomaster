@@ -27,9 +27,10 @@ public:
         ChassisSubsystem *chassis,
         src::control::ControlOperatorInterface *operatorInterface,
         float xDist,
-        float yDist);
+        float yDist,
+        float maxError);
 
-    const char *getName() const override { return "Chassis tank drive"; }
+    const char *getName() const override { return "Chassis drive dist"; }
 
     void initialize() override;
 
@@ -37,15 +38,16 @@ public:
 
     void end(bool interrupted) override;
 
-    bool isFinished() const { return false; }
+    bool isFinished() const override;
 
 private:
     src::chassis::ChassisSubsystem *chassis;
 
     src::control::ControlOperatorInterface *operatorInterface;
 
-    float xDist;
-    float yDist;
+    float xDist;  // Forward
+    float yDist;  // Sideways
+    float maxError;
 
     float xDistanceCounter;
     float yDistanceCounter;
