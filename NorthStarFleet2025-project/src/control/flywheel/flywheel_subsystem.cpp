@@ -31,15 +31,23 @@ FlywheelSubsystem::FlywheelSubsystem(
       desiredRpmRampRight(0),
       desiredRpmRampUp(0),
       topFlyWheelPid(
-          FLYWHEEL_DUTY_PID_KP, FLYWHEEL_DUTY_PID_KI, FLYWHEEL_DUTY_PID_KD,
-          FLYWHEEL_DUTY_PID_MAX_ERROR_SUM, FLYWHEEL_DUTY_PID_MAX_OUTPUT),
-        bottomLeftFlyWheelPid(
-            FLYWHEEL_DUTY_PID_KP, FLYWHEEL_DUTY_PID_KI, FLYWHEEL_DUTY_PID_KD,
-            FLYWHEEL_DUTY_PID_MAX_ERROR_SUM, FLYWHEEL_DUTY_PID_MAX_OUTPUT),
-        bottomRightFlyWheelPid(
-            FLYWHEEL_DUTY_PID_KP, FLYWHEEL_DUTY_PID_KI, FLYWHEEL_DUTY_PID_KD,
-            FLYWHEEL_DUTY_PID_MAX_ERROR_SUM, FLYWHEEL_DUTY_PID_MAX_OUTPUT)
-          {};
+          FLYWHEEL_DUTY_PID_KP,
+          FLYWHEEL_DUTY_PID_KI,
+          FLYWHEEL_DUTY_PID_KD,
+          FLYWHEEL_DUTY_PID_MAX_ERROR_SUM,
+          FLYWHEEL_DUTY_PID_MAX_OUTPUT),
+      bottomLeftFlyWheelPid(
+          FLYWHEEL_DUTY_PID_KP,
+          FLYWHEEL_DUTY_PID_KI,
+          FLYWHEEL_DUTY_PID_KD,
+          FLYWHEEL_DUTY_PID_MAX_ERROR_SUM,
+          FLYWHEEL_DUTY_PID_MAX_OUTPUT),
+      bottomRightFlyWheelPid(
+          FLYWHEEL_DUTY_PID_KP,
+          FLYWHEEL_DUTY_PID_KI,
+          FLYWHEEL_DUTY_PID_KD,
+          FLYWHEEL_DUTY_PID_MAX_ERROR_SUM,
+          FLYWHEEL_DUTY_PID_MAX_OUTPUT){};
 
 void FlywheelSubsystem::initialize()
 {
@@ -73,7 +81,6 @@ void FlywheelSubsystem::setDesiredLaunchSpeed(float speed)
     previousLaunchSpeedRight = desiredLaunchSpeedRight;
     previousLaunchSpeedUp = desiredLaunchSpeedUp;
 
-
     desiredLaunchSpeedLeft = speed;
     desiredLaunchSpeedRight = speed;
     desiredLaunchSpeedUp = speed * (desiredSpinValue / 100.0f);
@@ -82,9 +89,14 @@ void FlywheelSubsystem::setDesiredLaunchSpeed(float speed)
     previousLeftSetPoint = desiredRpmRampLeft.getTarget();
     previousRightSetPoint = desiredRpmRampRight.getTarget();
 
-    desiredRpmRampLeft.setTarget(limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
-    desiredRpmRampRight.setTarget(limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedRight), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
-    desiredRpmRampUp.setTarget(limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedUp), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
+    desiredRpmRampLeft.setTarget(
+        limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
+    desiredRpmRampRight.setTarget(limitVal(
+        launchSpeedToFlywheelRpm(desiredLaunchSpeedRight),
+        0.0f,
+        MAX_DESIRED_LAUNCH_SPEED));
+    desiredRpmRampUp.setTarget(
+        limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedUp), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
 }
 // void FlywheelSubsystem::setDesiredLaunchSpeedRight(float speed)
 // {
@@ -113,6 +125,7 @@ float rightSetPoint = 0;
 float topOutput = 0;
 float leftOutput = 0;
 float rightOutput = 0;
+float desrught = 0;
 void FlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -126,40 +139,42 @@ void FlywheelSubsystem::refresh()
     desiredRpmRampUp.update(FRICTION_WHEEL_RAMP_SPEED * (currTime - prevTime));
     prevTime = currTime;
 
-    //invert pid output because the encoder is inverted
+    // invert pid output because the encoder is inverted
     topFlyWheelPid.update(desiredRpmRampUp.getValue() - -upWheel.getVelocity(), false);
     bottomLeftFlyWheelPid.update(desiredRpmRampLeft.getValue() - leftWheel.getVelocity(), false);
-    bottomRightFlyWheelPid.update(desiredRpmRampRight.getValue() - -rightWheel.getVelocity(), false);
+    bottomRightFlyWheelPid.update(
+        desiredRpmRampRight.getValue() - -rightWheel.getVelocity(),
+        false);
 
     modm::interpolation::Linear<modm::Pair<float, float>> MPSToDutyInterpolator = {
         feedforwardmap.at(desiredSpin).data(),
-        feedforwardmap.at(desiredSpin).size()
-    };
+        feedforwardmap.at(desiredSpin).size()};
 
     float topRampingRatio = 1.0f;
     float leftRampingRatio = 1.0f;
     float rightRampingRatio = 1.0f;
 
     // Calculate delta and ratio for EACH wheel INDIVIDUALLY
-    float rampDeltaTop = desiredRpmRampUp.getTarget() -  previousTopSetPoint;
+    float rampDeltaTop = desiredRpmRampUp.getTarget() - previousTopSetPoint;
     if (rampDeltaTop != 0.0f)
     {
-       // Correct formula: (current - start) / (end - start)
-       topRampingRatio = abs((desiredRpmRampUp.getValue() - previousTopSetPoint) / rampDeltaTop);
+        // Correct formula: (current - start) / (end - start)
+        topRampingRatio = abs((desiredRpmRampUp.getValue() - previousTopSetPoint) / rampDeltaTop);
     }
 
     float rampDeltaLeft = desiredRpmRampLeft.getTarget() - previousLeftSetPoint;
     if (rampDeltaLeft != 0.0f)
     {
-       leftRampingRatio = abs((desiredRpmRampLeft.getValue() - previousLeftSetPoint) / rampDeltaLeft);
+        leftRampingRatio =
+            abs((desiredRpmRampLeft.getValue() - previousLeftSetPoint) / rampDeltaLeft);
     }
 
-
-    //start 1000 target 0
+    // start 1000 target 0
     float rampDeltaRight = desiredRpmRampRight.getTarget() - previousRightSetPoint;
     if (rampDeltaRight != 0.0f)
     {
-       rightRampingRatio = abs((desiredRpmRampRight.getValue() - previousRightSetPoint) / rampDeltaRight);
+        rightRampingRatio =
+            abs((desiredRpmRampRight.getValue() - previousRightSetPoint) / rampDeltaRight);
     }
 
     float start_ff_top = MPSToDutyInterpolator.interpolate(previousLaunchSpeedUp);
@@ -173,20 +188,18 @@ void FlywheelSubsystem::refresh()
 
     // Linearly interpolate the feedforward value based on the ramp progress (rampingRatio)
     float topFlyWheelFeedforward = start_ff_top + (end_ff_top - start_ff_top) * topRampingRatio;
-    float leftFlyWheelFeedforward = start_ff_left + (end_ff_left - start_ff_left) * leftRampingRatio;
-    float rightFlyWheelFeedforward = start_ff_right + (end_ff_right - start_ff_right) * rightRampingRatio;
-
-
+    float leftFlyWheelFeedforward =
+        start_ff_left + (end_ff_left - start_ff_left) * leftRampingRatio;
+    float rightFlyWheelFeedforward =
+        start_ff_right + (end_ff_right - start_ff_right) * rightRampingRatio;
 
     float topFlywheelOutput = topFlyWheelPid.getValue() + topFlyWheelFeedforward;
     float bottomLeftFlywheelOutput = bottomLeftFlyWheelPid.getValue() + leftFlyWheelFeedforward;
     float bottomRightFlywheelOutput = bottomRightFlyWheelPid.getValue() + rightFlyWheelFeedforward;
-    
+
     leftWheel.setControlValue(bottomLeftFlywheelOutput);
     rightWheel.setControlValue(bottomRightFlywheelOutput);
     upWheel.setControlValue(topFlywheelOutput);
-
-
 
     upRpm = upWheel.getVelocity();
     rightRpm = rightWheel.getVelocity();
@@ -197,6 +210,7 @@ void FlywheelSubsystem::refresh()
     topOutput = topFlywheelOutput;
     leftOutput = bottomLeftFlywheelOutput;
     rightOutput = bottomRightFlywheelOutput;
+    desrught = getDesiredFlywheelSpeedLeft();
 }
 }  // namespace src::control::flywheel
 

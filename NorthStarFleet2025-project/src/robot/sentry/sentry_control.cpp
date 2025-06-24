@@ -18,12 +18,12 @@
 // chasis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_drive_distance_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
-
 
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
@@ -591,6 +591,13 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
+src::chassis::ChassisDriveDistanceCommand driveDist1(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    2.0f,
+    0.0f,
+    0.2f);
+
 // chassis Mappings
 ToggleCommandMapping beyBlade(
     drivers(),
@@ -647,6 +654,7 @@ void startSentryCommands(Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
         tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+    drivers->commandScheduler.addCommand(&driveDist1);
 }
 
 void registerSentryIoMappings(Drivers *drivers)

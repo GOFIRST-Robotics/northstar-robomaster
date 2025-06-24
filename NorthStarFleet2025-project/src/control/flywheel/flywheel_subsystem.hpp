@@ -12,8 +12,6 @@
 #include "control/flywheel/flywheel_constants.hpp"
 #include "modm/math/filter/pid.hpp"
 
-#include "modm/math/filter/pid.hpp"
-
 namespace src::control::flywheel
 {
 class FlywheelSubsystem : public tap::control::Subsystem
@@ -51,23 +49,11 @@ public:
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
     }
 
-    float getCurrentLeftFlywheelMotorRPM() const
-    {
-        // return motor.getShaftRPM(); // TODO
-        return 0.0f;
-    }
+    float getCurrentLeftFlywheelMotorRPM() const { return leftWheel.getVelocity(); }
 
-    float getCurrentRightFlywheelMotorRPM() const
-    {
-        // return motor.getShaftRPM(); // TODO
-        return 0.0f;
-    }
+    float getCurrentRightFlywheelMotorRPM() const { return rightWheel.getVelocity(); }
 
-    float getCurrentUpFlywheelMotorRPM() const
-    {
-        // return motor.getShaftRPM(); // TODO
-        return 0.0f;
-    }
+    float getCurrentUpFlywheelMotorRPM() const { return upWheel.getVelocity(); }
 
     void refresh() override;
 

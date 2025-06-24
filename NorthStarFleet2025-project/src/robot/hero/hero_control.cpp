@@ -77,6 +77,7 @@
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
 #include "control/clientDisplay/indicators/flywheel_indicator.hpp"
+#include "control/clientDisplay/indicators/hero_spin_indicator.hpp"
 #include "control/clientDisplay/indicators/hud_indicator.hpp"
 #include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
@@ -326,17 +327,17 @@ FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
-GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-    {&chassisSubsystem},
-    chassisBeyBladeSlowCommand,
-    chassisBeyBladeFastCommand,
-    {&firedRecentlyGovernor, &plateHitGovernor},
-    true);
+// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+//     {&chassisSubsystem},
+//     chassisBeyBladeSlowCommand,
+//     chassisBeyBladeFastCommand,
+//     {&firedRecentlyGovernor, &plateHitGovernor},
+//     true);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
     drivers(),
-    {&beyBladeSlowOutOfCombat},
+    {&chassisBeyBladeFastCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 
 // imu commands
@@ -385,11 +386,19 @@ FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, 
 //     {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
 //     refSerialTransmitter);
 
+HeroSpinIndicator heroSpinIndicator(
+    refSerialTransmitter,
+    drivers()->refSerial,
+    *drivers(),
+    &beyBladeFastCommand,
+    &wiggleCommand);
+
 std::vector<HudIndicator *> hudIndicators = {
     &ammoIndicator,
     &circleCrosshair,
     // &textHudIndicators,
-    &flyWheelIndicator};
+    &flyWheelIndicator,
+    &heroSpinIndicator};
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 

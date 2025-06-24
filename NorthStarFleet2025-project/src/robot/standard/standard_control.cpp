@@ -290,10 +290,10 @@ SetFireRateCommand setFireRateCommand10RPS(
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
-GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
     {&agitator},
     rotateAndUnjamAgitator,
-    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor /*,&flywheelOnGovernor*/});
+    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
 
 CvOnTargetGovernor cvOnTargetGovernor(drivers(), drivers()->visionComms, turretCVControlCommand);
 
@@ -451,6 +451,12 @@ ToggleCommandMapping wiggle(
     {&chassisWiggleCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
 
+HoldRepeatCommandMapping rightSwiitchDownBeyblade(
+    drivers(),
+    {&chassisBeyBladeFastCommand},
+    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
+    true);
+
 HopperSubsystem hopperSubsystem(drivers(), 0.0585f, 0.025, tap::gpio::Pwm::Pin::C7);
 
 HopperToggleCommand hopperToggleCommand(&hopperSubsystem);
@@ -501,7 +507,7 @@ TextHudIndicators textHudIndicators(
     *drivers(),
     agitator,
     // imuCalibrateCommand,
-    {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
+    {&chassisWiggleCommand, &chassisBeyBladeFastCommand},
     refSerialTransmitter);
 
 std::vector<HudIndicator *> hudIndicators = {
@@ -569,7 +575,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&wiggle);
     drivers->commandMapper.addMap(&orientDrive);
     drivers->commandMapper.addMap(&bCtrlPressed);
-    drivers->commandMapper.addMap(&driveDistBindC);
+    drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
 }
 }  // namespace standard_control
 
