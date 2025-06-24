@@ -85,11 +85,14 @@ void SentryTurretCVControlCommand::execute()
         yawSetpointBottom = Angle(
             -yawControllerBottom->getMeasurement().getUnwrappedValue() +
             visionComms.getLastAimData(bottomID).yaw);
-        yawControllerBottom->runController(dt, yawSetpointBottom);
 
-        bottomWithinAimingTolerance =  // TODO calculate off the distance
-            (abs(visionComms.getLastAimData(bottomID).yaw) < AIMING_TOLERANCE_YAW &&
-             abs(visionComms.getLastAimData(bottomID).pitch) < AIMING_TOLERANCE_PITCH);
+        bottomWithinAimingTolerance =
+            (abs(visionComms.getLastAimData(bottomID).yaw) <
+                 visionComms.getLastAimData(bottomID).maxErrorYaw &&
+             abs(visionComms.getLastAimData(bottomID).pitch) <
+                 visionComms.getLastAimData(bottomID).maxErrorPitch);
+
+        yawControllerBottom->runController(dt, yawSetpointBottom);
     }
     else
     {
@@ -127,9 +130,8 @@ void SentryTurretCVControlCommand::execute()
                 yawControllerBottom->getSetpoint() +
                 userYawInputScalar * controlOperatorInterface.getTurretYawInput(bottomID);
             yawControllerBottom->runController(dt, yawSetpointBottom);
-
-            bottomWithinAimingTolerance = false;
         }
+        bottomWithinAimingTolerance = false;
     }
     if (visionComms.isAimDataUpdated(topID))
     {
@@ -176,6 +178,12 @@ void SentryTurretCVControlCommand::execute()
         {
             yawSetpointTop += input;
         }
+
+        topWithinAimingTolerance =
+            (abs(visionComms.getLastAimData(topID).yaw) <
+                 visionComms.getLastAimData(topID).maxErrorYaw &&
+             abs(visionComms.getLastAimData(topID).pitch) <
+                 visionComms.getLastAimData(topID).maxErrorPitch);
 
         yawControllerTop->runController(dt, Angle(yawSetpointTop));
     }
@@ -245,6 +253,7 @@ void SentryTurretCVControlCommand::execute()
 
             yawControllerTop->runController(dt, Angle(yawSetpointTop));
         }
+        topWithinAimingTolerance = false;
     }
 }
 

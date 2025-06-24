@@ -58,7 +58,8 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
     int curreIndex = 0;
     for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
     {
-        if (curreIndex + sizeof(TurretAimData) > message.header.dataLength)
+        if ((curreIndex + sizeof(TurretAimData) - sizeof(float) * 2 - 2) >
+            message.header.dataLength)
         {
             return false;  // Not enough data for another turret aim data
         }
@@ -78,6 +79,23 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
         {
             aimDataUpdated[i] = true;
         }
+
+        memcpy(&aimData.distance, &message.data[curreIndex], sizeof(float));
+        curreIndex += sizeof(float);
+
+        memcpy(&aimData.robotId, &message.data[curreIndex], sizeof(aimData.robotId));
+        curreIndex += sizeof(aimData.robotId);
+
+        if (aimData.distance != 0)
+        {
+            auto it = plateLookup.find(uint8_t(aimData.robotId));
+            if (it != plateLookup.end())
+            {
+                PlateDims dims = it->second;
+                aimData.maxErrorYaw = atan((dims.width / 2) / aimData.distance);
+                aimData.maxErrorPitch = atan((dims.height / 2) / aimData.distance);
+            }
+        }
     }
 }
 
@@ -86,7 +104,7 @@ void VisionComms::sendRobotIdMessage()
     DJISerial::SerialMessage<1> robotTypeMessage;
     robotTypeMessage.messageType = MessageType::ROBOT_ID;
     robotTypeMessage.data[0] =
-        static_cast<uint8_t>(101);  // drivers->refSerial.getRobotData().robotId);
+        static_cast<uint8_t>(101);  // drivers->refSerial.getRobotData().robotId); TODO REF
     robotTypeMessage.setCRC16();
     drivers->uart.write(
         VISION_COMMS_TX_UART_PORT,
