@@ -400,11 +400,12 @@ SetFireRateCommand setFireRateCommand10RPSBottom(
 
 FireRateLimitGovernor fireRateLimitGovernorBottom(manualFireRateReselectionManagerBottom);
 
-GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedBottom(
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedBottom(
     {&agitatorBottom},
     rotateAndUnjamAgitatorBottom,
     {&refSystemProjectileLaunchedGovernorBottom,
-     &fireRateLimitGovernorBottom /*,&flywheelOnGovernor*/});
+     &fireRateLimitGovernorBottom,
+     &flywheelOnGovernorBottom});
 
 CvOnTargetGovernor cvOnTargetGovernorBottom(
     drivers(),
@@ -497,10 +498,10 @@ SetFireRateCommand setFireRateCommand10RPSTop(
 
 FireRateLimitGovernor fireRateLimitGovernorTop(manualFireRateReselectionManagerTop);
 
-GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedTop(
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedTop(
     {&agitatorTop},
     rotateAndUnjamAgitatorTop,
-    {&refSystemProjectileLaunchedGovernorTop, &fireRateLimitGovernorTop /*,&flywheelOnGovernor*/});
+    {&refSystemProjectileLaunchedGovernorTop, &fireRateLimitGovernorTop, &flywheelOnGovernorTop});
 
 CvOnTargetGovernor cvOnTargetGovernorTop(
     drivers(),

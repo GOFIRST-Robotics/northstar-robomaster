@@ -49,10 +49,10 @@ static constexpr uint8_t topID = 1;
 static constexpr uint8_t bottomID = 0;
 
 static constexpr tap::communication::serial::RefSerialData::Rx::MechanismID barrelIdTop =
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_2;
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1;
 
 static constexpr tap::communication::serial::RefSerialData::Rx::MechanismID barrelIdBottom =
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1;
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_2;
 
 static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = -0.02f;
