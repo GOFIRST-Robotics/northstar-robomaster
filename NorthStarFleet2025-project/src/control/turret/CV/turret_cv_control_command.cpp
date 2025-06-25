@@ -79,8 +79,10 @@ void TurretCVControlCommand::execute()
         yawController->runController(dt, yawSetpoint);
 
         withinAimingTolerance =  // TODO calculate off the distance
-            (abs(visionComms.getLastAimData(turretID).yaw) < AIMING_TOLERANCE_YAW &&
-             abs(visionComms.getLastAimData(turretID).pitch) < AIMING_TOLERANCE_PITCH);
+            (abs(visionComms.getLastAimData(turretID).yaw) <
+                 visionComms.getLastAimData(turretID).maxErrorYaw &&
+             abs(visionComms.getLastAimData(turretID).pitch) <
+                 visionComms.getLastAimData(turretID).maxErrorPitch);
     }
     else
     {

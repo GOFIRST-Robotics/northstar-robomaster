@@ -103,8 +103,7 @@ void VisionComms::sendRobotIdMessage()
 {
     DJISerial::SerialMessage<1> robotTypeMessage;
     robotTypeMessage.messageType = MessageType::ROBOT_ID;
-    robotTypeMessage.data[0] =
-        static_cast<uint8_t>(101);  // drivers->refSerial.getRobotData().robotId); TODO REF
+    robotTypeMessage.data[0] = static_cast<uint8_t>(drivers->refSerial.getRobotData().robotId);
     robotTypeMessage.setCRC16();
     drivers->uart.write(
         VISION_COMMS_TX_UART_PORT,
