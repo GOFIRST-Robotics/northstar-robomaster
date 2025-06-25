@@ -268,9 +268,9 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
 algorithms::
     WorldFramePitchChassisImuCompTurretController worldFramePitchChassisImuCompControllerTop(
         *drivers(),
-        sentryTurrets.pitchMotorBottom,
+        sentryTurrets.pitchMotorTop,
         world_rel_chassis_imu::PITCH_PID_CONFIG,
-        &worldFrameYawTurretImuControllerTop);
+        &sentryTurrets);
 
 // turret commands
 user::SentryTurretUserControlCommand turretUserControlCommand(
@@ -400,11 +400,12 @@ SetFireRateCommand setFireRateCommand10RPSBottom(
 
 FireRateLimitGovernor fireRateLimitGovernorBottom(manualFireRateReselectionManagerBottom);
 
-GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedBottom(
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedBottom(
     {&agitatorBottom},
     rotateAndUnjamAgitatorBottom,
     {&refSystemProjectileLaunchedGovernorBottom,
-     &fireRateLimitGovernorBottom /*,&flywheelOnGovernor*/});
+     &fireRateLimitGovernorBottom,
+     &flywheelOnGovernorBottom});
 
 CvOnTargetGovernor cvOnTargetGovernorBottom(
     drivers(),
@@ -497,10 +498,10 @@ SetFireRateCommand setFireRateCommand10RPSTop(
 
 FireRateLimitGovernor fireRateLimitGovernorTop(manualFireRateReselectionManagerTop);
 
-GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedTop(
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedTop(
     {&agitatorTop},
     rotateAndUnjamAgitatorTop,
-    {&refSystemProjectileLaunchedGovernorTop, &fireRateLimitGovernorTop /*,&flywheelOnGovernor*/});
+    {&refSystemProjectileLaunchedGovernorTop, &fireRateLimitGovernorTop, &flywheelOnGovernorTop});
 
 CvOnTargetGovernor cvOnTargetGovernorTop(
     drivers(),
@@ -647,7 +648,7 @@ void registerSentrySubsystems(Drivers *drivers)
 void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    sentryTurrets.setDefaultCommand(&cvManagerCommand);  // turretUserControlCommand);
+    sentryTurrets.setDefaultCommand(&turretUserControlCommand);  // cvManagerCommand );
 }
 
 void startSentryCommands(Drivers *drivers)

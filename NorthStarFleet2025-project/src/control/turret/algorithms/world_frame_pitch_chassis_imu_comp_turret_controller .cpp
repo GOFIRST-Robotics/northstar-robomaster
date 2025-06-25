@@ -116,12 +116,13 @@ WorldFramePitchChassisImuCompTurretController::WorldFramePitchChassisImuCompTurr
     tap::Drivers &drivers,
     TurretMotor &PitchMotor,
     const tap::algorithms::SmoothPidConfig &pidConfig,
-    algorithms::TurretYawControllerInterface *yawControllerTop)
+    src::control::turret::SentryTurretSubsystem *turretSubsystem)
     : TurretPitchControllerInterface(PitchMotor),
       drivers(drivers),
       pid(pidConfig),
       worldFrameSetpoint(Angle(0)),
-      chassisFrameInitImuPitchAngle(Angle(0))
+      chassisFrameInitImuPitchAngle(Angle(0)),
+      turretSubsystem(turretSubsystem)
 {
 }
 

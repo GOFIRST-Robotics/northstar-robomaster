@@ -8,7 +8,7 @@
 
 namespace src::control::flywheel
 {
-static constexpr float FRICTION_WHEEL_RAMP_SPEED = 2;
+static constexpr float FRICTION_WHEEL_RAMP_SPEED = 8.0f;
 
 static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR1;
 static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR3;
@@ -26,9 +26,9 @@ static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
 // static constexpr float FLYWHEEL_PID_MAX_OUTPUT = 16'000.0f;
 
 // pid constants for spark max flywheels in duty cycle mode
-static constexpr float FLYWHEEL_DUTY_PID_KP = 0.00013f;
-static constexpr float FLYWHEEL_DUTY_PID_KI = 0.000005f;
-static constexpr float FLYWHEEL_DUTY_PID_KD = 0.0f;
+static constexpr float FLYWHEEL_DUTY_PID_KP = 0.0001f;
+static constexpr float FLYWHEEL_DUTY_PID_KI = 0.0f;
+static constexpr float FLYWHEEL_DUTY_PID_KD = 0.000005f;
 static constexpr float FLYWHEEL_DUTY_PID_MAX_ERROR_SUM = 0.05f;
 static constexpr float FLYWHEEL_DUTY_PID_MAX_OUTPUT =
     0.15f;  // does not affect feed forward, only the pid output
