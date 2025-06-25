@@ -414,7 +414,7 @@ public:
     float getControlValue() const;
 
     float getPosition() const { return period2_.position; }
-    float getVelocity() const { return period1_.velocity; }
+    float getVelocity() const { return isEncoderInverted ? -period1_.velocity : period1_.velocity; }
 
     /**
      * calculates the 29 bit ID for the REV Spark max motor controller. The basis for this is that in the
@@ -434,6 +434,10 @@ public:
 
     void setParameter(Parameter param, float paramVal);
 
+    void setEncoderInverted(bool isInverted)
+    {
+        isEncoderInverted = isInverted;
+    }
 
 private:
 
@@ -460,6 +464,8 @@ private:
     float targetVoltage;
 
     bool motorInverted;
+
+    bool isEncoderInverted;
 
 
     Period0Status period0_{};

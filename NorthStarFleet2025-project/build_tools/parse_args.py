@@ -17,6 +17,7 @@
 
 from SCons.Script import *
 from . import extract_robot_type
+from . import extract_remote_type
 
 
 CMD_LINE_ARGS                       = 1
@@ -46,6 +47,7 @@ def parse_args():
         "BUILD_PROFILE": "",
         "PROFILING": "",
         "ROBOT_TYPE": "",
+        "REMOTE_TYPE": "",
     }
     if len(COMMAND_LINE_TARGETS) > CMD_LINE_ARGS:
         raise Exception("You did not enter the correct number of arguments.\n" + USAGE)
@@ -79,5 +81,7 @@ def parse_args():
 
     # Extract the robot type from either the command line or robot_type.hpp
     args["ROBOT_TYPE"] = extract_robot_type.get_robot_type()
+    
+    args["REMOTE_TYPE"] = extract_remote_type.get_remote_type()
 
     return args

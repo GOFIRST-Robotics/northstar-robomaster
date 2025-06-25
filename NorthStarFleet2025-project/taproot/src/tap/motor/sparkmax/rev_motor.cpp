@@ -58,7 +58,8 @@ RevMotor::RevMotor(
       motorCanBus(motorCanBus),
       desiredOutput(0),
       motorInverted(isInverted),
-      targetVoltage(0)
+      targetVoltage(0),
+      isEncoderInverted(false)
 {
     // motorDisconnectTimeout.stop();
 }

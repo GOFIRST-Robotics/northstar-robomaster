@@ -29,6 +29,9 @@ if args["TARGET_ENV"] == "tests":
     # Append on the global robot target build flag
     env_cpy.AppendUnique(CCFLAGS=["-D " + args["ROBOT_TYPE"]])
 
+    # add on the macro for the remote type
+    env_cpy.AppendUnique(CCFLAGS=["-D " + args["REMOTE_TYPE"]])
+    
     rawSrcs = env_cpy.FindSourceFiles(".")
 
     for source in rawSrcs:
