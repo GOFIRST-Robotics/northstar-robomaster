@@ -55,7 +55,7 @@ static constexpr tap::communication::serial::RefSerialData::Rx::MechanismID barr
     tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_2;
 
 static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
-static constexpr float USER_PITCH_INPUT_SCALAR = -0.02f;
+static constexpr float USER_PITCH_INPUT_SCALAR = 0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS2;
 static constexpr tap::motor::MotorId PITCH_MOTOR_BOTTOM_ID = tap::motor::MOTOR5;  // 1
