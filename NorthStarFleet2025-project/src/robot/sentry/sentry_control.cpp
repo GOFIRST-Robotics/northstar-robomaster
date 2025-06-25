@@ -411,7 +411,8 @@ CvOnTargetGovernor cvOnTargetGovernorBottom(
     drivers(),
     drivers()->visionComms,
     turretCVControlCommand,
-    bottomID);
+    bottomID,
+    true);
 
 CycleStateCommandMapping<bool, 2, CvOnTargetGovernor> rNotCtrlPressed(
     drivers(),
@@ -507,7 +508,8 @@ CvOnTargetGovernor cvOnTargetGovernorTop(
     drivers(),
     drivers()->visionComms,
     turretCVControlCommand,
-    topID);
+    topID,
+    true);
 
 CycleStateCommandMapping<bool, 2, CvOnTargetGovernor> rCtrlPressed(
     drivers(),
@@ -648,7 +650,11 @@ void registerSentrySubsystems(Drivers *drivers)
 void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    sentryTurrets.setDefaultCommand(&turretUserControlCommand);  // cvManagerCommand );
+    sentryTurrets.setDefaultCommand(&cvManagerCommand);  // turretUserControlCommand );
+    flywheelBottom.setDefaultCommand(&flywheelRunCommandBottom);
+    flywheelTop.setDefaultCommand(&flywheelRunCommandTop);
+    agitatorBottom.setDefaultCommand(&rotateAndUnjamAgitatorWithHeatAndCVLimitingBottom);
+    agitatorTop.setDefaultCommand(&rotateAndUnjamAgitatorWithHeatAndCVLimitingTop);
 }
 
 void startSentryCommands(Drivers *drivers)

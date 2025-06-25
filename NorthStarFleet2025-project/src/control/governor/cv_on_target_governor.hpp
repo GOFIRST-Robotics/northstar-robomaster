@@ -39,11 +39,12 @@ public:
         tap::Drivers *drivers,
         src::serial::VisionComms &visionComms,
         src::control::turret::cv::TurretCVControlCommandTemplate &turretCVCommand,
-        uint8_t turretID = 0)
+        uint8_t turretID = 0,
+        bool sentry = false)
         : drivers(drivers),
           visionComms(visionComms),
           turretCVCommand(turretCVCommand),
-          turretID(turretID)
+          sentry(sentry)
     {
     }
 
@@ -69,12 +70,19 @@ public:
 
     bool isReady() final_mockable
     {
-        if (!isGovernorGating())
+        if (!sentry)
         {
-            return true;
-        }
+            if (!isGovernorGating())
+            {
+                return true;
+            }
 
-        return turretCVCommand.isAimingWithinLaunchingTolerance(turretID);
+            return turretCVCommand.isAimingWithinLaunchingTolerance(turretID);
+        }
+        else
+        {
+            return turretCVCommand.isAimingWithinLaunchingTolerance(turretID);
+        }
     }
 
     bool isFinished() final_mockable
@@ -90,6 +98,7 @@ private:
     src::control::turret::cv::TurretCVControlCommandTemplate &turretCVCommand;
     uint8_t turretID;
     bool enabled = true;
+    bool sentry;
 };
 }  // namespace src::control::governor
 
