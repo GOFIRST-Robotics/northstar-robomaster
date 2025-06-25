@@ -24,7 +24,6 @@
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 
-
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
@@ -268,9 +267,9 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
 algorithms::
     WorldFramePitchChassisImuCompTurretController worldFramePitchChassisImuCompControllerTop(
         *drivers(),
-        sentryTurrets.pitchMotorBottom,
+        sentryTurrets.pitchMotorTop,
         world_rel_chassis_imu::PITCH_PID_CONFIG,
-        &worldFrameYawTurretImuControllerTop);
+        &sentryTurrets);
 
 // turret commands
 user::SentryTurretUserControlCommand turretUserControlCommand(
@@ -640,7 +639,7 @@ void registerSentrySubsystems(Drivers *drivers)
 void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    sentryTurrets.setDefaultCommand(&cvManagerCommand);  // turretUserControlCommand);
+    sentryTurrets.setDefaultCommand(&turretUserControlCommand);  // cvManagerCommand );
 }
 
 void startSentryCommands(Drivers *drivers)

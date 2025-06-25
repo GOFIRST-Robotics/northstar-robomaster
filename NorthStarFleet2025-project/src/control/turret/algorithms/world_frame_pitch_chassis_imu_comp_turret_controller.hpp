@@ -9,8 +9,7 @@
 #include "tap/drivers.hpp"
 
 #include "control/turret/turret_motor.hpp"
-
-#include "turret_controller_interface.hpp"
+#include "robot/sentry/sentry_turret_subsystem.hpp"
 
 using namespace tap::algorithms;
 
@@ -33,7 +32,7 @@ public:
         tap::Drivers &drivers,
         TurretMotor &pitchMotor,
         const tap::algorithms::SmoothPidConfig &pidConfig,
-        algorithms::TurretYawControllerInterface *yawControllerTop);
+        src::control::turret::SentryTurretSubsystem *turretSubsystem);
 
     void initialize() final;
 
@@ -71,22 +70,27 @@ private:
 
     WrappedFloat chassisFrameInitImuPitchAngle;
 
-    algorithms::TurretYawControllerInterface *yawControllerTop;
+    src::control::turret::SentryTurretSubsystem *turretSubsystem;
 
     inline WrappedFloat getBmi088Pitch() const
     {
-        return Angle(  // inverted swich if fixing
-            drivers.bmi088.getRoll() *
-                cosf(yawControllerTop->getMeasurement().getUnwrappedValue()) +
-            drivers.bmi088.getPitch() *
-                sinf(yawControllerTop->getMeasurement().getUnwrappedValue()));
+        return Angle(
+            drivers.bmi088.getRoll() * cosf(-turretSubsystem->yawMotorTop.getTurretController()
+                                                 ->getMeasurement()
+                                                 .getUnwrappedValue()) +
+            drivers.bmi088.getPitch() * sinf(-turretSubsystem->yawMotorTop.getTurretController()
+                                                  ->getMeasurement()
+                                                  .getUnwrappedValue()));
     }
 
     inline float getPitchVelo() const
     {
-        return  // inverted swich if fixing
-            drivers.bmi088.getGx() * cosf(yawControllerTop->getMeasurement().getUnwrappedValue()) +
-            drivers.bmi088.getGy() * sinf(yawControllerTop->getMeasurement().getUnwrappedValue());
+        return drivers.bmi088.getGx() * cosf(-turretSubsystem->yawMotorTop.getTurretController()
+                                                  ->getMeasurement()
+                                                  .getUnwrappedValue()) +
+               drivers.bmi088.getGy() * sinf(-turretSubsystem->yawMotorTop.getTurretController()
+                                                  ->getMeasurement()
+                                                  .getUnwrappedValue());
     }
 };
 
