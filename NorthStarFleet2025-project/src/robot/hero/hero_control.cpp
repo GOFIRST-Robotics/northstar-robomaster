@@ -128,14 +128,14 @@ HeroAgitatorShootCommand agitatorShootCommand(&agitator);
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
     *drivers(),
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_42MM,
     constants::HEAT_LIMIT_BUFFER);
 
 HeroFlywheelOnGovernor flywheelOnGovernor(flywheel);
 
 RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
     drivers()->refSerial,
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1);
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_42MM);
 
 ManualFireRateReselectionManager manualFireRateReselectionManager;
 
@@ -147,10 +147,13 @@ HeroSetFireRateCommand setFireRateCommand5SPR(
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
-GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
     {&agitator},
     agitatorShootCommand,
-    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
+    {&refSystemProjectileLaunchedGovernor,
+     &fireRateLimitGovernor,
+     &flywheelOnGovernor,
+     &heatLimitGovernor});
 
 // agitator mappings
 ToggleCommandMapping vPressed(
@@ -165,7 +168,7 @@ ToggleCommandMapping gPressed(
 
 HoldRepeatCommandMapping leftMousePressed(
     drivers(),
-    {&agitatorShootCommand},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
