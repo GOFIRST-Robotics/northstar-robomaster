@@ -66,6 +66,7 @@
 #include "control/governor/fired_recently_governor.hpp"
 #include "control/governor/flywheel_on_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
+#include "control/governor/match_running_governor.hpp"
 #include "control/governor/plate_hit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
 
@@ -626,6 +627,30 @@ imu::SentryImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
+MatchRunningGovernor matchRunning(drivers()->refSerial);
+
+GovernorLimitedCommand<1> chassisDefault(
+    {&chassisSubsystem},
+    chassisBeyBladeCommand,
+    {&matchRunning});
+GovernorLimitedCommand<1> cvManagerGameDefault({&sentryTurrets}, cvManagerCommand, {&matchRunning});
+GovernorLimitedCommand<1> flywheelBottomDefault(
+    {&flywheelBottom},
+    flywheelRunCommandBottom,
+    {&matchRunning});
+GovernorLimitedCommand<1> flywheelTopDefault(
+    {&flywheelTop},
+    flywheelRunCommandTop,
+    {&matchRunning});
+GovernorLimitedCommand<1> agitatorBottomDefault(
+    {&agitatorBottom},
+    rotateAndUnjamAgitatorWithHeatAndCVLimitingBottom,
+    {&matchRunning});
+GovernorLimitedCommand<1> agitatorTopDefault(
+    {&agitatorTop},
+    rotateAndUnjamAgitatorWithHeatAndCVLimitingTop,
+    {&matchRunning});
+
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
 {
@@ -649,12 +674,12 @@ void registerSentrySubsystems(Drivers *drivers)
 
 void setDefaultSentryCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    sentryTurrets.setDefaultCommand(&cvManagerCommand);  // turretUserControlCommand );
-    flywheelBottom.setDefaultCommand(&flywheelRunCommandBottom);
-    flywheelTop.setDefaultCommand(&flywheelRunCommandTop);
-    agitatorBottom.setDefaultCommand(&rotateAndUnjamAgitatorWithHeatAndCVLimitingBottom);
-    agitatorTop.setDefaultCommand(&rotateAndUnjamAgitatorWithHeatAndCVLimitingTop);
+    chassisSubsystem.setDefaultCommand(&chassisDefault);
+    sentryTurrets.setDefaultCommand(&cvManagerGameDefault);  // turretUserControlCommand );
+    flywheelBottom.setDefaultCommand(&flywheelBottomDefault);
+    flywheelTop.setDefaultCommand(&flywheelTopDefault);
+    agitatorBottom.setDefaultCommand(&agitatorBottomDefault);
+    agitatorTop.setDefaultCommand(&agitatorTopDefault);
 }
 
 void startSentryCommands(Drivers *drivers)
