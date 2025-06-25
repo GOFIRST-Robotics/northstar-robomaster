@@ -2,6 +2,8 @@
 
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
+#include "tap/control/press_command_mapping.hpp"
+#include "tap/control/sequential_command.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
@@ -17,6 +19,7 @@
 // chasis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
+#include "control/chassis/chassis_drive_distance_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
@@ -75,6 +78,20 @@
 
 #include "ref_system_constants.hpp"
 
+// HUD
+#include "tap/communication/serial/ref_serial_transmitter.hpp"
+
+#include "control/clientDisplay/client_display_command.hpp"
+#include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/indicators/ammo_indicator.hpp"
+#include "control/clientDisplay/indicators/circle_crosshair.hpp"
+#include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
+#include "control/clientDisplay/indicators/flywheel_indicator.hpp"
+#include "control/clientDisplay/indicators/hud_indicator.hpp"
+#include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
+#include "control/clientDisplay/indicators/text_hud_indicators.hpp"
+#include "control/clientDisplay/indicators/vision_indicator.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -91,6 +108,8 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
+using namespace src::control::client_display;
+using namespace tap::communication::serial;
 using namespace src::control::hopper;
 
 driversFunc drivers = DoNotUse_getDrivers;
@@ -271,10 +290,10 @@ SetFireRateCommand setFireRateCommand10RPS(
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
-GovernorLimitedCommand<2> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
     {&agitator},
     rotateAndUnjamAgitator,
-    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor /*,&flywheelOnGovernor*/});
+    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
 
 CvOnTargetGovernor cvOnTargetGovernor(drivers(), drivers()->visionComms, turretCVControlCommand);
 
@@ -358,7 +377,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &drivers()->controlOperatorInterface,
     1,
     -1,
-    M_PI,
+    M_PI_2,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
@@ -375,23 +394,51 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
+src::chassis::ChassisDriveDistanceCommand driveDist1(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    3,
+    0,
+    0.2);
+
+src::chassis::ChassisDriveDistanceCommand driveDist2(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    0,
+    3,
+    0.2);
+
+src::chassis::ChassisDriveDistanceCommand driveDist3(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    -3,
+    0,
+    0.2);
+
+src::chassis::ChassisDriveDistanceCommand driveDist4(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    0,
+    -3,
+    0.2);
+
 // Chassis Governors
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
-GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-    {&chassisSubsystem},
-    chassisBeyBladeSlowCommand,
-    chassisBeyBladeFastCommand,
-    {&firedRecentlyGovernor, &plateHitGovernor},
-    true);
+// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+//     {&chassisSubsystem},
+//     chassisBeyBladeSlowCommand,
+//     chassisBeyBladeFastCommand,
+//     {&firedRecentlyGovernor, &plateHitGovernor},
+//     false);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
     drivers(),
-    {&beyBladeSlowOutOfCombat},
+    {&chassisBeyBladeFastCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 
 ToggleCommandMapping orientDrive(
@@ -403,6 +450,12 @@ ToggleCommandMapping wiggle(
     drivers(),
     {&chassisWiggleCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
+
+HoldRepeatCommandMapping rightSwiitchDownBeyblade(
+    drivers(),
+    {&chassisBeyBladeFastCommand},
+    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
+    true);
 
 HopperSubsystem hopperSubsystem(drivers(), 0.0585f, 0.025, tap::gpio::Pwm::Pin::C7);
 
@@ -430,6 +483,48 @@ ToggleCommandMapping xPressed(
     drivers(),
     {&imuCalibrateCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
+
+// HUD
+ClientDisplaySubsystem clientDisplay(drivers());
+tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
+
+AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
+
+VisionIndicator visionIndicator(refSerialTransmitter, drivers()->refSerial, drivers()->visionComms);
+
+CircleCrosshair circleCrosshair(refSerialTransmitter);
+
+FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, flywheelOnGovernor);
+
+ShootingModeIndicator shootingModeIndicator(
+    refSerialTransmitter,
+    drivers()->refSerial,
+    leftMousePressed);
+
+CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial, cvOnTargetGovernor);
+
+TextHudIndicators textHudIndicators(
+    *drivers(),
+    agitator,
+    // imuCalibrateCommand,
+    {&chassisWiggleCommand, &chassisBeyBladeFastCommand},
+    refSerialTransmitter);
+
+std::vector<HudIndicator *> hudIndicators = {
+    &ammoIndicator,
+    &circleCrosshair,
+    &textHudIndicators,
+    &visionIndicator,
+    &flyWheelIndicator,
+    &shootingModeIndicator,
+    &cvAimingIndicator};
+
+ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
+
+PressCommandMapping bCtrlPressed(
+    drivers(),
+    {&clientDisplayCommand},
+    RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
 
 void initializeSubsystems(Drivers *drivers)
 {
@@ -479,6 +574,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&ctrlVPressed);
     drivers->commandMapper.addMap(&wiggle);
     drivers->commandMapper.addMap(&orientDrive);
+    drivers->commandMapper.addMap(&bCtrlPressed);
+    drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
 }
 }  // namespace standard_control
 

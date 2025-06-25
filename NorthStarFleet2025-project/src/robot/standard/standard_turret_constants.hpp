@@ -67,9 +67,9 @@ static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
     .limitMotorAngles = true,
 };
 
-static constexpr float TURRET_CG_X = 80.0f;                     // 30.17;
-static constexpr float TURRET_CG_Z = 0.0f;                      // 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 12000.0f;  // 7'000;
+static constexpr float TURRET_CG_X = 80.0f;                 // 30.17;
+static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 12000 // 7'000;
 
 namespace world_rel_turret_imu
 {

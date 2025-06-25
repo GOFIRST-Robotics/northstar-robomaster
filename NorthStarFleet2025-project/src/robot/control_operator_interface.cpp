@@ -152,26 +152,36 @@ static inline void applyAccelerationToRamp(
 
 float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
 {
-    if (remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT))
+    if (remote.getSwitch(Remote::Switch::LEFT_SWITCH) == Remote::SwitchState::UP)
     {
-        return -0.3f;
+        if (remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return -0.3f;
+        }
+        else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return -0.6f;
+        }
+        else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return 0.3f;
+        }
+        else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return 0.6f;
+        }
+        else
+        {
+            return 0.0f;
+        }
     }
-    else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT))
+
+    if (remote.getSwitch(Remote::Switch::LEFT_SWITCH) == Remote::SwitchState::DOWN)
     {
-        return -0.6f;
+        return remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) * 0.6;
     }
-    else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return 0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return 0.6f;
-    }
-    else
-    {
-        return 0.0f;
-    }
+
+    return 0.0f;
 }
 
 float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard()
@@ -206,26 +216,35 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard()
 
 float ControlOperatorInterface::getDrivetrainVerticalTranslation()
 {
-    if (remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT))
+    if (remote.getSwitch(Remote::Switch::LEFT_SWITCH) == Remote::SwitchState::UP)
     {
-        return 0.3f;
+        if (remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return 0.3f;
+        }
+        else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return 0.6f;
+        }
+        else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return -0.3f;
+        }
+        else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT))
+        {
+            return -0.6f;
+        }
+        else
+        {
+            return 0.0f;
+        }
     }
-    else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT))
+    if (remote.getSwitch(Remote::Switch::LEFT_SWITCH) == Remote::SwitchState::DOWN)
     {
-        return 0.6f;
+        return remote.getChannel(Remote::Channel::LEFT_VERTICAL) * 0.6;
     }
-    else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return -0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return -0.6f;
-    }
-    else
-    {
-        return 0.0f;
-    }
+
+    return 0.0f;
 }
 
 float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard()

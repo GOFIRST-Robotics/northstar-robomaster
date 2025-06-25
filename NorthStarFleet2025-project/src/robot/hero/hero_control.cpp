@@ -2,6 +2,7 @@
 
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
+#include "tap/control/press_command_mapping.hpp"
 #include "tap/control/setpoint/commands/move_command.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
@@ -67,6 +68,21 @@
 
 #include "ref_system_constants.hpp"
 
+// HUD
+#include "tap/communication/serial/ref_serial_transmitter.hpp"
+
+#include "control/clientDisplay/client_display_command.hpp"
+#include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/indicators/ammo_indicator.hpp"
+#include "control/clientDisplay/indicators/circle_crosshair.hpp"
+#include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
+#include "control/clientDisplay/indicators/flywheel_indicator.hpp"
+#include "control/clientDisplay/indicators/hero_spin_indicator.hpp"
+#include "control/clientDisplay/indicators/hud_indicator.hpp"
+#include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
+#include "control/clientDisplay/indicators/text_hud_indicators.hpp"
+#include "control/clientDisplay/indicators/vision_indicator.hpp"
+
 using tap::can::CanBus;
 
 using namespace tap::control::setpoint;
@@ -79,6 +95,8 @@ using namespace src::hero;
 using namespace src::control::flywheel;
 using namespace src::control::governor;
 using namespace tap::control::governor;
+using namespace src::control::client_display;
+using namespace tap::communication::serial;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -309,17 +327,17 @@ FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
-GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-    {&chassisSubsystem},
-    chassisBeyBladeSlowCommand,
-    chassisBeyBladeFastCommand,
-    {&firedRecentlyGovernor, &plateHitGovernor},
-    true);
+// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
+//     {&chassisSubsystem},
+//     chassisBeyBladeSlowCommand,
+//     chassisBeyBladeFastCommand,
+//     {&firedRecentlyGovernor, &plateHitGovernor},
+//     true);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
     drivers(),
-    {&beyBladeSlowOutOfCombat},
+    {&chassisBeyBladeFastCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 
 // imu commands
@@ -344,6 +362,50 @@ ToggleCommandMapping wiggle(
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
+
+// HUD
+
+ClientDisplaySubsystem clientDisplay(drivers());
+tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
+
+AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
+
+CircleCrosshair circleCrosshair(refSerialTransmitter);
+
+FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, flywheelOnGovernor);
+
+// ShootingModeIndicator shootingModeIndicator(
+//     refSerialTransmitter,
+//     drivers()->refSerial,
+//     leftMousePressed);
+
+// TextHudIndicators textHudIndicators(
+//     *drivers(),
+//     (tap::control::Subsystem)agitator,
+//     // imuCalibrateCommand,
+//     {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
+//     refSerialTransmitter);
+
+HeroSpinIndicator heroSpinIndicator(
+    refSerialTransmitter,
+    drivers()->refSerial,
+    *drivers(),
+    &chassisBeyBladeFastCommand,
+    &chassisWiggleCommand);
+
+std::vector<HudIndicator *> hudIndicators = {
+    &ammoIndicator,
+    &circleCrosshair,
+    // &textHudIndicators,
+    &flyWheelIndicator,
+    &heroSpinIndicator};
+
+ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
+
+PressCommandMapping bCtrlPressed(
+    drivers(),
+    {&clientDisplayCommand},
+    RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
 
 void initializeSubsystems(Drivers *drivers)
 {
@@ -387,6 +449,7 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gPressed);
     drivers->commandMapper.addMap(&xPressed);
     drivers->commandMapper.addMap(&wiggle);
+    drivers->commandMapper.addMap(&bCtrlPressed);
 }
 }  // namespace hero_control
 
