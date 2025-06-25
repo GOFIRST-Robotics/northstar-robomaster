@@ -111,7 +111,7 @@ HeroFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, DOWN_MO
 
 HeroFlywheelRunCommand heroFlywheelRunCommand(&flywheel);
 
-ToggleCommandMapping fPressed(
+ToggleCommandMapping fPressedFlywheel(
     drivers(),
     {&heroFlywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
@@ -128,14 +128,14 @@ HeroAgitatorShootCommand agitatorShootCommand(&agitator);
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
     *drivers(),
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1,
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_42MM,
     constants::HEAT_LIMIT_BUFFER);
 
 HeroFlywheelOnGovernor flywheelOnGovernor(flywheel);
 
 RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
     drivers()->refSerial,
-    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_17MM_1);
+    tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_42MM);
 
 ManualFireRateReselectionManager manualFireRateReselectionManager;
 
@@ -147,10 +147,13 @@ HeroSetFireRateCommand setFireRateCommand5SPR(
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
-GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
+GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
     {&agitator},
     agitatorShootCommand,
-    {&refSystemProjectileLaunchedGovernor, &fireRateLimitGovernor, &flywheelOnGovernor});
+    {&refSystemProjectileLaunchedGovernor,
+     &fireRateLimitGovernor,
+     &flywheelOnGovernor,
+     &heatLimitGovernor});
 
 // agitator mappings
 ToggleCommandMapping vPressed(
@@ -158,14 +161,14 @@ ToggleCommandMapping vPressed(
     {&setFireRateCommand1RPS},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
 
-ToggleCommandMapping gPressed(
+ToggleCommandMapping gPressedChangeFireRate(
     drivers(),
     {&setFireRateCommand5SPR},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
 
-HoldRepeatCommandMapping leftMousePressed(
+HoldRepeatCommandMapping leftMousePressedShoot(
     drivers(),
-    {&agitatorShootCommand},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
@@ -335,10 +338,10 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     true);
 
 // chassis Mappings
-ToggleCommandMapping bPressed(
+ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
     {&chassisBeyBladeFastCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+    RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -351,12 +354,12 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
-ToggleCommandMapping xPressed(
+ToggleCommandMapping xPressedIMUCalibrate(
     drivers(),
     {&imuCalibrateCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
 
-ToggleCommandMapping wiggle(
+ToggleCommandMapping zPressedWiggle(
     drivers(),
     {&chassisWiggleCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
@@ -377,7 +380,7 @@ FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, 
 // ShootingModeIndicator shootingModeIndicator(
 //     refSerialTransmitter,
 //     drivers()->refSerial,
-//     leftMousePressed);
+//     leftMousePressedShoot);
 
 // TextHudIndicators textHudIndicators(
 //     *drivers(),
@@ -402,7 +405,7 @@ std::vector<HudIndicator *> hudIndicators = {
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping bCtrlPressed(
+PressCommandMapping bCtrlPressedClientDisplay(
     drivers(),
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
@@ -442,14 +445,14 @@ void startHeroCommands(Drivers *drivers)
 
 void registerHeroIoMappings(Drivers *drivers)
 {
-    drivers->commandMapper.addMap(&leftMousePressed);
-    drivers->commandMapper.addMap(&fPressed);
-    drivers->commandMapper.addMap(&vPressed);
-    drivers->commandMapper.addMap(&bPressed);
-    drivers->commandMapper.addMap(&gPressed);
-    drivers->commandMapper.addMap(&xPressed);
-    drivers->commandMapper.addMap(&wiggle);
-    drivers->commandMapper.addMap(&bCtrlPressed);
+    drivers->commandMapper.addMap(&leftMousePressedShoot);
+    drivers->commandMapper.addMap(&fPressedFlywheel);
+    // drivers->commandMapper.addMap(&vPressed);
+    drivers->commandMapper.addMap(&bPressedNotCntlPressedBeyblade);
+    drivers->commandMapper.addMap(&gPressedChangeFireRate);
+    drivers->commandMapper.addMap(&xPressedIMUCalibrate);
+    drivers->commandMapper.addMap(&zPressedWiggle);
+    drivers->commandMapper.addMap(&bCtrlPressedClientDisplay);
 }
 }  // namespace hero_control
 

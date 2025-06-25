@@ -127,7 +127,7 @@ FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID
 FlywheelRunCommand flywheelRunCommand(&flywheel);
 
 // flywheel mappings
-ToggleCommandMapping fPressed(
+ToggleCommandMapping fPressedFlywheels(
     drivers(),
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
@@ -297,7 +297,7 @@ GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
 
 CvOnTargetGovernor cvOnTargetGovernor(drivers(), drivers()->visionComms, turretCVControlCommand);
 
-CycleStateCommandMapping<bool, 2, CvOnTargetGovernor> rPressed(
+CycleStateCommandMapping<bool, 2, CvOnTargetGovernor> rPressedCVGovernoreToggle(
     drivers(),
     RemoteMapState({Remote::Key::R}),
     true,
@@ -309,7 +309,7 @@ GovernorLimitedCommand<2> rotateAndUnjamAgitatorWithHeatAndCVLimiting(
     rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched,
     {&heatLimitGovernor, &cvOnTargetGovernor});
 
-MultiShotCvCommandMapping leftMousePressed(
+MultiShotCvCommandMapping leftMousePressedShoot(
     *drivers(),
     rotateAndUnjamAgitatorWithHeatAndCVLimiting,
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
@@ -321,11 +321,11 @@ CycleStateCommandMapping<
     MultiShotCvCommandMapping::LaunchMode,
     MultiShotCvCommandMapping::NUM_SHOOTER_STATES,
     MultiShotCvCommandMapping>
-    gOrVPressed(
+    gOrVPressedCycleShotSpeed(
         drivers(),
         RemoteMapState({Remote::Key::G}),
         MultiShotCvCommandMapping::SINGLE,
-        &leftMousePressed,
+        &leftMousePressedShoot,
         &MultiShotCvCommandMapping::setShooterState,
         RemoteMapState({Remote::Key::V}));
 
@@ -340,7 +340,7 @@ ToggleCommandMapping gPressed(
     {&setFireRateCommand10RPS},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
 
-// HoldRepeatCommandMapping leftMousePressed(
+// HoldRepeatCommandMapping leftMousePressedShoot(
 //     drivers(),
 //     {&rotateAndUnjamAgitator},  // TODO
 //     RemoteMapState(RemoteMapState::MouseButton::LEFT),
@@ -436,17 +436,17 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     false);
 
 // chassis Mappings
-ToggleCommandMapping bPressed(
+ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
     {&chassisBeyBladeFastCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
+    RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
-ToggleCommandMapping orientDrive(
+ToggleCommandMapping rPressedOrientDrive(
     drivers(),
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
-ToggleCommandMapping wiggle(
+ToggleCommandMapping zPressedWiggle(
     drivers(),
     {&chassisWiggleCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
@@ -461,7 +461,7 @@ HopperSubsystem hopperSubsystem(drivers(), 0.0585f, 0.025, tap::gpio::Pwm::Pin::
 
 HopperToggleCommand hopperToggleCommand(&hopperSubsystem);
 
-ToggleCommandMapping ctrlVPressed(
+ToggleCommandMapping ctrlVPressedHopperToggle(
     drivers(),
     {&hopperToggleCommand},
     RemoteMapState(RemoteMapState({Remote::Key::CTRL, Remote::Key::V})));
@@ -479,7 +479,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
-ToggleCommandMapping xPressed(
+ToggleCommandMapping xPressedIMUCalibrate(
     drivers(),
     {&imuCalibrateCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
@@ -499,7 +499,7 @@ FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, 
 ShootingModeIndicator shootingModeIndicator(
     refSerialTransmitter,
     drivers()->refSerial,
-    leftMousePressed);
+    leftMousePressedShoot);
 
 CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial, cvOnTargetGovernor);
 
@@ -521,7 +521,7 @@ std::vector<HudIndicator *> hudIndicators = {
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping bCtrlPressed(
+PressCommandMapping bCtrlPressedClientDisplay(
     drivers(),
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
@@ -563,18 +563,18 @@ void startStandardCommands(Drivers *drivers)
 
 void registerStandardIoMappings(Drivers *drivers)
 {
-    drivers->commandMapper.addMap(&leftMousePressed);
+    drivers->commandMapper.addMap(&leftMousePressedShoot);
     // drivers->commandMapper.addMap(&vPressed);
-    drivers->commandMapper.addMap(&fPressed);
-    drivers->commandMapper.addMap(&bPressed);
+    drivers->commandMapper.addMap(&fPressedFlywheels);
+    drivers->commandMapper.addMap(&bPressedNotCntlPressedBeyblade);
     // drivers->commandMapper.addMap(&gPressed);
-    drivers->commandMapper.addMap(&xPressed);
-    drivers->commandMapper.addMap(&rPressed);
-    drivers->commandMapper.addMap(&gOrVPressed);
-    drivers->commandMapper.addMap(&ctrlVPressed);
-    drivers->commandMapper.addMap(&wiggle);
-    drivers->commandMapper.addMap(&orientDrive);
-    drivers->commandMapper.addMap(&bCtrlPressed);
+    drivers->commandMapper.addMap(&xPressedIMUCalibrate);
+    drivers->commandMapper.addMap(&rPressedCVGovernoreToggle);
+    drivers->commandMapper.addMap(&gOrVPressedCycleShotSpeed);
+    drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
+    drivers->commandMapper.addMap(&zPressedWiggle);
+    drivers->commandMapper.addMap(&rPressedOrientDrive);
+    drivers->commandMapper.addMap(&bCtrlPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
 }
 }  // namespace standard_control
