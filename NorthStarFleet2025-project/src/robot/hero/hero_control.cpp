@@ -390,8 +390,8 @@ HeroSpinIndicator heroSpinIndicator(
     refSerialTransmitter,
     drivers()->refSerial,
     *drivers(),
-    &beyBladeFastCommand,
-    &wiggleCommand);
+    &chassisBeyBladeFastCommand,
+    &chassisWiggleCommand);
 
 std::vector<HudIndicator *> hudIndicators = {
     &ammoIndicator,

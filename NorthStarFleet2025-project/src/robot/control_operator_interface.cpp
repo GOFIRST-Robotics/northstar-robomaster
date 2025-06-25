@@ -180,6 +180,8 @@ float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
     {
         return remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) * 0.6;
     }
+
+    return 0.0f;
 }
 
 float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard()
@@ -241,6 +243,8 @@ float ControlOperatorInterface::getDrivetrainVerticalTranslation()
     {
         return remote.getChannel(Remote::Channel::LEFT_VERTICAL) * 0.6;
     }
+
+    return 0.0f;
 }
 
 float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard()
