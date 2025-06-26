@@ -19,7 +19,7 @@ class ChassisSubsystem;
 class ChassisBeybladeCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
+    static constexpr float MAX_CHASSIS_SPEED_MPS = 2.0f;
 
     ChassisBeybladeCommand(
         ChassisSubsystem *chassis,

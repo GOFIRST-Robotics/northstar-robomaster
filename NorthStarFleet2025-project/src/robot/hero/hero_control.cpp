@@ -116,6 +116,11 @@ ToggleCommandMapping fPressedFlywheel(
     {&heroFlywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
+ToggleCommandMapping leftSwitchUpPressedFlywheel(
+    drivers(),
+    {&heroFlywheelRunCommand},
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
+
 // agitator subsystem
 HeroAgitatorSubsystem agitator(
     drivers(),
@@ -171,6 +176,11 @@ HoldRepeatCommandMapping leftMousePressedShoot(
     {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
+
+ToggleCommandMapping leftSwitchDownPressedShoot(
+    drivers(),
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 // turret subsystem
 tap::motor::DjiMotor pitchMotor(
@@ -447,6 +457,8 @@ void registerHeroIoMappings(Drivers *drivers)
 {
     drivers->commandMapper.addMap(&leftMousePressedShoot);
     drivers->commandMapper.addMap(&fPressedFlywheel);
+    drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
+    drivers->commandMapper.addMap(&leftSwitchUpPressedFlywheel);
     // drivers->commandMapper.addMap(&vPressed);
     drivers->commandMapper.addMap(&bPressedNotCntlPressedBeyblade);
     drivers->commandMapper.addMap(&gPressedChangeFireRate);

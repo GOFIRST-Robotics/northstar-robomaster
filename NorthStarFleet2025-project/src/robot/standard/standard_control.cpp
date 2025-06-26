@@ -132,6 +132,11 @@ ToggleCommandMapping fPressedFlywheels(
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 
+ToggleCommandMapping leftSwitchUpFlywheels(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
+
 // turret subsystem
 tap::motor::DjiMotor pitchMotor(
     drivers(),
@@ -317,6 +322,14 @@ MultiShotCvCommandMapping leftMousePressedShoot(
     cvOnTargetGovernor,
     &rotateAgitator);
 
+MultiShotCvCommandMapping leftSwitchDownPressedShoot(
+    *drivers(),
+    rotateAndUnjamAgitatorWithHeatAndCVLimiting,
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN),
+    &manualFireRateReselectionManager,
+    cvOnTargetGovernor,
+    &rotateAgitator);
+
 CycleStateCommandMapping<
     MultiShotCvCommandMapping::LaunchMode,
     MultiShotCvCommandMapping::NUM_SHOOTER_STATES,
@@ -466,6 +479,11 @@ ToggleCommandMapping ctrlVPressedHopperToggle(
     {&hopperToggleCommand},
     RemoteMapState(RemoteMapState({Remote::Key::CTRL, Remote::Key::V})));
 
+HoldCommandMapping rightSwitchUpHopper(
+    drivers(),
+    {&hopperToggleCommand},
+    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP));
+
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
@@ -576,6 +594,9 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&rPressedOrientDrive);
     drivers->commandMapper.addMap(&bCtrlPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
+    drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
+    drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
+    drivers->commandMapper.addMap(&rightSwitchUpHopper);
 }
 }  // namespace standard_control
 
