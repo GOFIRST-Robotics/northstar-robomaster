@@ -287,6 +287,8 @@ bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation()
 {
+    return 0.0f;
+
     if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
     {
         return -0.3f;

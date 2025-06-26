@@ -532,17 +532,17 @@ std::vector<HudIndicator *> hudIndicators = {
     &ammoIndicator,
     &circleCrosshair,
     &textHudIndicators,
-    &visionIndicator,
+    /*&visionIndicator,
     &flyWheelIndicator,
     &shootingModeIndicator,
-    &cvAimingIndicator};
+    &cvAimingIndicator*/};
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping bCtrlPressedClientDisplay(
+PressCommandMapping crtlShiftEPressedClientDisplay(
     drivers(),
     {&clientDisplayCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
+    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
 void initializeSubsystems(Drivers *drivers)
 {
@@ -562,6 +562,7 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
+    drivers->commandScheduler.registerSubsystem(&clientDisplay);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
@@ -570,6 +571,7 @@ void setDefaultStandardCommands(Drivers *drivers)
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
+    clientDisplay.setDefaultCommand(&clientDisplayCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
@@ -592,7 +594,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
     drivers->commandMapper.addMap(&zPressedWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
-    drivers->commandMapper.addMap(&bCtrlPressedClientDisplay);
+    drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
