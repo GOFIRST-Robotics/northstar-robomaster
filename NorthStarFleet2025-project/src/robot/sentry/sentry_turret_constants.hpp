@@ -74,7 +74,7 @@ static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_BOTTOM = {
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_TOP = {
     .startAngle = 0,
     .startEncoderValue = 4550,  // enc res 8191
-    .minAngle = 0,
+    .minAngle = -modm::toRadian(180),
     .maxAngle = modm::toRadian(180),
     .limitMotorAngles = false,
 };
@@ -246,9 +246,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_POS_PID_AUTO_AIM_CONFIG 
 namespace world_rel_chassis_imu
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
-    .kp = 140'000.0f,
-    .ki = 100.0f,
-    .kd = 10000.0f,
+    .kp = 160'000.0f,
+    .ki = 0.0f,
+    .kd = 20000.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 0.1f,

@@ -72,8 +72,8 @@ private:
     algorithms::TurretYawControllerInterface *yawControllerTop;
     algorithms::TurretPitchControllerInterface *pitchControllerTop;
 
-    float comp = 0;
-    float yawSetpointTop = 0;
+    // float comp = 0;
+    // float yawSetpointTop = 0;
     float DELTA_MAX;
 
     const float userYawInputScalar;

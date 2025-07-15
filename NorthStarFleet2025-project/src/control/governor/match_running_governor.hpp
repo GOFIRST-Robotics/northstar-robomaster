@@ -44,7 +44,7 @@ public:
     {
         auto gameData = refSerial.getGameData();
         return (
-            gameData.gameType == tap::communication::serial::RefSerial::Rx::GameType::UNKNOWN ||
+            // gameData.gameType == tap::communication::serial::RefSerial::Rx::GameType::UNKNOWN ||
             gameData.gameStage == tap::communication::serial::RefSerial::Rx::GameStage::IN_GAME);
     }
 

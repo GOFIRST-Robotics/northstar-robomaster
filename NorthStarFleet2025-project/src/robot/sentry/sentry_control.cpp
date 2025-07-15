@@ -629,11 +629,18 @@ imu::SentryImuCalibrateCommand imuCalibrateCommand(
 
 MatchRunningGovernor matchRunning(drivers()->refSerial);
 
-GovernorLimitedCommand<1> chassisDefault(
+GovernorWithFallbackCommand<1> chassisDefault(
     {&chassisSubsystem},
     chassisBeyBladeCommand,
-    {&matchRunning});
-GovernorLimitedCommand<1> cvManagerGameDefault({&sentryTurrets}, cvManagerCommand, {&matchRunning});
+    chassisDriveCommand,
+    {&matchRunning},
+    true);
+GovernorWithFallbackCommand<1> cvManagerGameDefault(
+    {&sentryTurrets},
+    cvManagerCommand,
+    turretUserControlCommand,
+    {&matchRunning},
+    true);
 GovernorLimitedCommand<1> flywheelBottomDefault(
     {&flywheelBottom},
     flywheelRunCommandBottom,
@@ -674,12 +681,12 @@ void registerSentrySubsystems(Drivers *drivers)
 
 void setDefaultSentryCommands(Drivers *drivers)
 {
-    // chassisSubsystem.setDefaultCommand(&chassisDefault);
-    sentryTurrets.setDefaultCommand(&turretUserControlCommand);  // cvManagerGameDefault );
-    // flywheelBottom.setDefaultCommand(&flywheelBottomDefault);
-    // flywheelTop.setDefaultCommand(&flywheelTopDefault);
-    // agitatorBottom.setDefaultCommand(&agitatorBottomDefault);
-    // agitatorTop.setDefaultCommand(&agitatorTopDefault);
+    chassisSubsystem.setDefaultCommand(&chassisDefault);
+    sentryTurrets.setDefaultCommand(&cvManagerGameDefault);  // turretUserControlCommand );
+    flywheelBottom.setDefaultCommand(&flywheelBottomDefault);
+    flywheelTop.setDefaultCommand(&flywheelTopDefault);
+    agitatorBottom.setDefaultCommand(&agitatorBottomDefault);
+    agitatorTop.setDefaultCommand(&agitatorTopDefault);
 }
 
 void startSentryCommands(Drivers *drivers)
