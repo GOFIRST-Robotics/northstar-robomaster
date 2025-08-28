@@ -59,7 +59,7 @@ private:
     // X position of the text
     static constexpr uint16_t TEXT_X = SCREEN_WIDTH / 2 - 150;
     // Y position of the text
-    static constexpr uint16_t TEXT_Y = 600;
+    static constexpr uint16_t TEXT_Y = 900;
     // WIDTH of the text
     static constexpr uint16_t WIDTH = 4;
     // SIZE of the text
@@ -71,7 +71,7 @@ private:
     Tx::Graphic1Message numberGraphic;
     tap::communication::referee::StateHUDIndicator<int32_t> numberIndicator;
 
-    static constexpr uint16_t NUMBER_X = TEXT_X + 175;
+    static constexpr uint16_t NUMBER_X = TEXT_X + 650;
 
     int firemode = 0;
 

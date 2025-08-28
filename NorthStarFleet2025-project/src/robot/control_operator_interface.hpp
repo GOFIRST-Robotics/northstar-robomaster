@@ -101,6 +101,7 @@ public:
     bool isSlowMode();
 
     bool isRightSwitchUp();
+    bool isRightSwitchMid();
 
     bool isGKeyPressed();
 

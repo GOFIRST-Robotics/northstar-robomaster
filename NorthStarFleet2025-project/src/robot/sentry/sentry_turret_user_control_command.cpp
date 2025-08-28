@@ -82,20 +82,19 @@ void SentryTurretUserControlCommand::execute()
     uint32_t dt = currTime - prevTime;
     prevTime = currTime;
 
-    const WrappedFloat pitchSetpointBottom =
-        pitchControllerBottom->getSetpoint() +
-        userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0);
-    pitchControllerBottom->runController(dt, pitchSetpointBottom);
+    WrappedFloat pitchSetpointBottom = pitchControllerBottom->getSetpoint();
 
-    const WrappedFloat yawSetpointBottom =
-        yawControllerBottom->getSetpoint() +
-        userYawInputScalar * controlOperatorInterface.getTurretYawInput(0);
-    yawControllerBottom->runController(dt, yawSetpointBottom);
+    WrappedFloat yawSetpointBottom = yawControllerBottom->getSetpoint();
 
-    const WrappedFloat pitchSetpointTop =
-        pitchControllerTop->getSetpoint() +
-        userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(1);
-    pitchControllerTop->runController(dt, pitchSetpointTop);
+    if (controlOperatorInterface.isRightSwitchMid())
+    {
+        pitchSetpointBottom +=
+            userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0);
+
+        yawSetpointBottom += userYawInputScalar * controlOperatorInterface.getTurretYawInput(0);
+    }
+
+    WrappedFloat pitchSetpointTop = pitchControllerTop->getSetpoint();
 
     float bottomMeasurement = yawControllerBottom->getMeasurement().getUnwrappedValue() -
                               turretSubsystem->bottomMeasurementOffset;
@@ -103,8 +102,6 @@ void SentryTurretUserControlCommand::execute()
     float delta =
         -(yawControllerTop->getMeasurement().getUnwrappedValue() -
           turretSubsystem->topMeasurementOffset);
-
-    float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(1);
 
     if (delta <= -DELTA_MAX)
     {
@@ -115,24 +112,37 @@ void SentryTurretUserControlCommand::execute()
         comp = bottomMeasurement - DELTA_MAX;
     }
 
-    if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
-    {
-        comp += input;
-    }
-    else if (input != 0)
-    {
-        comp = getSign(input) * DELTA_MAX + bottomMeasurement;
-    }
-
     yawSetpointTop = limitVal(-(bottomMeasurement) + comp, -DELTA_MAX, DELTA_MAX);
 
-    if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&
-        yawSetpointTop + input > -DELTA_MAX)
+    if (controlOperatorInterface.isRightSwitchUp())
     {
-        yawSetpointTop += input;
+        pitchSetpointTop = pitchControllerTop->getSetpoint() +
+                           userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0);
+
+        float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(0);
+
+        if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
+        {
+            comp += input;
+        }
+        else if (input != 0)
+        {
+            comp = getSign(input) * DELTA_MAX + bottomMeasurement;
+        }
+
+        if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&
+            yawSetpointTop + input > -DELTA_MAX)
+        {
+            yawSetpointTop += input;
+        }
     }
+    yawControllerBottom->runController(dt, yawSetpointBottom);
+
+    pitchControllerBottom->runController(dt, pitchSetpointBottom);
 
     yawControllerTop->runController(dt, Angle(yawSetpointTop));
+
+    pitchControllerTop->runController(dt, pitchSetpointTop);
 }
 
 bool SentryTurretUserControlCommand::isFinished() const

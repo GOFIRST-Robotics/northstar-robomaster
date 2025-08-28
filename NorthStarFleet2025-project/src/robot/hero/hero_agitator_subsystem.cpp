@@ -13,7 +13,7 @@ HeroAgitatorSubsystem::HeroAgitatorSubsystem(
     const tap::algorithms::SmoothPidConfig& pidConfig)
     : tap::control::Subsystem(drivers),
       config(config),
-      pwm(0.42f),
+      pwm(0.40f),
       //   agitatorServo(
       //       drivers,
       //       config.agitatorServoId,
@@ -63,7 +63,7 @@ void HeroAgitatorSubsystem::reload()
 void HeroAgitatorSubsystem::refresh()
 {
     if (reloading && !loaded && !limitSwitch.getLimitSwitchDepressed() &&
-        agitatorTimeout.timeRemaining() < config.reloadTimeout - 600)
+        agitatorTimeout.timeRemaining() < config.reloadTimeout - 650)
     {
         velocitySetpoint = M_TWOPI * 2;
         loaded = true;
@@ -71,7 +71,7 @@ void HeroAgitatorSubsystem::refresh()
     }
     if (loaded && limitSwitch.getLimitSwitchDepressed())
     {
-        pwm = 0.42f;
+        pwm = 0.40f;
         velocitySetpoint = 0;
         jamTimeout.restart(200);
     }
@@ -87,7 +87,7 @@ void HeroAgitatorSubsystem::refresh()
             velocitySetpoint = 1;
             agitatorTimeout.restart(config.reloadTimeout);
         }
-        else if (pwm == 0.42)
+        else if (pwm == 0.40)
         {
             isReady = true;
         }

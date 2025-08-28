@@ -56,9 +56,9 @@ private:
     // X position of the circle
     static constexpr uint16_t CRICLE_X = SCREEN_WIDTH / 2 + OFFSET_X;
     // Y position of the circle
-    static constexpr uint16_t CRICLE_Y = SCREEN_HEIGHT / 2 - OFFSET_Y;
+    static constexpr uint16_t CRICLE_Y = 450;
     // SIZE of the circle
-    static constexpr uint16_t CRICLE_SIZE = 2;
+    static constexpr uint16_t CRICLE_SIZE = 5;
     // Thickness of the line
     static constexpr uint16_t LINE_THICKNESS = 5;
 

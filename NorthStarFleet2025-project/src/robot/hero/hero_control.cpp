@@ -415,10 +415,10 @@ std::vector<HudIndicator *> hudIndicators = {
 
 ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping bCtrlPressedClientDisplay(
+PressCommandMapping ctrlShiftBPressedClientDisplay(
     drivers(),
     {&clientDisplayCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::B}));
+    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
 void initializeSubsystems(Drivers *drivers)
 {
@@ -434,6 +434,7 @@ void registerHeroSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
+    drivers->commandScheduler.registerSubsystem(&clientDisplay);
 }
 
 void setDefaultHeroCommands(Drivers *drivers)
@@ -450,7 +451,7 @@ void startHeroCommands(Drivers *drivers)
         tap::algorithms::transforms::Transform(0, 0, 0, modm::toRadian(-90), 0, 0));
     // pitch up needs to be negitive up is on motor side
     // right neg
-    // drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerHeroIoMappings(Drivers *drivers)
@@ -464,7 +465,7 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gPressedChangeFireRate);
     drivers->commandMapper.addMap(&xPressedIMUCalibrate);
     drivers->commandMapper.addMap(&zPressedWiggle);
-    drivers->commandMapper.addMap(&bCtrlPressedClientDisplay);
+    drivers->commandMapper.addMap(&ctrlShiftBPressedClientDisplay);
 }
 }  // namespace hero_control
 
