@@ -63,7 +63,7 @@ void SentryTurretUserControlCommand::initialize()
     yawControllerTop->initialize();
     pitchControllerTop->initialize();
     prevTime = tap::arch::clock::getTimeMilliseconds();
-    yawSetpointTop = yawControllerTop->getSetpoint().getUnwrappedValue();
+    // yawSetpointTop = yawControllerTop->getSetpoint().getUnwrappedValue();
     if (!turretSubsystem->offsets)
     {
         turretSubsystem->setOffsets(
@@ -71,9 +71,9 @@ void SentryTurretUserControlCommand::initialize()
             yawControllerBottom->getMeasurement().getUnwrappedValue(),
             yawControllerTop->getMeasurement().getUnwrappedValue());
     }
-    comp = yawControllerTop->getSetpoint().getUnwrappedValue() +
-           yawControllerBottom->getMeasurement().getUnwrappedValue() -
-           turretSubsystem->bottomMeasurementOffset;
+    // comp = yawControllerTop->getSetpoint().getUnwrappedValue() +
+    //        yawControllerBottom->getMeasurement().getUnwrappedValue() -
+    //        turretSubsystem->bottomMeasurementOffset;
 }
 
 void SentryTurretUserControlCommand::execute()
@@ -81,68 +81,88 @@ void SentryTurretUserControlCommand::execute()
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
     uint32_t dt = currTime - prevTime;
     prevTime = currTime;
+    tap::communication::serial::Remote::SwitchState switchState =
+        drivers->remote.getSwitch(tap::communication::serial::Remote::Switch::RIGHT_SWITCH);
 
-    WrappedFloat pitchSetpointBottom = pitchControllerBottom->getSetpoint();
-
-    WrappedFloat yawSetpointBottom = yawControllerBottom->getSetpoint();
-
-    if (controlOperatorInterface.isRightSwitchMid())
-    {
-        pitchSetpointBottom +=
-            userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0);
-
-        yawSetpointBottom += userYawInputScalar * controlOperatorInterface.getTurretYawInput(0);
-    }
-
-    WrappedFloat pitchSetpointTop = pitchControllerTop->getSetpoint();
-
-    float bottomMeasurement = yawControllerBottom->getMeasurement().getUnwrappedValue() -
-                              turretSubsystem->bottomMeasurementOffset;
-
-    float delta =
-        -(yawControllerTop->getMeasurement().getUnwrappedValue() -
-          turretSubsystem->topMeasurementOffset);
-
-    if (delta <= -DELTA_MAX)
-    {
-        comp = bottomMeasurement + DELTA_MAX;
-    }
-    else if (delta >= DELTA_MAX)
-    {
-        comp = bottomMeasurement - DELTA_MAX;
-    }
-
-    yawSetpointTop = limitVal(-(bottomMeasurement) + comp, -DELTA_MAX, DELTA_MAX);
-
-    if (controlOperatorInterface.isRightSwitchUp())
-    {
-        pitchSetpointTop = pitchControllerTop->getSetpoint() +
-                           userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0);
-
-        float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(0);
-
-        if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
-        {
-            comp += input;
-        }
-        else if (input != 0)
-        {
-            comp = getSign(input) * DELTA_MAX + bottomMeasurement;
-        }
-
-        if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&
-            yawSetpointTop + input > -DELTA_MAX)
-        {
-            yawSetpointTop += input;
-        }
-    }
-    yawControllerBottom->runController(dt, yawSetpointBottom);
-
+    const WrappedFloat pitchSetpointBottom =
+        pitchControllerBottom->getSetpoint() +
+        userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0) *
+            (switchState == tap::communication::serial::Remote::SwitchState::MID);
     pitchControllerBottom->runController(dt, pitchSetpointBottom);
 
-    yawControllerTop->runController(dt, Angle(yawSetpointTop));
+    const WrappedFloat yawSetpointBottom =
+        yawControllerBottom->getSetpoint() +
+        userYawInputScalar * controlOperatorInterface.getTurretYawInput(0) *
+            (switchState == tap::communication::serial::Remote::SwitchState::MID);
+    yawControllerBottom->runController(dt, yawSetpointBottom);
 
+    const WrappedFloat pitchSetpointTop =
+        pitchControllerTop->getSetpoint() +
+        userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0) *
+            (switchState == tap::communication::serial::Remote::SwitchState::UP);
     pitchControllerTop->runController(dt, pitchSetpointTop);
+
+    WrappedFloat yawSetpointTop = yawControllerTop->getSetpoint();
+
+    if (yawControllerTop->getSetpoint().getUnwrappedValue() -
+            (yawSetpointBottom.getUnwrappedValue() - turretSubsystem->bottomSetpointOffset) >
+        DELTA_MAX)
+    {
+        yawSetpointTop = yawSetpointBottom - turretSubsystem->bottomSetpointOffset + DELTA_MAX;
+    }
+    else if (
+        yawControllerTop->getSetpoint().getUnwrappedValue() -
+            (yawSetpointBottom.getUnwrappedValue() - turretSubsystem->bottomSetpointOffset) <
+        -DELTA_MAX)
+    {
+        yawSetpointTop = yawSetpointBottom - turretSubsystem->bottomSetpointOffset - DELTA_MAX;
+    }
+    else
+    {
+        yawSetpointTop = yawControllerTop->getSetpoint() +
+                         userYawInputScalar * controlOperatorInterface.getTurretYawInput(0) *
+                             (switchState == tap::communication::serial::Remote::SwitchState::UP);
+    }
+
+    yawControllerTop->runController(dt, yawSetpointTop);
+
+    // float bottomMeasurement = yawControllerBottom->getMeasurement().getUnwrappedValue() -
+    //                           turretSubsystem->bottomMeasurementOffset;
+
+    // float delta =
+    //     -(yawControllerTop->getMeasurement().getUnwrappedValue() -
+    //       turretSubsystem->topMeasurementOffset);
+
+    // float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(0) *
+    //               (switchState == tap::communication::serial::Remote::SwitchState::UP);
+
+    // if (delta <= -DELTA_MAX)
+    // {
+    //     comp = bottomMeasurement + DELTA_MAX;
+    // }
+    // else if (delta >= DELTA_MAX)
+    // {
+    //     comp = bottomMeasurement - DELTA_MAX;
+    // }
+
+    // if (yawSetpointTop + input < DELTA_MAX && yawSetpointTop + input > -DELTA_MAX)
+    // {
+    //     comp += input;
+    // }
+    // else if (input != 0)
+    // {
+    //     comp = getSign(input) * DELTA_MAX + bottomMeasurement;
+    // }
+
+    // yawSetpointTop = limitVal(-(bottomMeasurement) + comp, -DELTA_MAX, DELTA_MAX);
+
+    // if (abs(yawSetpointTop) == DELTA_MAX && input != 0 && yawSetpointTop + input < DELTA_MAX &&
+    //     yawSetpointTop + input > -DELTA_MAX)
+    // {
+    //     yawSetpointTop += input;
+    // }
+
+    // yawControllerTop->runController(dt, Angle(yawSetpointTop));
 }
 
 bool SentryTurretUserControlCommand::isFinished() const
