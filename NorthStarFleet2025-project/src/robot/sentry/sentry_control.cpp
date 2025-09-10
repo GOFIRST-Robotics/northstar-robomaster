@@ -527,7 +527,11 @@ GovernorLimitedCommand<2> rotateAndUnjamAgitatorWithHeatAndCVLimitingTop(
 MultiShotCvCommandMapping leftMouseCtrlPressed(
     *drivers(),
     rotateAndUnjamAgitatorWithHeatAndCVLimitingTop,
-    RemoteMapState(RemoteMapState::MouseButton::LEFT, {Remote::Key::CTRL}),
+    RemoteMapState(
+        RemoteMapState::MouseButton::LEFT,
+        {},
+        {Remote::Key::CTRL}),  // RemoteMapState(RemoteMapState::MouseButton::LEFT,
+                               // {Remote::Key::CTRL}),
     &manualFireRateReselectionManagerTop,
     cvOnTargetGovernorTop,
     &rotateAgitatorTop);
@@ -629,34 +633,51 @@ imu::SentryImuCalibrateCommand imuCalibrateCommand(
 
 MatchRunningGovernor matchRunning(drivers()->refSerial);
 
-GovernorWithFallbackCommand<1> chassisDefault(
-    {&chassisSubsystem},
-    chassisBeyBladeCommand,
-    chassisDriveCommand,
-    {&matchRunning},
+HoldRepeatCommandMapping matchBeyblade(
+    drivers(),
+    {&chassisBeyBladeCommand},
+    RemoteMapState(Remote::SwitchState::UP, Remote::SwitchState::DOWN),
     true);
-GovernorWithFallbackCommand<1> cvManagerGameDefault(
-    {&sentryTurrets},
-    cvManagerCommand,
-    turretUserControlCommand,
-    {&matchRunning},
+
+HoldRepeatCommandMapping matchCV(
+    drivers(),
+    {&cvManagerCommand},
+    RemoteMapState(Remote::SwitchState::UP, Remote::SwitchState::DOWN),
     true);
-GovernorLimitedCommand<1> flywheelBottomDefault(
-    {&flywheelBottom},
-    flywheelRunCommandBottom,
-    {&matchRunning});
-GovernorLimitedCommand<1> flywheelTopDefault(
-    {&flywheelTop},
-    flywheelRunCommandTop,
-    {&matchRunning});
-GovernorLimitedCommand<1> agitatorBottomDefault(
-    {&agitatorBottom},
-    rotateAndUnjamAgitatorWithHeatAndCVLimitingBottom,
-    {&matchRunning});
-GovernorLimitedCommand<1> agitatorTopDefault(
-    {&agitatorTop},
-    rotateAndUnjamAgitatorWithHeatAndCVLimitingTop,
-    {&matchRunning});
+
+HoldRepeatCommandMapping matchFlywheels(
+    drivers(),
+    {&flywheelRunCommandBottom, &flywheelRunCommandTop},
+    RemoteMapState(Remote::SwitchState::UP, Remote::SwitchState::DOWN),
+    true);
+
+HoldRepeatCommandMapping matchAgitator(
+    drivers(),
+    {&rotateAndUnjamAgitatorWithHeatAndCVLimitingBottom,
+     &rotateAndUnjamAgitatorWithHeatAndCVLimitingTop},
+    RemoteMapState(Remote::SwitchState::UP, Remote::SwitchState::DOWN),
+    true);
+
+MultiShotCvCommandMapping leftSwitchDown1(
+    *drivers(),
+    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedTop,  // rotateAndUnjamAgitatorWithHeatAndCVLimitingTop,
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN),
+    &manualFireRateReselectionManagerTop,
+    cvOnTargetGovernorTop,
+    &rotateAgitatorTop);
+
+MultiShotCvCommandMapping leftSwitchDown2(
+    *drivers(),
+    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedBottom,  // rotateAndUnjamAgitatorWithHeatAndCVLimitingBottom,
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN),
+    &manualFireRateReselectionManagerBottom,
+    cvOnTargetGovernorBottom,
+    &rotateAgitatorBottom);
+
+ToggleCommandMapping leftSwitchUp(
+    drivers(),
+    {&flywheelRunCommandTop, &flywheelRunCommandBottom},
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 void initializeSubsystems(Drivers *drivers)
@@ -681,12 +702,8 @@ void registerSentrySubsystems(Drivers *drivers)
 
 void setDefaultSentryCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDefault);
-    sentryTurrets.setDefaultCommand(&cvManagerGameDefault);  // turretUserControlCommand );
-    flywheelBottom.setDefaultCommand(&flywheelBottomDefault);
-    flywheelTop.setDefaultCommand(&flywheelTopDefault);
-    agitatorBottom.setDefaultCommand(&agitatorBottomDefault);
-    agitatorTop.setDefaultCommand(&agitatorTopDefault);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
+    sentryTurrets.setDefaultCommand(&turretUserControlCommand);
 }
 
 void startSentryCommands(Drivers *drivers)
@@ -709,6 +726,13 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&orientDrive);
     drivers->commandMapper.addMap(&xPressed);
     drivers->commandMapper.addMap(&xCtrlPressed);
+    drivers->commandMapper.addMap(&matchBeyblade);
+    drivers->commandMapper.addMap(&matchCV);
+    drivers->commandMapper.addMap(&matchFlywheels);
+    drivers->commandMapper.addMap(&matchAgitator);
+    drivers->commandMapper.addMap(&leftSwitchDown1);
+    drivers->commandMapper.addMap(&leftSwitchDown2);
+    drivers->commandMapper.addMap(&leftSwitchUp);
 }
 }  // namespace sentry_control
 

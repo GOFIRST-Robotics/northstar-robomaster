@@ -75,7 +75,7 @@ private:
     enum TextIndicators
     {
         AGITATOR_JAMMED,
-        IMU_CALIBRATING,
+        // IMU_CALIBRATING,
         NOT_SPINNING,
         NUM_TEXT_HUD_INDICATORS
     };

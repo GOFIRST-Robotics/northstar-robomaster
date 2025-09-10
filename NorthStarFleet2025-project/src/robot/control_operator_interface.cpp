@@ -213,7 +213,7 @@ float ControlOperatorInterface::getDrivetrainVerticalTranslation()
 
     if (remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT))
     {
-        output += 0.3f;
+        output += 0.4f;
     }
     else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT))
     {
@@ -221,7 +221,7 @@ float ControlOperatorInterface::getDrivetrainVerticalTranslation()
     }
     else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT))
     {
-        output += -0.3f;
+        output += -0.4f;
     }
     else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT))
     {
@@ -287,28 +287,27 @@ bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation()
 {
-    return 0.0f;
-
-    if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return -0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return -0.6f;
-    }
-    else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return 0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return 0.6f;
-    }
-    else
-    {
-        return 0.0f;
-    }
+    return remote.getChannel(Remote::Channel::WHEEL) * 0.6;
+    // if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return -0.3f;
+    // }
+    // else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return -0.6f;
+    // }
+    // else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return 0.3f;
+    // }
+    // else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return 0.6f;
+    // }
+    // else
+    // {
+    //     return 0.0f;
+    // }
 }
 
 float ControlOperatorInterface::getMecanumRotationKeyBoard()
@@ -345,6 +344,11 @@ float ControlOperatorInterface::getMecanumRotationKeyBoard()
 bool ControlOperatorInterface::isRightSwitchUp()
 {
     return (remote.getSwitch(Remote::Switch::RIGHT_SWITCH) == Remote::SwitchState::UP);
+}
+
+bool ControlOperatorInterface::isRightSwitchMid()
+{
+    return (remote.getSwitch(Remote::Switch::RIGHT_SWITCH) == Remote::SwitchState::MID);
 }
 
 bool ControlOperatorInterface::isGKeyPressed() { return (remote.keyPressed(Remote::Key::G)); }
