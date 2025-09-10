@@ -36,9 +36,9 @@ public:
     };
 
     std::unordered_map<int, PlateDims> plateLookup{
-        {1, {200.0f, 100.0f}},  // hero plate dimentions in mm
-        {7, {100.0f, 100.0f}},  // sentry plate dimentions in mm
-        {3, {100.0f, 100.0f}},  // don't know id 3 is correct
+        {1, {.2f, .15f}},   // hero plate dimentions in mm
+        {7, {.15f, .15f}},  // sentry plate dimentions in mm
+        {3, {.15f, .15f}},  // don't know id 3 is correct
     };
 
     VisionComms(tap::Drivers* drivers);

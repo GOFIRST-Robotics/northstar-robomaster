@@ -240,6 +240,11 @@ cv::TurretCVControlCommand turretCVControlCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+ToggleCommandMapping xCtrlPressedCvControl(
+    drivers(),
+    {&turretCVControlCommand},
+    RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
+
 user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     drivers(),
     drivers()->controlOperatorInterface,
@@ -587,8 +592,8 @@ void registerStandardIoMappings(Drivers *drivers)
     // drivers->commandMapper.addMap(&vPressed);
     drivers->commandMapper.addMap(&fPressedFlywheels);
     drivers->commandMapper.addMap(&bPressedNotCntlPressedBeyblade);
-    // drivers->commandMapper.addMap(&gPressed);
-    drivers->commandMapper.addMap(&xPressedIMUCalibrate);
+    drivers->commandMapper.addMap(&xCtrlPressedCvControl);
+    // drivers->commandMapper.addMap(&xPressedIMUCalibrate);
     drivers->commandMapper.addMap(&rPressedCVGovernoreToggle);
     drivers->commandMapper.addMap(&gOrVPressedCycleShotSpeed);
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
