@@ -45,7 +45,8 @@ public:
         algorithms::TurretYawControllerInterface *yawControllerTop,
         algorithms::TurretPitchControllerInterface *pitchControllerTop,
         float userYawInputScalar,
-        float userPitchInputScalar);
+        float userPitchInputScalar,
+        float DELTA_MAX);
 
     bool isReady() override;
 
@@ -71,10 +72,12 @@ private:
     algorithms::TurretYawControllerInterface *yawControllerTop;
     algorithms::TurretPitchControllerInterface *pitchControllerTop;
 
+    // float comp = 0;
+    // float yawSetpointTop = 0;
+    float DELTA_MAX;
+
     const float userYawInputScalar;
     const float userPitchInputScalar;
-
-    WrappedFloat userYawTopInput;
 };
 }  // namespace src::control::turret::user
 

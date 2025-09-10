@@ -46,11 +46,11 @@ namespace motor
 RevMotor::~RevMotor() { drivers->revMotorTxHandler.removeFromMotorManager(*this); }
 
 RevMotor::RevMotor(
-    Drivers* drivers,    REVMotorId desMotorIdentifier,
+    Drivers* drivers,
+    REVMotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
     bool isInverted,
-    const char* name
-    )
+    const char* name)
     : CanRxListener(drivers, static_cast<uint32_t>(desMotorIdentifier), motorCanBus),
       motorName(name),
       drivers(drivers),
@@ -70,33 +70,38 @@ void RevMotor::initialize()
     attachSelfToRxHandler();
 }
 
-
 void RevMotor::processMessage(const modm::can::Message& message)
 {
     uint32_t receivedArbId = message.getIdentifier();
     uint64_t rawValue = 0;
     std::memcpy(&rawValue, message.data, sizeof(uint64_t));
 
-    
-    if (receivedArbId == CreateArbitrationControlId(APICommand::Period0, this)) {
+    if (receivedArbId == CreateArbitrationControlId(APICommand::Period0, this))
+    {
         period0_.dutyCycle = int16_t(rawValue & 0xFFFF) / 32768.0f;
         period0_.faults = (rawValue >> 16) & 0xFFFF;
         period0_.stickyFaults = (rawValue >> 32) & 0xFFFF;
         period0_.isInverted = (rawValue >> 49) & 1;
         period0_.idleMode = (rawValue >> 57) & 1;
         period0_.isFollower = (rawValue >> 58) & 1;
-    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period1, this)) {
+    }
+    else if (receivedArbId == CreateArbitrationControlId(APICommand::Period1, this))
+    {
         uint32_t velocity = rawValue & 0xFFFFFFFF;
         std::memcpy(&period1_.velocity, &velocity, 4);
         period1_.temperature = (rawValue >> 32) & 0xFF;
         period1_.voltage = ((rawValue >> 40) & 0xFFFF) / 128.0f;
         period1_.current = ((rawValue >> 48) & 0xFFF) / 32.0f;
-    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period2, this)) {
+    }
+    else if (receivedArbId == CreateArbitrationControlId(APICommand::Period2, this))
+    {
         uint32_t position = rawValue & 0xFFFFFFFF;
         std::memcpy(&period2_.position, &position, 4);
         period2_.iAccum = float((rawValue >> 32) & 0xFFFFFFFF) / 1000.0f;
-    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period3, this)) {
-        uint8_t * intVal = reinterpret_cast<uint8_t *>(&rawValue);
+    }
+    else if (receivedArbId == CreateArbitrationControlId(APICommand::Period3, this))
+    {
+        uint8_t* intVal = reinterpret_cast<uint8_t*>(&rawValue);
         uint16_t voltage = intVal[0] | ((intVal[1] & 3) << 8);
         period3_.analogVoltage = float(voltage) / 256.0f;
         uint32_t velocity =
@@ -104,7 +109,9 @@ void RevMotor::processMessage(const modm::can::Message& message)
         period3_.analogVelocity = float(velocity) / 32768.0f;
         uint32_t position = (rawValue >> 32) & 0xFFFFFFFF;
         std::memcpy(&period3_.analogPosition, &position, 4);
-    } else if (receivedArbId == CreateArbitrationControlId(APICommand::Period4, this)) {
+    }
+    else if (receivedArbId == CreateArbitrationControlId(APICommand::Period4, this))
+    {
         uint32_t velocity = rawValue & 0xFFFFFFFF;
         uint32_t position = (rawValue >> 32) & 0xFFFFFFFF;
         std::memcpy(&period4_.altEncoderVelocity, &velocity, 4);
@@ -113,61 +120,58 @@ void RevMotor::processMessage(const modm::can::Message& message)
 }
 
 // Add these implementations to rev_motor.cpp
-APICommand RevMotor::controlModeToAPI(ControlMode mode){
-    if(mode == ControlMode::DUTY_CYCLE){
+APICommand RevMotor::controlModeToAPI(ControlMode mode)
+{
+    if (mode == ControlMode::DUTY_CYCLE)
+    {
         return APICommand::DutyCycle;
-    } else if(mode == ControlMode::VELOCITY){
+    }
+    else if (mode == ControlMode::VELOCITY)
+    {
         return APICommand::Velocity;
-    } else if(mode == ControlMode::POSITION){
+    }
+    else if (mode == ControlMode::POSITION)
+    {
         return APICommand::Position;
-    } else if(mode == ControlMode::VOLTAGE){
+    }
+    else if (mode == ControlMode::VOLTAGE)
+    {
         return APICommand::Voltage;
-    } else if(mode == ControlMode::CURRENT){
+    }
+    else if (mode == ControlMode::CURRENT)
+    {
         return APICommand::Current;
     }
-  
 }
 
-void RevMotor::setControlMode(ControlMode mode)
-{
-    currentControlMode = mode;
-}
+void RevMotor::setControlMode(ControlMode mode) { currentControlMode = mode; }
 
-RevMotor::ControlMode RevMotor::getControlMode() const
-{
-    return currentControlMode;
-}
+RevMotor::ControlMode RevMotor::getControlMode() const { return currentControlMode; }
 
 void RevMotor::setControlValue(float value)
 {
+    if (motorInverted)
+    {
+        value *= -1;
+    }
     controlValue = value;
-    
+
     // If you want backward compatibility with existing voltage control:
-    if (currentControlMode == ControlMode::VOLTAGE) {
+    if (currentControlMode == ControlMode::VOLTAGE)
+    {
         // setTargetVoltage(value);
     }
 }
 
-float RevMotor::getControlValue() const
-{
-    return controlValue;
-}
-
-
+float RevMotor::getControlValue() const { return controlValue; }
 
 modm::can::Message RevMotor::constructRevMotorHeartBeat(const RevMotor* motor)
 {
-
     APICommand cmd = APICommand::Heartbeat;
     uint32_t RevArbitrationId = CreateArbitrationControlId(cmd, motor);
-    //the number of bytes in the message
+    // the number of bytes in the message
     uint8_t canRevIdLength = 8;
-    modm::can::Message canMessage(
-        RevArbitrationId,
-        canRevIdLength,
-        0,
-        true);
-
+    modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
 
     for (int i = 0; i < 8; i++)
     {
@@ -182,13 +186,13 @@ void RevMotor::setParameter(Parameter param, float paramVal){
 }
 
 /**
- * constructs a can message for the given REV motor by using the motor's id and the 
- * desired control mode id to tell the the motor what method of control you want to 
+ * constructs a can message for the given REV motor by using the motor's id and the
+ * desired control mode id to tell the the motor what method of control you want to
  * use. the control modes can be found in a REV SW Spark Max google sheet which can be
  * obtained by emailing REV Robotics.
  */
-modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor) {
-
+modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
+{
     uint32_t RevArbitrationId;
 
     if(paramQueue.size() > 0){
@@ -198,7 +202,9 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor) {
         // float firstParamVal = paramVals.front();
         // paramVals.pop();
         RevArbitrationId = CreateArbitrationParameterId(firstParam, motor);
-    } else {
+    }
+    else
+    {
         // If no parameters, use the control mode
         RevArbitrationId = CreateArbitrationControlId(controlModeToAPI(currentControlMode), motor);
     }
@@ -213,13 +219,17 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor) {
         float parameterVal = paramQueue.front().second;
         paramQueue.pop();
         std::memcpy(&canMessage.data[0], &parameterVal, sizeof(parameterVal));
-        for (int i = sizeof(parameterVal); i < 8; i++) {
+        for (int i = sizeof(parameterVal); i < 8; i++)
+        {
             canMessage.data[i] = 0;
         }
-    } else { //fill with control value data
+    }
+    else
+    {  // fill with control value data
         std::memcpy(&canMessage.data[0], &controlValue, sizeof(controlValue));
         // Zero out the remaining bytes
-        for (int i = sizeof(controlValue); i < 8; i++) {
+        for (int i = sizeof(controlValue); i < 8; i++)
+        {
             canMessage.data[i] = 0;
         }
     }
@@ -228,36 +238,32 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor) {
 
 uint32_t RevMotor::CreateArbitrationControlId(APICommand cmd, const RevMotor* motor) const
 {
-  uint8_t apiClass = GetAPIClass(cmd);
-  uint8_t apiIndex = GetAPIIndex(cmd);
-  uint8_t deviceId = motor->getMotorIdentifier();
+    uint8_t apiClass = GetAPIClass(cmd);
+    uint8_t apiIndex = GetAPIIndex(cmd);
+    uint8_t deviceId = motor->getMotorIdentifier();
 
-  
-
-  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
-         (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
-         static_cast<uint32_t>(deviceId);
+    return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+           (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
+           static_cast<uint32_t>(deviceId);
 }
 
 uint32_t RevMotor::CreateArbitrationParameterId(Parameter param, const RevMotor* motor) const
 {
-  uint8_t deviceId = motor->getMotorIdentifier();
+    uint8_t deviceId = motor->getMotorIdentifier();
 
-  
-
-  return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
-         (static_cast<uint32_t>(48) <<
-         10) | (static_cast<uint32_t>(param) << 6) | static_cast<uint32_t>(deviceId);
+    return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+           (static_cast<uint32_t>(48) << 10) | (static_cast<uint32_t>(param) << 6) |
+           static_cast<uint32_t>(deviceId);
 }
 
 uint8_t RevMotor::GetAPIClass(APICommand cmd) const
 {
-  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) >> 4);
+    return static_cast<uint8_t>(static_cast<uint16_t>(cmd) >> 4);
 }
 
 uint8_t RevMotor::GetAPIIndex(APICommand cmd) const
 {
-  return static_cast<uint8_t>(static_cast<uint16_t>(cmd) & 0x0F);
+    return static_cast<uint8_t>(static_cast<uint16_t>(cmd) & 0x0F);
 }
 
 // void RevMotor::serializeCanSendData(modm::can::Message* txMessage) const

@@ -63,7 +63,8 @@ public:
         algorithms::TurretPitchControllerInterface *chassisImuPitchControllerTop,
         algorithms::TurretPitchControllerInterface *turretImuPitchControllerTop,
         float userYawInputScalar,
-        float userPitchInputScalar);
+        float userPitchInputScalar,
+        float DELTA_MAX);
 
     bool isReady() override;
 

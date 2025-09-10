@@ -49,23 +49,11 @@ public:
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
     }
 
-    float getCurrentLeftFlywheelMotorRPM() const
-    {
-        // return motor.getShaftRPM(); // TODO
-        return 0.0f;
-    }
+    float getCurrentLeftFlywheelMotorRPM() const { return leftWheel.getVelocity(); }
 
-    float getCurrentRightFlywheelMotorRPM() const
-    {
-        // return motor.getShaftRPM(); // TODO
-        return 0.0f;
-    }
+    float getCurrentRightFlywheelMotorRPM() const { return rightWheel.getVelocity(); }
 
-    float getCurrentUpFlywheelMotorRPM() const
-    {
-        // return motor.getShaftRPM(); // TODO
-        return 0.0f;
-    }
+    float getCurrentUpFlywheelMotorRPM() const { return upWheel.getVelocity(); }
 
     void refresh() override;
 
@@ -79,7 +67,7 @@ public:
     const char *getName() const override { return "Flywheels"; }
 
 protected:
-    static constexpr float MAX_DESIRED_LAUNCH_SPEED = 5000;  // TODO
+    static constexpr float MAX_DESIRED_LAUNCH_SPEED = 8000;  // TODO
 
     tap::Drivers *drivers;
 
@@ -107,7 +95,20 @@ private:
 
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
 
-    std::array<std::array<modm::Pair<float, float>, 5>, SPIN_COUNT> spinToRPMMap;
+    std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> spinToRPMMap;
+    std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> feedforwardmap;
+
+    modm::Pid<float> topFlyWheelPid;
+    modm::Pid<float> bottomLeftFlyWheelPid;
+    modm::Pid<float> bottomRightFlyWheelPid;
+
+    float previousTopSetPoint = 0.0f;
+    float previousLeftSetPoint = 0.0f;
+    float previousRightSetPoint = 0.0f;
+
+    float previousLaunchSpeedLeft = 0.0f;
+    float previousLaunchSpeedRight = 0.0f;
+    float previousLaunchSpeedUp = 0.0f;
 };
 
 }  // namespace src::control::flywheel

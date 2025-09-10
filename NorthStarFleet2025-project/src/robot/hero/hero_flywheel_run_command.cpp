@@ -12,7 +12,7 @@ HeroFlywheelRunCommand::HeroFlywheelRunCommand(HeroFlywheelSubsystem *flywheel) 
 void HeroFlywheelRunCommand::initialize()
 {
     flywheel->setDesiredSpin(110);
-    flywheel->setDesiredLaunchSpeed(15.0f);
+    flywheel->setDesiredLaunchSpeed(10.0f);
 }
 
 void HeroFlywheelRunCommand::end(bool interrupted) { flywheel->setDesiredLaunchSpeed(0.0f); }

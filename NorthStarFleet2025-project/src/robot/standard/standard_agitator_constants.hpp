@@ -21,7 +21,7 @@ static constexpr uint16_t HEAT_LIMIT_BUFFER = 25;
 // position PID terms
 // PID terms for standard
 static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
-    .kp = 2'000.0f,
+    .kp = 2'500.0f,
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
@@ -29,14 +29,14 @@ static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
 };
-static constexpr int AGITATOR_NUM_POCKETS = 8;           // number of balls in one rotation
-static constexpr float AGITATOR_MAX_ROF = 20.0f;         // balls per second
-static constexpr float OVERSHOOT_FUDGE_FACTOR = 0.158f;  // how much agitator overshoots
+static constexpr int AGITATOR_NUM_POCKETS = 8;        // number of balls in one rotation
+static constexpr float AGITATOR_MAX_ROF = 40.0f;      // balls per second
+static constexpr float OVERSHOOT_FUDGE_FACTOR = .40;  // how much agitator overshoots
 
 static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
-    .gearRatio = 36.0f,
+    .gearRatio = 1 / 36.0f,
     .agitatorMotorId = tap::motor::MOTOR4,
-    .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
+    .agitatorCanBusId = tap::can::CanBus::CAN_BUS2,
     .isAgitatorInverted = false,
     /**
      * The jamming constants. Agitator is considered jammed if difference between the velocity
@@ -45,7 +45,7 @@ static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG 
     .jammingVelocityDifference = M_TWOPI,
     .jammingTime = 100,
     .jamLogicEnabled = true,
-    .velocityPIDFeedForwardGain = 500.0f / M_TWOPI,
+    .velocityPIDFeedForwardGain = 700.0f / M_TWOPI,
 };
 
 static constexpr tap::control::setpoint::MoveIntegralCommand::Config AGITATOR_ROTATE_CONFIG = {
@@ -61,7 +61,7 @@ static constexpr src::control::agitator::UnjamSpokeAgitatorCommand::Config AGITA
     .unjamSetpoint = UNJAM_VELOCITY,
     /// Unjamming should take unjamDisplacement (radians) / unjamVelocity (radians / second)
     /// seconds.Convert to ms, Add 100 ms extra tolerance.
-    .maxWaitTime = static_cast<uint32_t>(1000.0f * UNJAM_DISTANCE / UNJAM_VELOCITY) + 100,
+    .maxWaitTime = static_cast<uint32_t>(1000.0f * UNJAM_DISTANCE / UNJAM_VELOCITY) + 200,
     .targetCycleCount = 3,
 };
 }  // namespace src::control::agitator::constants

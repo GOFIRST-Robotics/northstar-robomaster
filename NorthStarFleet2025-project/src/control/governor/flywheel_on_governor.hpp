@@ -48,21 +48,21 @@ public:
         return
             // left
             (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedLeft(), .0f, 1) &&
-             flywheel.getCurrentLeftFlywheelMotorRPM() >=
+             abs(flywheel.getCurrentLeftFlywheelMotorRPM()) >=
                  flywheel.getDesiredFlywheelSpeedLeft() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             flywheel.getCurrentLeftFlywheelMotorRPM() <=
+             abs(flywheel.getCurrentLeftFlywheelMotorRPM()) <=
                  flywheel.getDesiredFlywheelSpeedLeft() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
             // right
             (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedRight(), .0f, 1) &&
-             flywheel.getCurrentRightFlywheelMotorRPM() >=
+             abs(flywheel.getCurrentRightFlywheelMotorRPM()) >=
                  flywheel.getDesiredFlywheelSpeedRight() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             flywheel.getCurrentRightFlywheelMotorRPM() <=
+             abs(flywheel.getCurrentRightFlywheelMotorRPM()) <=
                  flywheel.getDesiredFlywheelSpeedRight() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
             // up
             (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedUp(), .0f, 1) &&
-             flywheel.getCurrentUpFlywheelMotorRPM() >=
+             abs(flywheel.getCurrentUpFlywheelMotorRPM()) >=
                  flywheel.getDesiredFlywheelSpeedUp() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             flywheel.getCurrentUpFlywheelMotorRPM() <=
+             abs(flywheel.getCurrentUpFlywheelMotorRPM()) <=
                  flywheel.getDesiredFlywheelSpeedUp() * MAXIMUM_SPEED_THRESHOLD_FRACTION);
     }
 
@@ -71,8 +71,8 @@ public:
 private:
     src::control::flywheel::FlywheelSubsystem &flywheel;
 
-    static constexpr float MINIMUM_SPEED_THRESHOLD_FRACTION = 0.9;
-    static constexpr float MAXIMUM_SPEED_THRESHOLD_FRACTION = 1.02;
+    static constexpr float MINIMUM_SPEED_THRESHOLD_FRACTION = 0.7;
+    static constexpr float MAXIMUM_SPEED_THRESHOLD_FRACTION = 1.4;
 };
 }  // namespace src::control::governor
 

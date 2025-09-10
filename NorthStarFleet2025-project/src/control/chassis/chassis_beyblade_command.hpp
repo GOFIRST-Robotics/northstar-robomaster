@@ -19,7 +19,7 @@ class ChassisSubsystem;
 class ChassisBeybladeCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
+    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.5f;
 
     ChassisBeybladeCommand(
         ChassisSubsystem *chassis,
@@ -29,7 +29,7 @@ public:
         float spinVel,
         bool isVariable);
 
-    const char *getName() const override { return "Chassis tank drive"; }
+    const char *getName() const override { return "Chassis beyblade drive"; }
 
     void initialize() override;
 

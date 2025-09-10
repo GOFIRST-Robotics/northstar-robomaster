@@ -21,7 +21,7 @@ class ChassisSubsystem;
 class ChassisOrientDriveCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 3.0f;
+    static constexpr float MAX_CHASSIS_SPEED_MPS = 7.0f;
 
     ChassisOrientDriveCommand(
         ChassisSubsystem *chassis,
@@ -43,5 +43,7 @@ private:
     src::control::ControlOperatorInterface *operatorInterface;
 
     modm::Pid<float> orientPid;
+
+    float angleOffset;
 };
 }  // namespace src::chassis

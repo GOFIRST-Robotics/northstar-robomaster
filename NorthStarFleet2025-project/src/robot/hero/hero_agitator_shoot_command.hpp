@@ -18,6 +18,8 @@ public:
 
     void end(bool) override;
 
+    bool isReady() override;
+
     bool isFinished() const override;
 
     const char* getName() const override { return "shoot"; }

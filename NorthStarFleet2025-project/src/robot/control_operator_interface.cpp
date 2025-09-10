@@ -1,3 +1,5 @@
+//#define FLY_SKY
+#ifndef FLY_SKY
 
 /*
  * Copyright (c) 2020-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
@@ -41,9 +43,9 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
     switch (turretID)
     {
         case 0:
-            input = -remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
+            input = remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL) +
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseX(),
+                        remote.getMouseX(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
@@ -53,9 +55,9 @@ float ControlOperatorInterface::getTurretYawInput(uint8_t turretID)
             }
             return 0;
         case 1:
-            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) +
+            input = -remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) -
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseX(),
+                        remote.getMouseX(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
@@ -75,9 +77,9 @@ float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
     switch (turretID)
     {
         case 0:
-            input = -remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
+            input = remote.getChannel(Remote::Channel::RIGHT_VERTICAL) +
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseY(),
+                        remote.getMouseY(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * !remote.keyPressed(Remote::Key::CTRL);
@@ -87,9 +89,9 @@ float ControlOperatorInterface::getTurretPitchInput(uint8_t turretID)
             }
             return 0;
         case 1:
-            input = -remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
+            input = remote.getChannel(Remote::Channel::LEFT_VERTICAL) +
                     static_cast<float>(limitVal<int16_t>(
-                        -remote.getMouseY(),
+                        remote.getMouseY(),
                         -USER_MOUSE_YAW_MAX,
                         USER_MOUSE_YAW_MAX)) *
                         USER_MOUSE_YAW_SCALAR * remote.keyPressed(Remote::Key::CTRL);
@@ -150,26 +152,29 @@ static inline void applyAccelerationToRamp(
 
 float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
 {
+    float output = 0.0f;
+
     if (remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT))
     {
-        return -0.3f;
+        output += -0.3f;
     }
     else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT))
     {
-        return -0.6f;
+        output += -0.6f;
     }
     else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT))
     {
-        return 0.3f;
+        output += 0.3f;
     }
     else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT))
     {
-        return 0.6f;
+        output += 0.6f;
     }
-    else
-    {
-        return 0.0f;
-    }
+    output += remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) * 0.6;
+
+    output = limitVal<float>(output, -0.6f, 0.6f);
+
+    return output;
 }
 
 float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard()
@@ -204,26 +209,29 @@ float ControlOperatorInterface::getMecanumHorizontalTranslationKeyBoard()
 
 float ControlOperatorInterface::getDrivetrainVerticalTranslation()
 {
+    float output = 0.0f;
+
     if (remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT))
     {
-        return 0.3f;
+        output += 0.4f;
     }
     else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT))
     {
-        return 0.6f;
+        output += 0.6f;
     }
     else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT))
     {
-        return -0.3f;
+        output += -0.4f;
     }
     else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT))
     {
-        return -0.6f;
+        output += -0.6f;
     }
-    else
-    {
-        return 0.0f;
-    }
+    output += remote.getChannel(Remote::Channel::LEFT_VERTICAL) * 0.6;
+
+    output = limitVal<float>(output, -0.6f, 0.6f);
+
+    return output;
 }
 
 float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard()
@@ -279,26 +287,27 @@ bool isHeld = false;
 
 float ControlOperatorInterface::getDrivetrainRotationalTranslation()
 {
-    if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return -0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return -0.6f;
-    }
-    else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return 0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        return 0.6f;
-    }
-    else
-    {
-        return 0.0f;
-    }
+    return remote.getChannel(Remote::Channel::WHEEL) * 0.6;
+    // if (remote.keyPressed(Remote::Key::Q) && !remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return -0.3f;
+    // }
+    // else if (remote.keyPressed(Remote::Key::Q) && remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return -0.6f;
+    // }
+    // else if (remote.keyPressed(Remote::Key::E) && !remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return 0.3f;
+    // }
+    // else if (remote.keyPressed(Remote::Key::E) && remote.keyPressed(Remote::Key::SHIFT))
+    // {
+    //     return 0.6f;
+    // }
+    // else
+    // {
+    //     return 0.0f;
+    // }
 }
 
 float ControlOperatorInterface::getMecanumRotationKeyBoard()
@@ -337,6 +346,11 @@ bool ControlOperatorInterface::isRightSwitchUp()
     return (remote.getSwitch(Remote::Switch::RIGHT_SWITCH) == Remote::SwitchState::UP);
 }
 
+bool ControlOperatorInterface::isRightSwitchMid()
+{
+    return (remote.getSwitch(Remote::Switch::RIGHT_SWITCH) == Remote::SwitchState::MID);
+}
+
 bool ControlOperatorInterface::isGKeyPressed() { return (remote.keyPressed(Remote::Key::G)); }
 
 void ControlOperatorInterface::checkToggleBeyBlade()
@@ -358,3 +372,5 @@ void ControlOperatorInterface::checkToggleBeyBlade()
 }  // namespace control
 
 }  // namespace src
+
+#endif  // FLY_SKY

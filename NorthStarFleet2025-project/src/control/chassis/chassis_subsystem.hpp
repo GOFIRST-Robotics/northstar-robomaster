@@ -2,13 +2,14 @@
 
 #include <array>
 
+#include "tap/algorithms/ramp.hpp"
 #include "tap/control/subsystem.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
-#include "control/chassis/algorithms/slew_rate_limiter.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
+#include "control/chassis/rate_limiters/slew_rate_limiter.hpp"
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
@@ -52,7 +53,7 @@ public:
     using Motor = tap::motor::DjiMotor;
 #endif
 
-    static constexpr float MAX_WHEELSPEED_RPM = 7000;
+    static constexpr float MAX_WHEELSPEED_RPM = 9000;
 
     ChassisSubsystem(
         tap::Drivers* drivers,
@@ -70,7 +71,7 @@ public:
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    float getChassisTurretOffset();
+    float getChassisZeroTurret();
 
     void refresh() override;
 
@@ -105,6 +106,8 @@ private:
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
 
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
+
+    std::array<tap::algorithms::Ramp, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rampControllers;
 
     inline float getTurretYaw();
 

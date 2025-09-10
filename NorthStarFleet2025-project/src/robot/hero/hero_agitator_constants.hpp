@@ -16,7 +16,7 @@ namespace src::control::agitator::constants
 static constexpr uint16_t HEAT_LIMIT_BUFFER = 25;
 
 static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
-    .kp = 3000.0f,
+    .kp = 3500.0f,
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
@@ -27,14 +27,14 @@ static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
 
 static constexpr src::agitator::HeroAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .agitatorServoId = tap::gpio::Pwm::Pin::C1,
-    .maximumPwm = 1.0f,
-    .minimumPwm = 0.0f,
+    .shootPwm = 0.56f,
+    .reloadPwm = 0.208f,
     .pwmRampSpeed = 0.001f,
     .isAgitatorServoInverted = false,
     .agitatorMotorId = tap::motor::MOTOR4,
-    .canBus = tap::can::CanBus::CAN_BUS1,
+    .canBus = tap::can::CanBus::CAN_BUS2,
     .agitatorMotorInverted = true,
-    .agitatorGearRatio = 19.0f,
+    .agitatorGearRatio = 1 / 19.0f,
     .pin = tap::gpio::Digital::InputPin::PF0,
     .limitSwitchInverted = true,
     .reloadTimeout = 10'000};

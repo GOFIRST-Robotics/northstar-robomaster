@@ -34,6 +34,8 @@
 #include "tap/architecture/profiler.hpp"
 
 /* communication includes ---------------------------------------------------*/
+#include "communication/serial/fly_sky.hpp"
+
 #include "drivers_singleton.hpp"
 
 /* error handling includes --------------------------------------------------*/
@@ -74,7 +76,6 @@ static void initializeIo(Drivers *drivers);
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
 static void updateIo(Drivers *drivers);
-
 int main()
 {
 #ifdef PLATFORM_HOSTED
@@ -105,7 +106,7 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
-            PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
+            // PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
 #ifdef TURRET
             PROFILE(drivers->profiler, chassisMcbCanComm.sendIMUData, ());
@@ -121,33 +122,21 @@ int main()
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
         }
 #endif
-
-        // if(!drivers->turretMCBCanCommBus2.isConnected()){
-        //     std::cout<<"poop";
-        // }
         modm::delay_us(10);
     }
     return 0;
 }
 static void initializeIo(Drivers *drivers)
 {
+    // drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
     drivers->can.initialize();
     drivers->leds.init();
     drivers->digital.init();
     drivers->pwm.init();
-    drivers->bmi088.initialize(500, 0.1, 0);
     drivers->errorController.init();
-    drivers->terminalSerial.initialize();
-#ifdef TARGET_STANDARD
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
-#elif TARGET_SENTRY
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
-#elif TARGET_HERO
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0.0f, 0.0f, 0.0f, 0.0f, modm::toRadian(45), 0.0f));
-#endif
+    // drivers->terminalSerial.initialize();
+    drivers->bmi088.initialize(500, .001, 0);
+
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();
 #endif
@@ -157,21 +146,60 @@ static void initializeIo(Drivers *drivers)
     drivers->analog.init();
     drivers->remote.initialize();
     drivers->refSerial.initialize();
-    drivers->schedulerTerminalHandler.init();
-    drivers->djiMotorTerminalSerialHandler.init();
+#ifndef FLY_SKY
+    drivers->visionComms.initializeCV();
+#endif
+    // drivers->schedulerTerminalHandler.init();
+    // drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
+float debugYaw = 0.0f;
+float debugPitch = 0.0f;
+float debugRoll = 0.0f;
+float debugYawV = 0.0f;
+float debugPitchV = 0.0f;
+float debugRollV = 0.0f;
+bool conneccc = false;
+float debugLastAimDataYaw = 0.0f;
+float debugLastAimDataPitch = 0.0f;
 
+bool cal = false;
+bool calibrated = false;
 static void updateIo(Drivers *drivers)
 {
+#ifndef TARGET_TEST_BED
+    if (!calibrated && drivers->remote.isConnected())
+    {
+        drivers->commandScheduler.addCommand(getImuCalibrateCommand());
+        calibrated = true;
+    }
+#endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
 #endif
 
     drivers->canRxHandler.pollCanData();
     drivers->bmi088.read();
+
 #ifndef TURRET
     drivers->refSerial.updateSerial();
+#ifndef FLY_SKY
+    drivers->visionComms.updateSerial();
+#endif
+
     drivers->remote.read();
+
+    if (cal)
+    {
+        cal = false;
+        drivers->bmi088.requestCalibration();
+    }
+    debugYawV = drivers->bmi088.getGz();
+    debugYaw = modm::toDegree(drivers->bmi088.getYaw());
+    debugPitchV = drivers->bmi088.getGy();
+    debugPitch = modm::toDegree(drivers->bmi088.getPitch());
+    debugRollV = drivers->bmi088.getGx();
+    debugRoll = modm::toDegree(drivers->bmi088.getRoll());
+    conneccc = drivers->remote.isConnected();
 #endif
 }

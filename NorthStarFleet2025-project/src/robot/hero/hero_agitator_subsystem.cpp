@@ -13,53 +13,92 @@ HeroAgitatorSubsystem::HeroAgitatorSubsystem(
     const tap::algorithms::SmoothPidConfig& pidConfig)
     : tap::control::Subsystem(drivers),
       config(config),
-      agitatorServo(
-          drivers,
-          config.agitatorServoId,
-          config.maximumPwm,
-          config.minimumPwm,
-          config.pwmRampSpeed),
+      pwm(0.40f),
+      //   agitatorServo(
+      //       drivers,
+      //       config.agitatorServoId,
+      //       config.maximumPwm,
+      //       config.minimumPwm,
+      //       config.pwmRampSpeed),
       agitatorMotor(
           drivers,
           config.agitatorMotorId,
           config.canBus,
           config.agitatorMotorInverted,
-          "Agitator"),
+          "Agitator",
+          false,
+          config.agitatorGearRatio),
       limitSwitch(&drivers->digital, config.pin, config.limitSwitchInverted),
       pid(pidConfig)
 
 {
-    agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
+    // agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
 }
 
-void HeroAgitatorSubsystem::initialize() { agitatorMotor.initialize(); }
+void HeroAgitatorSubsystem::initialize()
+{
+    agitatorMotor.initialize();
+    drivers->pwm.setTimerFrequency(tap::gpio::Pwm::Timer::TIMER1, 330);  // Timer 1 for C1 Pin
+}
 
-void HeroAgitatorSubsystem::shoot() { agitatorServo.setTargetPwm(agitatorServo.getMaxPWM()); }
+void HeroAgitatorSubsystem::shoot()
+{
+    isReady = false;
+    pwm = config.shootPwm;
+    agitatorTimeout.restart(config.reloadTimeout);
+    loaded = false;
+}
+
+void HeroAgitatorSubsystem::setPWM(float dutyCycle)
+{
+    drivers->pwm.write(dutyCycle, tap::gpio::Pwm::Pin::C1);
+}
 
 void HeroAgitatorSubsystem::reload()
 {
-    agitatorServo.setTargetPwm(agitatorServo.getMinPWM());
-    velocitySetpoint = M_TWOPI * 1.5;
-    loaded = false;
-    reloadTimeout.restart(config.reloadTimeout);
+    pwm = config.reloadPwm;
+    reloading = true;
 }
 
 void HeroAgitatorSubsystem::refresh()
 {
-    if (!loaded && !limitSwitch.getLimitSwitchDepressed())
+    if (reloading && !loaded && !limitSwitch.getLimitSwitchDepressed() &&
+        agitatorTimeout.timeRemaining() < config.reloadTimeout - 650)
     {
+        velocitySetpoint = M_TWOPI * 2;
         loaded = true;
+        reloading = false;
     }
-    if (reloadTimeout.isExpired() || loaded && limitSwitch.getLimitSwitchDepressed())
+    if (loaded && limitSwitch.getLimitSwitchDepressed())
     {
+        pwm = 0.40f;
         velocitySetpoint = 0;
+        jamTimeout.restart(200);
     }
-    agitatorServo.updateSendPwmRamp();
+    if (agitatorTimeout.isExpired())
+    {
+        velocitySetpoint = 0.0f;
+    }
+    if (jamTimeout.isExpired() && loaded)
+    {
+        if (limitSwitch.getLimitSwitchDepressed())
+        {
+            pwm = config.reloadPwm;
+            velocitySetpoint = 1;
+            agitatorTimeout.restart(config.reloadTimeout);
+        }
+        else if (pwm == 0.40)
+        {
+            isReady = true;
+        }
+    }
+    setPWM(pwm);
+    // agitatorServo.updateSendPwmRamp();
     runVelocityPidControl();
 }
 float HeroAgitatorSubsystem::getUncalibratedAgitatorAngle() const
 {
-    return agitatorMotor.getEncoder()->getPosition().getUnwrappedValue() / config.agitatorGearRatio;
+    return agitatorMotor.getEncoder()->getPosition().getUnwrappedValue();
 }
 
 void HeroAgitatorSubsystem::runVelocityPidControl()

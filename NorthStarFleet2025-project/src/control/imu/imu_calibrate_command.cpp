@@ -34,7 +34,7 @@ ImuCalibrateCommand::ImuCalibrateCommand(
     chassis::ChassisSubsystem *chassis,
     float velocityZeroThreshold,
     float positionZeroThreshold)
-    : tap::control::Command(),
+    : ImuCalibrateCommandBase(),
       velocityZeroThreshold(velocityZeroThreshold),
       positionZeroThreshold(positionZeroThreshold),
       drivers(drivers),
@@ -43,7 +43,7 @@ ImuCalibrateCommand::ImuCalibrateCommand(
 {
     for (auto &config : turretsAndControllers)
     {
-        assert(config.turretMCBCanComm != nullptr);
+        // assert(config.turretMCBCanComm != nullptr);
         assert(config.turret != nullptr);
         assert(config.yawController != nullptr);
         assert(config.pitchController != nullptr);
@@ -95,7 +95,7 @@ void ImuCalibrateCommand::execute()
 
             for (auto &config : turretsAndControllers)
             {
-                turretMCBsReady &= config.turretMCBCanComm->isConnected();
+                // turretMCBsReady &= config.turretMCBCanComm->isConnected();
                 turretsOnline &= config.turret->isOnline();
             }
 
@@ -125,7 +125,7 @@ void ImuCalibrateCommand::execute()
 
                 for (auto &config : turretsAndControllers)
                 {
-                    config.turretMCBCanComm->sendImuCalibrationRequest();
+                    // config.turretMCBCanComm->sendImuCalibrationRequest();
                 }
 
                 drivers->bmi088.requestCalibration();

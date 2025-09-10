@@ -32,6 +32,9 @@
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/turret_subsystem.hpp"
+
+#include "imu_calibrate_template.hpp"
+
 using namespace tap::algorithms;
 
 namespace src::control::imu
@@ -50,7 +53,7 @@ namespace src::control::imu
  * 6. Send signal to onboard IMU to recalibrate.
  * 7. Wait until calibration is complete and then end the command.
  */
-class ImuCalibrateCommand : public tap::control::Command
+class ImuCalibrateCommand : public ImuCalibrateCommandBase
 {
 public:
     /**
@@ -84,13 +87,10 @@ public:
      */
     const float positionZeroThreshold;
 
-    static constexpr float DEFAULT_VELOCITY_ZERO_THRESHOLD = modm::toRadian(1e-2);
-    static constexpr float DEFAULT_POSITION_ZERO_THRESHOLD = modm::toRadian(3.0f);
-
     struct TurretIMUCalibrationConfig
     {
         /// The turret mounted IMU to be calibrated.
-        src::can::TurretMCBCanComm *turretMCBCanComm;
+        // src::can::TurretMCBCanComm *turretMCBCanComm;
         /// A `TurretSubsystem` that this command will control (will lock the turret).
         turret::TurretSubsystem *turret;
         /// A chassis relative yaw controller used to lock the turret.
@@ -176,7 +176,7 @@ protected:
 
     tap::arch::MilliTimeout buzzerTimer;
 
-    std::vector<int> notes = {1000,800,1200,900,1000,0};
+    std::vector<int> notes = {1000, 800, 1200, 900, 1000, 0};
 
     /**
      * Timeout used to determine if we should give up on calibration.
