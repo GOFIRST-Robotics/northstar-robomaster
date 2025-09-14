@@ -21,8 +21,8 @@ default:
 variables:
   ARTIFACT_PATH: isolated-deploy
   GIT_SUBMODULE_STRATEGY: normal
-  DEFAULT_BUILD_ELF_FILE: build/hardware/scons-release/NorthStarFleet2025-project.elf
-  DEFAULT_TESTS_BUILD_ELF_FILE: build/tests/scons-fast/NorthStarFleet2025-project-tests.elf
+  DEFAULT_BUILD_ELF_FILE: build/hardware/scons-release/northstar-robomaster-project.elf
+  DEFAULT_TESTS_BUILD_ELF_FILE: build/tests/scons-fast/northstar-robomaster-project-tests.elf
   NUM_JOBS: 4
 
 .verification_except: &verification_except
@@ -44,7 +44,7 @@ clang-format:
   stage: Quality
   needs: []
   script:
-    - python3 /run-clang-format.py --clang-format-executable clang-format-10 -r NorthStarFleet2025-project/src/ NorthStarFleet2025-project/test/
+    - python3 /run-clang-format.py --clang-format-executable clang-format-10 -r northstar-robomaster-project/src/ northstar-robomaster-project/test/
   except: *verification_except
 
 "Policy Checks":
@@ -53,19 +53,19 @@ clang-format:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
     - python3 ./taproot-scripts/check_singleton_drivers.py DoNotUse_getDrivers
-        -p ./NorthStarFleet2025-project/src/
+        -p ./northstar-robomaster-project/src/
         -w drivers_singleton.cpp
             drivers_singleton.hpp
             main.cpp
 
     - python3 ./taproot-scripts/check_license_headers.py
         -p NorthStarFleet2025
-        -i './**/__init__.py' 'taproot/**/*' 'taproot-scripts/**/*' 'NorthStarFleet2025-project/taproot/**/*' 'docs/**/*' 'NorthStarFleet2025-project/robot-type/robot_type.hpp'
+        -i './**/__init__.py' 'taproot/**/*' 'taproot-scripts/**/*' 'northstar-robomaster-project/taproot/**/*' 'docs/**/*' 'northstar-robomaster-project/robot-type/robot_type.hpp'
         -o 'Advanced Robotics at the University of Washington'
 
-    - python3 ./taproot-scripts/check_header_guard.py NorthStarFleet2025-project/src NorthStarFleet2025-project/test/
+    - python3 ./taproot-scripts/check_header_guard.py northstar-robomaster-project/src northstar-robomaster-project/test/
 
-    - ./taproot-scripts/check_taproot_submodule.sh ./NorthStarFleet2025-project ./taproot
+    - ./taproot-scripts/check_taproot_submodule.sh ./northstar-robomaster-project ./taproot
   except: *verification_except
 
 # Hidden jobs to be extended for each robot
@@ -73,11 +73,11 @@ clang-format:
 .hw_build:
   stage: Build
   script:
-    - cd NorthStarFleet2025-project
+    - cd northstar-robomaster-project
     - python3 $(which scons) build robot=TARGET_$ROBOT -j${NUM_JOBS} additional-ccflags=-Werror
     - python3 $(which scons) size robot=TARGET_$ROBOT -j${NUM_JOBS} additional-ccflags=-Werror > size.txt
     - python3 ../taproot-scripts/parse_metrics.py -i size.txt -o metrics.txt --identifier $ROBOT
-    - cp $DEFAULT_BUILD_ELF_FILE ../$ARTIFACT_PATH/NorthStarFleet2025-project-$ROBOT.elf
+    - cp $DEFAULT_BUILD_ELF_FILE ../$ARTIFACT_PATH/northstar-robomaster-project-$ROBOT.elf
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME-$ROBOT-mcb"
     paths:
@@ -89,22 +89,22 @@ clang-format:
 .sim_build:
   stage: Build
   script:
-    - cd NorthStarFleet2025-project
+    - cd northstar-robomaster-project
     - python3 $(which scons) build-sim profile=fast robot=TARGET_$ROBOT -j${NUM_JOBS}
 
 .test_build:
   stage: Build
   script:
-    - cd NorthStarFleet2025-project
+    - cd northstar-robomaster-project
     - python3 $(which scons) build-tests profile=fast robot=TARGET_$ROBOT -j${NUM_JOBS}
   artifacts:
     paths:
-      - NorthStarFleet2025-project/$DEFAULT_TESTS_BUILD_ELF_FILE
+      - northstar-robomaster-project/$DEFAULT_TESTS_BUILD_ELF_FILE
 
 .test_run:
   stage: Test
   script:
-    - cd NorthStarFleet2025-project
+    - cd northstar-robomaster-project
     - valgrind --leak-check=full --error-exitcode=1 --show-leak-kinds=all $DEFAULT_TESTS_BUILD_ELF_FILE
 
 
@@ -137,11 +137,11 @@ clang-format:
   variables:
     ROBOT: STANDARD
   script:
-    - cd NorthStarFleet2025-project
+    - cd northstar-robomaster-project
     - valgrind --leak-check=full --error-exitcode=1 --show-leak-kinds=all $DEFAULT_TESTS_BUILD_ELF_FILE
     - cd .. && gcovr -g --xml > cobertura.xml
-    - 'sed -i "s=<source>.</source>=<source>./NorthStarFleet2025-project</source>=g" cobertura.xml'
-    - 'sed -i "s;filename=\";filename=\"NorthStarFleet2025-project/;g" cobertura.xml'
+    - 'sed -i "s=<source>.</source>=<source>./northstar-robomaster-project</source>=g" cobertura.xml'
+    - 'sed -i "s;filename=\";filename=\"northstar-robomaster-project/;g" cobertura.xml'
   coverage: '/\s+Total:\|(\d+.\d+\%).+\|.+\|.+/'
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME-standard-tests"

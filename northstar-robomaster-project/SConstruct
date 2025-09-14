@@ -23,7 +23,7 @@ from SCons.Script import *
 from build_tools import parse_args
 
 # Define project settings and build paths
-PROJECT_NAME         = "NorthStarFleet2025-project"
+PROJECT_NAME         = "northstar-robomaster-project"
 BUILD_PATH           = "build"
 TAPROOT_PATH         = "taproot"
 SRC_PATH             = "src"

@@ -13,7 +13,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
                {
@@ -26,7 +26,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
         {
@@ -39,7 +39,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
         {
@@ -52,7 +52,7 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
         {
@@ -65,7 +65,293 @@
             "group": "build",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build Sim - Debug",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build-sim profile=debug",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Run Sim - Debug",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run-sim profile=debug",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build Tests - Debug",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build-tests profile=debug",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Run Tests - Debug",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run-tests profile=debug",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (standard)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (sentry)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (hero)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_HERO",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (testbed)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (standard, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (sentry, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (hero, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_HERO remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Build - Debug (testbed, FLY_SKY)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (standard)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_STANDARD",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (sentry)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_SENTRY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (hero)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_HERO",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (testbed)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_TESTBED",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (standard fly_sky)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_STANDARD remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (sentry fly_sky)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_SENTRY remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (hero fly_sky)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_HERO remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
+            }
+        },
+        {
+            "label": "Program - Debug (testbed fly_sky)",
+            "type": "shell",
+            "presentation": {
+                "panel": "new"
+            },
+            "command": "pipenv run scons run profile=debug robot=TARGET_TESTBED remote=FLY_SKY",
+            "group": "build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
         {
@@ -81,189 +367,7 @@
             },
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build Sim - Debug",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build-sim profile=debug",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Run Sim - Debug",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons run-sim profile=debug",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build Tests - Debug",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build-tests profile=debug",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Run Tests - Debug",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons run-tests profile=debug",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (standard)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (sentry)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (hero)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_HERO",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (testbed)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Program - Debug",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons run profile=debug",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (standard, FLY_SKY)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD remote=FLY_SKY",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (sentry, FLY_SKY)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY remote=FLY_SKY",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (hero, FLY_SKY)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_HERO remote=FLY_SKY",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
-            }
-        },
-        {
-            "label": "Build - Debug (testbed, FLY_SKY)",
-            "type": "shell",
-            "presentation": {
-                "panel": "new"
-            },
-            "command": "pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED remote=FLY_SKY",
-            "group": "build",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
         {
@@ -276,7 +380,7 @@
             "group": "none",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         },
         {
@@ -289,9 +393,8 @@
             "group": "none",
             "problemMatcher": [],
             "options": {
-                "cwd": "${workspaceRoot}/NorthStarFleet2025-project"
+                "cwd": "${workspaceRoot}/northstar-robomaster-project"
             }
         }
- 
     ]
 }

@@ -115,6 +115,29 @@ float FlySky::getChannel(uint8_t ch) const
     return value;
 }
 
+Remote::SwitchState FlySky::getSwitch(Remote::Switch sw) const
+{  // TODO see if up and down is corrrect
+    Remote::SwitchState switchState;
+    float value = getChannel(Channel::SWITCH_C);
+    if (value < .75 && value > .25)
+    {
+        switchState = Remote::SwitchState::MID;
+    }
+    else if (value < .25 && value > -.25)
+    {
+        switchState = Remote::SwitchState::DOWN;
+    }
+    else if (value < 1.25 && value > .75)
+    {
+        switchState = Remote::SwitchState::UP;
+    }
+    else
+    {
+        switchState = Remote::SwitchState::UNKNOWN;
+    }
+    return switchState;
+}
+
 uint16_t FlySky::getRawChannel(uint8_t ch) const
 {
     if (ch >= MAX_CHANNELS) return 0;

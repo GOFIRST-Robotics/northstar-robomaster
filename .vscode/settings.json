@@ -81,13 +81,13 @@
     },
     "C_Cpp.errorSquiggles": "Enabled",
     "C_Cpp.default.includePath": [
-        "NorthStarFleet2025-project/taproot/src",
-        "NorthStarFleet2025-project/src",
+        "northstar-robomaster-project/taproot/src",
+        "northstar-robomaster-project/src",
     ],
     "C_Cpp.default.cppStandard": "c++20",
     "C_Cpp.default.cStandard": "c11",
     "C_Cpp.default.forcedInclude": [
-        "NorthStarFleet2025-project/robot-type/robot_type.hpp"
+        "northstar-robomaster-project/robot-type/robot_type.hpp"
     ],
     "[markdown]": {
         "editor.wordWrap": "off",

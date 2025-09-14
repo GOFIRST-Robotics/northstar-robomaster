@@ -30,7 +30,7 @@ Finally, install `pipenv` and set up the build tools:
 
 ```
 pip3 install pipenv
-cd NorthStarFleet2025-project/
+cd northstar-robomaster-project/
 pipenv install
 ```
 
@@ -54,7 +54,7 @@ git submodule update --init --recursive
 Now, `cd` into the project directory (whatever folder name you created to store the project), activate the virtualenv, and run some builds:
 
 ```
-cd project-directory/NorthStarFleet2025-project
+cd project-directory/northstar-robomaster-project
 pipenv shell
 # Build for hardware
 scons build
@@ -81,7 +81,7 @@ _If you would like to use the terminal instead, see the section "Building and ru
 terminal" below._
 
 1. Make sure you have VSCode opened in the folder `NorthStarFleet2025` (**not
-   `NorthStarFleet2025-project`**)
+   `northstar-robomaster-project`**)
 2. Connect an ST-Link to the RoboMaster Development Board and your computer.
 3. In VSCode, open the Command Palette (<kbd>Ctrl</kbd>+<kbd>shift</kbd>+<kbd>P</kbd>)
 4. Find `Tasks: Run Task`. You should see the options below. Select `Program - Debug` or `Program -
@@ -92,7 +92,7 @@ terminal" below._
 
 ### Debugging with an ST-Link
 
-1. Open the folder `aruw-NorthStarFleet2025-project` in VSCode. Hit the debug tab on the left side or type
+1. Open the folder `aruw-northstar-robomaster-project` in VSCode. Hit the debug tab on the left side or type
    <kbd>Ctrl</kbd>+<kbd>shift</kbd>+<kbd>D</kbd>.
 2. Hit the green play arrow on the left top of the screen.
 3. See [this
@@ -112,7 +112,7 @@ how to use the J-Link.
 
 Specify the robot type via the command line when compiling (see
 [below](#building-and-running-via-the-terminal)). For vscode IntelliSense, navigate to
-`/NorthStarFleet2025-project/robot-type/robot_type.hpp` and change the macro defined in this file.
+`/northstar-robomaster-project/robot-type/robot_type.hpp` and change the macro defined in this file.
 
 Each robot is signified by a unique macro which can be checked to special-case code:
 
@@ -143,7 +143,7 @@ Taproot that they depend on. The guide for doing so is
 
 ## Building and running via the terminal
 
-The below commands require that your working directory is `/NorthStarFleet2025-project` (where the
+The below commands require that your working directory is `/northstar-robomaster-project` (where the
 `SConstruct` and `project.xml` files are).
 
 - `lbuild build`: Re-generates out copy of `taproot` and `modm`.

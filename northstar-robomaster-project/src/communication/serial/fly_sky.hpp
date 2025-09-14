@@ -10,6 +10,7 @@
 #include "modm/platform.hpp"
 #endif
 
+#include "tap/communication/serial/remote.hpp"
 #include "tap/util_macros.hpp"
 
 namespace tap
@@ -79,6 +80,9 @@ public:
     bool isConnected() const;
 
     float getChannel(uint8_t ch) const;
+
+    mockable Remote::SwitchState getSwitch(Remote::Switch sw) const;
+
     uint16_t getRawChannel(uint8_t ch) const;
 
     mockable uint32_t getUpdateCounter() const;

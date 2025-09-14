@@ -5,7 +5,7 @@
     </repository>
   </repositories>
   <options>
-    <option name="taproot:project_name">NorthStarFleet2025-project</option>
+    <option name="taproot:project_name">northstar-robomaster-project</option>
 
     <option name="taproot:docs:source_paths">src</option>
     <option name="taproot:rebuild_modm">True</option>
