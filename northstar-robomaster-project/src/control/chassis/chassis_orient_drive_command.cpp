@@ -19,7 +19,7 @@ ChassisOrientDriveCommand::ChassisOrientDriveCommand(
       operatorInterface(operatorInterface)
 {
     addSubsystemRequirement(chassis);
-    orientPid = modm::Pid<float>(0.85, 0, 0, 0, M_PI_4);
+    orientPid = modm::Pid<float>(0.75, 0, 0.05, 0, M_PI_4);
 }
 
 void ChassisOrientDriveCommand::execute()
@@ -27,7 +27,7 @@ void ChassisOrientDriveCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
-    float updateVal = chassis->getChassisZeroTurret();
+    float updateVal = chassis->getClosestCornerAngleDist();
     short sign = 1;
     if (updateVal < 0)
     {
@@ -35,7 +35,6 @@ void ChassisOrientDriveCommand::execute()
     }
 
     orientPid.update(abs(updateVal));
-    orientPidval = orientPid.getValue();
     chassis->setVelocityTurretDrive(
         scale(operatorInterface->getDrivetrainVerticalTranslation()),
         -scale(operatorInterface->getDrivetrainHorizontalTranslation()),

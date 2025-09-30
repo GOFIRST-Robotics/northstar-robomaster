@@ -59,26 +59,22 @@ void ChassisSubsystem::initialize()
         i.initialize();
     }
 }
-float LFSpeed;
-float LBSpeed;
-float RFSpeed;
-float RBSpeed;
-
-float topheading;
-float bottomheading;
-float difference;
 
 inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
 
-float ChassisSubsystem::getChassisZeroTurret()
+float ChassisSubsystem::getClosestCornerAngleDist()
 {
-    float angle = (getTurretYaw());
-    return (angle > M_PI) ? angle - M_TWOPI : angle;
+    for (float i = 45.0f; i < 360.0f; i += 90.0f)
+    {
+        if (fabs(modm::toRadian(i) - getTurretYaw()) < M_PI_4)
+        {
+            return modm::toRadian(i) - getTurretYaw();
+        }
+    }
 }
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
-    // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
     if (turretRot > M_TWOPI)
     {
@@ -108,13 +104,13 @@ void ChassisSubsystem::driveBasedOnHeading(
     double vx_local = forward * cos_theta + sideways * sin_theta;
     double vy_local = -forward * sin_theta + sideways * cos_theta;
     double sqrt2 = sqrt(2.0);
-    LFSpeed = mpsToRpm(
+    float LFSpeed = mpsToRpm(
         (vx_local - vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Front-left wheel
-    RFSpeed = mpsToRpm(
+    float RFSpeed = mpsToRpm(
         (-vx_local - vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Front-right wheel
-    RBSpeed = mpsToRpm(
+    float RBSpeed = mpsToRpm(
         (-vx_local + vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Rear-right wheel
-    LBSpeed = mpsToRpm(
+    float LBSpeed = mpsToRpm(
         (vx_local + vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
