@@ -547,7 +547,7 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     chassisSubsystem.initialize();
 #endif
-    // revMotorTesterSingleMotor.initialize();
+    revMotorTesterSingleMotor.initialize();
 }
 
 void registerTestSubsystems(src::testbed::Drivers *drivers)
@@ -569,6 +569,7 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
 #endif
+    drivers->commandScheduler.registerSubsystem(&revMotorTesterSingleMotor);
 }
 
 void setDefaultTestCommands(src::testbed::Drivers *drivers)

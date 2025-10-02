@@ -181,9 +181,7 @@ modm::can::Message RevMotor::constructRevMotorHeartBeat(const RevMotor* motor)
     return canMessage;
 }
 
-void RevMotor::setParameter(Parameter param, float paramVal){
-    paramQueue.push({param, paramVal});
-}
+void RevMotor::setParameter(Parameter param, float paramVal) { paramQueue.push({param, paramVal}); }
 
 /**
  * constructs a can message for the given REV motor by using the motor's id and the
@@ -195,13 +193,14 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
 {
     uint32_t RevArbitrationId;
 
-    if(paramQueue.size() > 0){
+    if (paramQueue.size() > 0)
+    {
+        Parameter pram = paramQueue.front().first;
         // If there are parameters to set, we will use the first one
-        Parameter firstParam = paramQueue.front().first;
         // parameters.pop();
         // float firstParamVal = paramVals.front();
         // paramVals.pop();
-        RevArbitrationId = CreateArbitrationParameterId(firstParam, motor);
+        RevArbitrationId = CreateArbitrationParameterId(pram, motor);
     }
     else
     {
@@ -210,16 +209,21 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
     }
 
     uint8_t canRevIdLength = 8;
-    modm::can::Message canMessage(
-        RevArbitrationId,
-        canRevIdLength,
-        0,
-        true);
-    if(paramQueue.size() > 0){
-        float parameterVal = paramQueue.front().second;
+    modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
+    if (!paramQueue.empty())
+    {
+        auto [param, parameterVal] = paramQueue.front();
+
         paramQueue.pop();
+
+        // Pack float (little endian)
         std::memcpy(&canMessage.data[0], &parameterVal, sizeof(parameterVal));
-        for (int i = sizeof(parameterVal); i < 8; i++)
+
+        canMessage.data[4] = static_cast<uint8_t>(2);
+        canMessage.length = 5;
+
+        // Zero out the remaining bytes
+        for (int i = 5; i < 8; i++)
         {
             canMessage.data[i] = 0;
         }
@@ -242,18 +246,18 @@ uint32_t RevMotor::CreateArbitrationControlId(APICommand cmd, const RevMotor* mo
     uint8_t apiIndex = GetAPIIndex(cmd);
     uint8_t deviceId = motor->getMotorIdentifier();
 
-    return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+    return (static_cast<uint32_t>(0x82) << 24) | (static_cast<uint32_t>(0x05) << 16) |
            (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
            static_cast<uint32_t>(deviceId);
 }
 
 uint32_t RevMotor::CreateArbitrationParameterId(Parameter param, const RevMotor* motor) const
 {
+    const uint32_t api = 0x300 | (static_cast<uint32_t>(param));  // OR param into API
     uint8_t deviceId = motor->getMotorIdentifier();
-
+    const auto x = 48 << 4;
     return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
-           (static_cast<uint32_t>(48) << 10) | (static_cast<uint32_t>(param) << 6) |
-           static_cast<uint32_t>(deviceId);
+           (static_cast<uint32_t>(api) << 6) | static_cast<uint32_t>(deviceId);
 }
 
 uint8_t RevMotor::GetAPIClass(APICommand cmd) const

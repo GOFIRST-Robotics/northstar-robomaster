@@ -44,7 +44,8 @@ namespace tap::motor
 // /**
 //  * Converts the dji MotorId to a uint32_t.
 //  * @param[in] id Some CAN MotorId
-//  * @return id normalized to be around [0, DJI_MOTORS_PER_CAN), or some value >= DJI_MOTORS_PER_CAN
+//  * @return id normalized to be around [0, DJI_MOTORS_PER_CAN), or some value >=
+//  DJI_MOTORS_PER_CAN
 //  * if the id is out of bounds
 //  */
 //  #define REV_MOTOR_TO_NORMALIZED_ID(id)                                                  \
@@ -58,7 +59,8 @@ namespace tap::motor
 //  * @return idx, converted to a MotorId
 //  */
 //  #define NORMALIZED_ID_TO_REV_MOTOR(idx) \
-//      static_cast<tap::motor::REVMotorId>(idx + static_cast<int32_t>(tap::motor::REVMotorId::MOTOR1))
+//      static_cast<tap::motor::REVMotorId>(idx +
+//      static_cast<int32_t>(tap::motor::REVMotorId::MOTOR1))
 
 /**
  * Uses modm can interface to send CAN packets to `RevMotor`'s connected to the two CAN buses.
@@ -73,7 +75,6 @@ namespace tap::motor
 class RevMotorTxHandler
 {
 public:
-    
     /** Number of motors on each CAN bus. */
     static constexpr int REV_MOTORS_PER_CAN = 8;
     /** CAN message length of each motor control message. */
@@ -100,6 +101,8 @@ public:
      */
     void encodeAndSendCanData();
 
+    void heartBeat();
+
     /**
      * Removes the motor from the motor manager.
      */
@@ -118,7 +121,6 @@ private:
     void addMotorToManager(RevMotor** canMotorStore, RevMotor* const motor);
 
     void removeFromMotorManager(const RevMotor& motor, RevMotor** motorStore);
-
 };
 
 }  // namespace tap::motor

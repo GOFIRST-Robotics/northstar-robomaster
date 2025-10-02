@@ -51,6 +51,7 @@
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
 tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
+tap::arch::PeriodicMilliTimer revHeartBeatTimeout(100);
 
 #ifdef TARGET_STANDARD
 using namespace src::standard;
@@ -120,6 +121,10 @@ int main()
         if (revTxPublisherTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
+        }
+        if (revHeartBeatTimeout.execute())
+        {
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
         }
 #endif
         modm::delay_us(10);

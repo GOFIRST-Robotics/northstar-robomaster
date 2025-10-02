@@ -37,14 +37,15 @@ RevMotorTester::RevMotorTester(tap::Drivers* drivers)
 }
 
 // STEP 2 (Tank Drive): initialize function
-    void RevMotorTester::initialize() {
-        motor1.initialize();
-        motor1.setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
-        motor1.setControlValue(0.0f); // Initialize control value to 0.0f
-        
-        // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
-    }
-    
+void RevMotorTester::initialize()
+{
+    motor1.initialize();
+    motor1.setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
+    motor1.setControlValue(0.0f);  // Initialize control value to 0.0f
+
+    // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
+}
+
 // void RevMotorTester::initialize()
 // {
 //     motor1.initialize();
