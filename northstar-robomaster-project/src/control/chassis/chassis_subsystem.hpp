@@ -97,6 +97,8 @@ private:
         return (mps / WHEEL_CIRCUMFERANCE_M) * SEC_PER_M * GEAR_RATIO;
     }
 
+    ChassisOdometry* chassisOdometry;
+
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
     tap::motor::DjiMotor* yawMotor;
@@ -114,4 +116,40 @@ private:
 protected:
     std::array<Motor, static_cast<uint8_t>(MotorId::NUM_MOTORS)> motors;
 };  // class ChassisSubsystem
+
+class ChassisOdometry
+{
+    double position_X = 0;
+    double position_Y = 0;
+
+    double velocity_X = 0;
+    double velocity_Y = 0;
+
+    double rotation = 0;
+
+public:
+    double getPositionX() { return position_X; }
+    double getPositionY() { return position_Y; }
+
+    double getVelocityX() { return velocity_X; }
+    double getVelocityY() { return velocity_Y; }
+
+    double getRotation() { return rotation; }
+
+    void zeroOdometry()
+    {
+        position_X = 0;
+        position_Y = 0;
+        rotation = 0;
+    }
+
+    void updateOdometry(
+        int16_t motorRPM_LF,
+        int16_t motorRPM_LB,
+        int16_t motorRPM_RF,
+        int16_t motorRPM_RB)
+    {
+    }
+};
+
 }  // namespace src::chassis

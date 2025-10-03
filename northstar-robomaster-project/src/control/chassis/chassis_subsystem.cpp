@@ -50,6 +50,7 @@ ChassisSubsystem::ChassisSubsystem(
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor)
 {
+    chassisOdometry = new ChassisOdometry();
 }
 
 void ChassisSubsystem::initialize()
@@ -148,5 +149,11 @@ void ChassisSubsystem::refresh()
             desiredOutput[ii],
             mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
     }
+
+    chassisOdometry->updateOdometry(
+        motors[static_cast<int>(MotorId::LF)].getShaftRPM(),
+        motors[static_cast<int>(MotorId::LB)].getShaftRPM(),
+        motors[static_cast<int>(MotorId::RF)].getShaftRPM(),
+        motors[static_cast<int>(MotorId::RB)].getShaftRPM());
 }
 }  // namespace src::chassis
