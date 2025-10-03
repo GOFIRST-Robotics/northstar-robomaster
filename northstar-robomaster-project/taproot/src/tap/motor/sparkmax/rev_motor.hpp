@@ -459,7 +459,7 @@ private:
 
     bool isControlAndNotParam;
 
-    std::queue<std::pair<Parameter, float32_t>> paramQueue;
+    std::queue<std::pair<Parameter, float>> paramQueue;
     // std::queue<Parameter> parameters;
     // std::queue<float> paramVals;
 };
