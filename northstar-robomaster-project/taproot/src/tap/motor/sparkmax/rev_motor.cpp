@@ -197,9 +197,6 @@ modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
     {
         Parameter pram = paramQueue.front().first;
         // If there are parameters to set, we will use the first one
-        // parameters.pop();
-        // float firstParamVal = paramVals.front();
-        // paramVals.pop();
         RevArbitrationId = CreateArbitrationParameterId(pram, motor);
     }
     else

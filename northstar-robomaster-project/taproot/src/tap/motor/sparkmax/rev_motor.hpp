@@ -64,7 +64,6 @@ enum class APICommand : uint16_t
     Heartbeat = (9 << 4) | 2,
     BurnFlash = (63 << 4) | 2,
     FirmwareVersion = (9 << 4) | 8,
-    ParameterAccess = (48 << 4) | 0,
 
     Setpoint = (0 << 4) | 1,
     DutyCycle = (0 << 4) | 2,
