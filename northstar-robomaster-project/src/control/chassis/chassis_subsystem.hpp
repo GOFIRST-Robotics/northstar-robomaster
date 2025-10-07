@@ -67,9 +67,11 @@ public:
 
     mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
 
+    mockable void setVelocityBeyBladeDrive(float forward, float sideways, float rotational);
+
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    float getClosestCornerAngleDist();
+    float getChassisZeroTurret();
 
     void refresh() override;
 
