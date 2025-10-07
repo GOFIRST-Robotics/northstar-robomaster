@@ -48,9 +48,9 @@ ChassisSubsystem::ChassisSubsystem(
           Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
       },
       turretMcbCanComm(turretMcbCanComm),
-      yawMotor(yawMotor)
+      yawMotor(yawMotor),
+      chassisOdometry(new ChassisOdometry())
 {
-    chassisOdometry = new ChassisOdometry();
 }
 
 void ChassisSubsystem::initialize()
