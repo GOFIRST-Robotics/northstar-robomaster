@@ -1,5 +1,5 @@
-#ifndef STANDARD_AGITATOR_CONSTANTS_HPP_
-#define STANDARD_AGITATOR_CONSTANTS_HPP_
+#ifndef TESTBED_AGITATOR_CONSTANTS_HPP_
+#define TESTBED_AGITATOR_CONSTANTS_HPP_
 
 #include "tap/algorithms/smooth_pid.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
@@ -19,9 +19,9 @@ namespace src::control::agitator::constants
 {
 static constexpr uint16_t HEAT_LIMIT_BUFFER = 25;
 // position PID terms
-// PID terms for standard
+// PID terms for TESTBED
 static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
-    .kp = 2'500.0f,
+    .kp = 5'000.0f,
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
@@ -30,13 +30,13 @@ static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
     .errorDerivativeFloor = 0.0f,
 };
 static constexpr int AGITATOR_NUM_POCKETS = 8;        // number of balls in one rotation
-static constexpr float AGITATOR_MAX_ROF = 40.0f;      // balls per second
+static constexpr float AGITATOR_MAX_ROF = 30.0f;      // balls per second
 static constexpr float OVERSHOOT_FUDGE_FACTOR = .40;  // how much agitator overshoots
 
 static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .gearRatio = 1 / 36.0f,
     .agitatorMotorId = tap::motor::MOTOR4,
-    .agitatorCanBusId = tap::can::CanBus::CAN_BUS2,
+    .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
     .isAgitatorInverted = false,
     /**
      * The jamming constants. Agitator is considered jammed if difference between the velocity
@@ -66,4 +66,4 @@ static constexpr src::control::agitator::UnjamSpokeAgitatorCommand::Config AGITA
 };
 }  // namespace src::control::agitator::constants
 
-#endif  // STANDARD_AGITATOR_CONSTANTS_HPP_
+#endif  // TESTBED_AGITATOR_CONSTANTS_HPP_
