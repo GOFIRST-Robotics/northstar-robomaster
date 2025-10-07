@@ -78,6 +78,11 @@
 
 #include "ref_system_constants.hpp"
 
+// BUZZER
+#include "control/buzzer/buzzer_subsystem.hpp"
+#include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/twinkle_twinkle.hpp"
+
 // HUD
 #include "tap/communication/serial/ref_serial_transmitter.hpp"
 
@@ -111,6 +116,7 @@ using namespace tap::control::governor;
 using namespace src::control::client_display;
 using namespace tap::communication::serial;
 using namespace src::control::hopper;
+using namespace src::control::buzzer;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -498,7 +504,8 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playTwinkleCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -548,6 +555,10 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     drivers(),
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+
+BuzzerSubsystem buzzerSubsystem(drivers());
+
+PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
 void initializeSubsystems(Drivers *drivers)
 {
