@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CHASSIS_ODOMETRY_HPP
+#define CHASSIS_ODOMETRY_HPP
 
 #include "control/chassis/constants/chassis_constants.hpp"
 #include "modm/math/geometry/angle.hpp"
@@ -22,19 +23,22 @@ class ChassisOdometry
 
     double WHEEL_ROTATIONS_PER_RADIAN;
 
+public:
     // member variables
-    double position_X = 0;
-    double position_Y = 0;
+    double position_X;
+    double position_Y;
 
-    double velocity_X = 0;
-    double velocity_Y = 0;
+    double velocity_X;
+    double velocity_Y;
 
-    double rotation = 0;
+    double rotation;
 
     uint32_t previousTimeMS = 0;
 
-public:
-    ChassisOdometry() { WHEEL_ROTATIONS_PER_RADIAN = DIST_TO_CENTER / WHEEL_DIAMETER_M; }
+    ChassisOdometry() : position_X(0), position_Y(0)
+    {
+        WHEEL_ROTATIONS_PER_RADIAN = DIST_TO_CENTER / WHEEL_DIAMETER_M;
+    }
 
     double getPositionX() { return position_X; }
     double getPositionY() { return position_Y; }
@@ -90,3 +94,5 @@ public:
 };
 
 }  // namespace src::chassis
+
+#endif
