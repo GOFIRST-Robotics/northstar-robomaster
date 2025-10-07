@@ -8,19 +8,19 @@ namespace src::chassis
 class ChassisOdometry
 {
     // static variables
-    static const double LOCAL_X_CONTR_LF = M_SQRT2;
-    static const double LOCAL_Y_CONTR_LF = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_LF = M_SQRT2;
+    static constexpr double LOCAL_Y_CONTR_LF = M_SQRT2;
 
-    static const double LOCAL_X_CONTR_RF = -M_SQRT2;
-    static const double LOCAL_Y_CONTR_RF = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_RF = -M_SQRT2;
+    static constexpr double LOCAL_Y_CONTR_RF = M_SQRT2;
 
-    static const double LOCAL_X_CONTR_LB = -M_SQRT2;
-    static const double LOCAL_Y_CONTR_LB = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_LB = -M_SQRT2;
+    static constexpr double LOCAL_Y_CONTR_LB = M_SQRT2;
 
-    static const double LOCAL_X_CONTR_RB = M_SQRT2;
-    static const double LOCAL_Y_CONTR_RB = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_RB = M_SQRT2;
+    static constexpr double LOCAL_Y_CONTR_RB = M_SQRT2;
 
-    static constexpr double WHEEL_ROTATIONS_PER_RADIAN = DIST_TO_CENTER / WHEEL_DIAMETER_M;
+    double WHEEL_ROTATIONS_PER_RADIAN;
 
     // member variables
     double position_X = 0;
@@ -34,6 +34,8 @@ class ChassisOdometry
     uint32_t previousTimeMS = 0;
 
 public:
+    ChassisOdometry() { WHEEL_ROTATIONS_PER_RADIAN = DIST_TO_CENTER / WHEEL_DIAMETER_M; }
+
     double getPositionX() { return position_X; }
     double getPositionY() { return position_Y; }
 
