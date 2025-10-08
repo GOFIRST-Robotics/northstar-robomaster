@@ -81,6 +81,7 @@
 // BUZZER
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/megalovania.hpp"
 #include "control/buzzer/song/twinkle_twinkle.hpp"
 
 // HUD
@@ -125,6 +126,18 @@ namespace standard_control
 DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+
+// songs
+BuzzerSubsystem buzzerSubsystem(drivers());
+
+PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
+
+PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+
+PressCommandMapping ctrlShiftZSong(
+    drivers(),
+    {&playMegalovaniaCommand},
+    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
 FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
@@ -470,10 +483,11 @@ ToggleCommandMapping rPressedOrientDrive(
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
-ToggleCommandMapping zPressedWiggle(
+ToggleCommandMapping zPressedNotCtrlWiggle(
     drivers(),
     {&chassisWiggleCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
+    RemoteMapState(
+        RemoteMapState({tap::communication::serial::Remote::Key::Z}, {Remote::Key::CTRL})));
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
@@ -505,7 +519,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playTwinkleCommand);
+    &playMegalovaniaCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -556,10 +570,6 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-BuzzerSubsystem buzzerSubsystem(drivers());
-
-PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
-
 void initializeSubsystems(Drivers *drivers)
 {
     dummySubsystem.initialize();
@@ -568,6 +578,7 @@ void initializeSubsystems(Drivers *drivers)
     flywheel.initialize();
     turret.initialize();
     hopperSubsystem.initialize();
+    buzzerSubsystem.initialize();
 }
 
 void registerStandardSubsystems(Drivers *drivers)
@@ -579,6 +590,7 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
+    drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
@@ -608,13 +620,14 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&rPressedCVGovernoreToggle);
     drivers->commandMapper.addMap(&gOrVPressedCycleShotSpeed);
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
-    drivers->commandMapper.addMap(&zPressedWiggle);
+    drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
     drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
+    drivers->commandMapper.addMap(&ctrlShiftZSong);
 }
 }  // namespace standard_control
 

@@ -147,7 +147,6 @@ void ImuCalibrateCommand::execute()
                 calibrationState = CalibrationState::BUZZING;
             }
             buzzerTimer.restart(200);
-            drivers->commandScheduler.addCommand(song);
             break;
         case CalibrationState::BUZZING:
             if (buzzerTimer.isExpired())
@@ -156,6 +155,7 @@ void ImuCalibrateCommand::execute()
             }
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
+            drivers->commandScheduler.addCommand(song);
             break;
     }
 

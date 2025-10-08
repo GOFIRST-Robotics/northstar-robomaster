@@ -2,6 +2,9 @@
 
 #include <cstddef>  // Required for size_t
 
+#include "song_types.hpp"
+
+
 namespace src::control::buzzer
 {
 BuzzerSubsystem::BuzzerSubsystem(tap::Drivers* drivers) : Subsystem(drivers) {}
