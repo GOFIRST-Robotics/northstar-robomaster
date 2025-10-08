@@ -380,7 +380,10 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &yawMotor,
+    new src::chassis::ChassisOdometry(
+        src::chassis::DIST_TO_CENTER,
+        src::chassis::WHEEL_DIAMETER_M));
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,

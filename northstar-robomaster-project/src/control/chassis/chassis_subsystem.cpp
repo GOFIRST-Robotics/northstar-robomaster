@@ -13,7 +13,8 @@ ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
     const ChassisConfig& config,
     src::can::TurretMCBCanComm* turretMcbCanComm,
-    tap::motor::DjiMotor* yawMotor)
+    tap::motor::DjiMotor* yawMotor,
+    ChassisOdometry* chassisOdometry_)
     : Subsystem(drivers),
       desiredOutput{},
       pidControllers{
@@ -49,7 +50,7 @@ ChassisSubsystem::ChassisSubsystem(
       },
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor),
-      chassisOdometry(new ChassisOdometry())
+      chassisOdometry(chassisOdometry_)
 {
 }
 

@@ -60,7 +60,8 @@ public:
         tap::Drivers* drivers,
         const ChassisConfig& config,
         src::can::TurretMCBCanComm* turretMCBCanComm,
-        tap::motor::DjiMotor* yawMotor);
+        tap::motor::DjiMotor* yawMotor,
+        ChassisOdometry* chassisOdometry_);
 
     void initialize() override;
 

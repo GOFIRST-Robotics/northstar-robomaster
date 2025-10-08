@@ -8,7 +8,7 @@ namespace src::chassis
 {
 class ChassisOdometry
 {
-    static const double ONE_OVER_SQRT_TWO = 0.70710678118;
+    static constexpr double ONE_OVER_SQRT_TWO = 0.70710678118;
 
     static constexpr double LOCAL_X_CONTR_LF = ONE_OVER_SQRT_TWO;
     static constexpr double LOCAL_Y_CONTR_LF = ONE_OVER_SQRT_TWO;
