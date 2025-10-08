@@ -162,10 +162,10 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::RF)].getShaftRPM(),
         motors[static_cast<int>(MotorId::RB)].getShaftRPM());
 
-    xPosOdometry = chassisOdometry->getPositionX();
-    yPosOdometry = chassisOdometry->getPositionY();
-    xVelOdometry = chassisOdometry->getVelocityX();
-    yVelOdometry = chassisOdometry->getVelocityY();
+    xPosOdometry = chassisOdometry->getWorldPositionX();
+    yPosOdometry = chassisOdometry->getWorldPositionY();
+    xVelOdometry = chassisOdometry->getLocalVelocityX();
+    yVelOdometry = chassisOdometry->getLocalVelocityY();
     rotationOdometry = chassisOdometry->getRotation();
 }
 }  // namespace src::chassis

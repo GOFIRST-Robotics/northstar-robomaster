@@ -8,50 +8,56 @@ namespace src::chassis
 {
 class ChassisOdometry
 {
-    // static variables
-    static constexpr double LOCAL_X_CONTR_LF = M_SQRT2;
-    static constexpr double LOCAL_Y_CONTR_LF = M_SQRT2;
+    static const double ONE_OVER_SQRT_TWO = 0.70710678118;
 
-    static constexpr double LOCAL_X_CONTR_RF = -M_SQRT2;
-    static constexpr double LOCAL_Y_CONTR_RF = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_LF = ONE_OVER_SQRT_TWO;
+    static constexpr double LOCAL_Y_CONTR_LF = ONE_OVER_SQRT_TWO;
 
-    static constexpr double LOCAL_X_CONTR_LB = -M_SQRT2;
-    static constexpr double LOCAL_Y_CONTR_LB = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_RF = ONE_OVER_SQRT_TWO;
+    static constexpr double LOCAL_Y_CONTR_RF = -ONE_OVER_SQRT_TWO;
 
-    static constexpr double LOCAL_X_CONTR_RB = M_SQRT2;
-    static constexpr double LOCAL_Y_CONTR_RB = M_SQRT2;
+    static constexpr double LOCAL_X_CONTR_LB = -ONE_OVER_SQRT_TWO;
+    static constexpr double LOCAL_Y_CONTR_LB = ONE_OVER_SQRT_TWO;
 
-    double WHEEL_ROTATIONS_PER_RADIAN;
+    static constexpr double LOCAL_X_CONTR_RB = -ONE_OVER_SQRT_TWO;
+    static constexpr double LOCAL_Y_CONTR_RB = -ONE_OVER_SQRT_TWO;
+
+    double RPM_TO_MPS;
+    double DIST_TO_CENT;
 
 public:
     // member variables
-    double position_X;
-    double position_Y;
+    double positionGlobal_X;
+    double positionGlobal_Y;
 
-    double velocity_X;
-    double velocity_Y;
+    double velocityLocal_X;
+    double velocityLocal_Y;
 
     double rotation;
 
     uint32_t previousTimeMS = 0;
 
-    ChassisOdometry() : position_X(0), position_Y(0)
+    ChassisOdometry(float distanceToCenter, float wheelDiameter)
+        : positionGlobal_X(0),
+          positionGlobal_Y(0),
+          rotation(0),
+          RPM_TO_MPS(PI * wheelDiameter / 60.0),
+          DIST_TO_CENT(distanceToCenter)
     {
-        WHEEL_ROTATIONS_PER_RADIAN = DIST_TO_CENTER / WHEEL_DIAMETER_M;
     }
 
-    double getPositionX() { return position_X; }
-    double getPositionY() { return position_Y; }
+    double getWorldPositionX() { return positionGlobal_X; }
+    double getWorldPositionY() { return positionGlobal_Y; }
 
-    double getVelocityX() { return velocity_X; }
-    double getVelocityY() { return velocity_Y; }
+    double getLocalVelocityX() { return velocityLocal_X; }
+    double getLocalVelocityY() { return velocityLocal_Y; }
 
     double getRotation() { return rotation; }
 
     void zeroOdometry()
     {
-        position_X = 0;
-        position_Y = 0;
+        positionGlobal_X = 0;
+        positionGlobal_Y = 0;
         rotation = 0;
     }
 
@@ -62,34 +68,42 @@ public:
         int16_t motorRPM_RB)
     {
         uint32_t currentTimeMS = tap::arch::clock::getTimeMilliseconds();
-        double deltaTimeSeconds = (currentTimeMS - previousTimeMS) / 1000.0;
-
         if (previousTimeMS == 0)
         {
             previousTimeMS = currentTimeMS;
             return;
         }
 
-        // Weird units, it's basically RPM contribution (locally) per minute?
-        double totalContX = motorRPM_LF * LOCAL_X_CONTR_LF + motorRPM_LB * LOCAL_X_CONTR_LB +
-                            motorRPM_RF * LOCAL_X_CONTR_RF + motorRPM_RB * LOCAL_X_CONTR_RB;
-        double totalContY = LOCAL_Y_CONTR_LF + motorRPM_LB * LOCAL_Y_CONTR_LB +
-                            motorRPM_RF * LOCAL_Y_CONTR_RF + motorRPM_RB * LOCAL_Y_CONTR_RB;
-
-        velocity_X = (totalContX / 60.0) * WHEEL_DIAMETER_M;
-        velocity_Y = (totalContY / 60.0) * WHEEL_DIAMETER_M;
-
-        position_X += velocity_X * deltaTimeSeconds;
-        position_Y += velocity_Y * deltaTimeSeconds;
-
-        double totalRotationCont =
-            motorRPM_LF * WHEEL_ROTATIONS_PER_RADIAN + motorRPM_LB * WHEEL_ROTATIONS_PER_RADIAN +
-            motorRPM_RF * WHEEL_ROTATIONS_PER_RADIAN + motorRPM_RB * WHEEL_ROTATIONS_PER_RADIAN;
-
-        double rotationalVelocity = (totalRotationCont / 60.0);
-        rotation += rotationalVelocity * deltaTimeSeconds;
-
+        double deltaTimeSeconds = (currentTimeMS - previousTimeMS) / 1000.0;
         previousTimeMS = currentTimeMS;
+
+        double velLF = motorRPM_LF * RPM_TO_MPS;
+        double velLB = motorRPM_LB * RPM_TO_MPS;
+        double velRF = motorRPM_RF * RPM_TO_MPS;
+        double velRB = motorRPM_RB * RPM_TO_MPS;
+
+        double localVelX = (velLF * LOCAL_X_CONTR_LF + velLB * LOCAL_X_CONTR_LB +
+                            velRF * LOCAL_X_CONTR_RF + velRB * LOCAL_X_CONTR_RB) /
+                           4.0;
+        double localVelY = (velLF * LOCAL_Y_CONTR_LF + velLB * LOCAL_Y_CONTR_LB +
+                            velRF * LOCAL_Y_CONTR_RF + velRB * LOCAL_Y_CONTR_RB) /
+                           4.0;
+
+        velocityLocal_X = localVelX;
+        velocityLocal_Y = localVelY;
+
+        // may need to flip signs on vars depending on motor direction
+        double rotContrib = (velLF + velLB + velRF + velRB) / 4.0;
+        double radiansPerSec = rotContrib / DIST_TO_CENT;
+        rotation += radiansPerSec * deltaTimeSeconds;
+
+        double cosRot = cos(rotation);
+        double sinRot = sin(rotation);
+        double globalVelX = cosRot * localVelX - sinRot * localVelY;
+        double globalVelY = sinRot * localVelX + cosRot * localVelY;
+
+        positionGlobal_X += globalVelX * deltaTimeSeconds;
+        positionGlobal_Y += globalVelY * deltaTimeSeconds;
     }
 };
 
