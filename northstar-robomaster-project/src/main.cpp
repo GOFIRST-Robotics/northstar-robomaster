@@ -49,7 +49,7 @@
 /* robot includes ---------------------------------------------------------*/
 
 /* define timers here -------------------------------------------------------*/
-tap::arch::PeriodicMilliTimer sendMotorTimeout(2);
+tap::arch::PeriodicMilliTimer sendMotorTimeout(tap::Drivers::DT);
 tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
 tap::arch::PeriodicMilliTimer revHeartBeatTimeout(100);
 
