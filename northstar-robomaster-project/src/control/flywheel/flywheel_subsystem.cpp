@@ -103,6 +103,13 @@ float FlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
     return MPSToRPMInterpolator.interpolate(launchSpeed);
 }
 
+float debugLeft = 0;
+float debugRight = 0;
+float debugUp = 0;
+float debugLeftD = 0;
+float debugRightD = 0;
+float debugUpD = 0;
+
 void FlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -119,6 +126,14 @@ void FlywheelSubsystem::refresh()
     leftWheel.setControlValue(desiredRpmRampLeft.getValue());
     rightWheel.setControlValue(desiredRpmRampRight.getValue());
     upWheel.setControlValue(desiredRpmRampUp.getValue());
+
+    debugLeft = leftWheel.getVelocity();
+    debugRight = rightWheel.getVelocity();
+    debugUp = upWheel.getVelocity();
+
+    debugLeftD = desiredRpmRampLeft.getValue();
+    debugRightD = desiredRpmRampRight.getValue();
+    debugUpD = desiredRpmRampUp.getValue();
 }
 }  // namespace src::control::flywheel
 

@@ -243,7 +243,7 @@ uint32_t RevMotor::CreateArbitrationControlId(APICommand cmd, const RevMotor* mo
     uint8_t apiIndex = GetAPIIndex(cmd);
     uint8_t deviceId = motor->getMotorIdentifier();
 
-    return (static_cast<uint32_t>(0x82) << 24) | (static_cast<uint32_t>(0x05) << 16) |
+    return (static_cast<uint32_t>(0x02) << 24) | (static_cast<uint32_t>(0x05) << 16) |
            (static_cast<uint32_t>(apiClass) << 10) | (static_cast<uint32_t>(apiIndex) << 6) |
            static_cast<uint32_t>(deviceId);
 }
