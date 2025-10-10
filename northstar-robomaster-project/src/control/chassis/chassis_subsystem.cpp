@@ -135,10 +135,8 @@ double yVelOdometry;
 double rotationOdometry;
 double rotationOdometryDegrees;
 
-double LF_RPM;
-double LB_RPM;
-double RF_RPM;
-double RB_RPM;
+double LF_GetShaftRPM;
+double LF_EncoderVal;
 
 void ChassisSubsystem::refresh()
 {
@@ -163,6 +161,10 @@ void ChassisSubsystem::refresh()
             mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
     }
 
+    LF_GetShaftRPM = motors[static_cast<int>(MotorId::LF)].getShaftRPM();
+    LF_EncoderVal =
+        motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity() / (M_TWOPI * 60.0);
+
     chassisOdometry->updateOdometry(
         motors[static_cast<int>(MotorId::LF)].getShaftRPM(),
         motors[static_cast<int>(MotorId::LB)].getShaftRPM(),
@@ -180,10 +182,5 @@ void ChassisSubsystem::refresh()
     {
         rotationOdometryDegrees += 360.0;
     }
-
-    LF_RPM = motors[static_cast<int>(MotorId::LF)].getShaftRPM();
-    LB_RPM = motors[static_cast<int>(MotorId::LB)].getShaftRPM();
-    RF_RPM = motors[static_cast<int>(MotorId::RF)].getShaftRPM();
-    RB_RPM = motors[static_cast<int>(MotorId::RB)].getShaftRPM();
 }
 }  // namespace src::chassis
