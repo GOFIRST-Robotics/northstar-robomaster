@@ -383,7 +383,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     &yawMotor,
     new src::chassis::ChassisOdometry(
         src::chassis::DIST_TO_CENTER,
-        src::chassis::WHEEL_DIAMETER_M));
+        src::chassis::WHEEL_DIAMETER_M,
+        19.0));
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,

@@ -133,6 +133,12 @@ double yPosOdometry;
 double xVelOdometry;
 double yVelOdometry;
 double rotationOdometry;
+double rotationOdometryDegrees;
+
+double LF_RPM;
+double LB_RPM;
+double RF_RPM;
+double RB_RPM;
 
 void ChassisSubsystem::refresh()
 {
@@ -168,5 +174,16 @@ void ChassisSubsystem::refresh()
     xVelOdometry = chassisOdometry->getLocalVelocityX();
     yVelOdometry = chassisOdometry->getLocalVelocityY();
     rotationOdometry = chassisOdometry->getRotation();
+
+    rotationOdometryDegrees = fmod(((180 / PI) * rotationOdometry), 360.0);
+    if (rotationOdometryDegrees < 0)
+    {
+        rotationOdometryDegrees += 360.0;
+    }
+
+    LF_RPM = motors[static_cast<int>(MotorId::LF)].getShaftRPM();
+    LB_RPM = motors[static_cast<int>(MotorId::LB)].getShaftRPM();
+    RF_RPM = motors[static_cast<int>(MotorId::RF)].getShaftRPM();
+    RB_RPM = motors[static_cast<int>(MotorId::RB)].getShaftRPM();
 }
 }  // namespace src::chassis

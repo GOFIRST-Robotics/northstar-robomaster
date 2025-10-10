@@ -8,19 +8,7 @@ namespace src::chassis
 {
 class ChassisOdometry
 {
-    static constexpr double ONE_OVER_SQRT_TWO = 0.70710678118;
-
-    static constexpr double LOCAL_X_CONTR_LF = ONE_OVER_SQRT_TWO;
-    static constexpr double LOCAL_Y_CONTR_LF = ONE_OVER_SQRT_TWO;
-
-    static constexpr double LOCAL_X_CONTR_RF = ONE_OVER_SQRT_TWO;
-    static constexpr double LOCAL_Y_CONTR_RF = -ONE_OVER_SQRT_TWO;
-
-    static constexpr double LOCAL_X_CONTR_LB = -ONE_OVER_SQRT_TWO;
-    static constexpr double LOCAL_Y_CONTR_LB = ONE_OVER_SQRT_TWO;
-
-    static constexpr double LOCAL_X_CONTR_RB = -ONE_OVER_SQRT_TWO;
-    static constexpr double LOCAL_Y_CONTR_RB = -ONE_OVER_SQRT_TWO;
+    static constexpr double ONE_OVER_FOUR_SQRT_TWO = 0.17677669529;
 
     double RPM_TO_MPS;
     double DIST_TO_CENT;
@@ -37,11 +25,11 @@ public:
 
     uint32_t previousTimeMS = 0;
 
-    ChassisOdometry(float distanceToCenter, float wheelDiameter)
+    ChassisOdometry(float distanceToCenter, float wheelDiameter, float gearRatio)
         : positionGlobal_X(0),
           positionGlobal_Y(0),
           rotation(0),
-          RPM_TO_MPS(PI * wheelDiameter / 60.0),
+          RPM_TO_MPS((PI * wheelDiameter / 60.0) / gearRatio),
           DIST_TO_CENT(distanceToCenter)
     {
     }
@@ -82,25 +70,20 @@ public:
         double velRF = motorRPM_RF * RPM_TO_MPS;
         double velRB = motorRPM_RB * RPM_TO_MPS;
 
-        double localVelX = (velLF * LOCAL_X_CONTR_LF + velLB * LOCAL_X_CONTR_LB +
-                            velRF * LOCAL_X_CONTR_RF + velRB * LOCAL_X_CONTR_RB) /
-                           4.0;
-        double localVelY = (velLF * LOCAL_Y_CONTR_LF + velLB * LOCAL_Y_CONTR_LB +
-                            velRF * LOCAL_Y_CONTR_RF + velRB * LOCAL_Y_CONTR_RB) /
-                           4.0;
+        double localVelX = (velLF + velRF + velLB + velRB) * ONE_OVER_FOUR_SQRT_TWO;
+        double localVelY = (velLF - velRF - velLB + velRB) * ONE_OVER_FOUR_SQRT_TWO;
 
         velocityLocal_X = localVelX;
         velocityLocal_Y = localVelY;
 
         // may need to flip signs on vars depending on motor direction
-        double rotContrib = (velLF + velLB + velRF + velRB) / 4.0;
-        double radiansPerSec = rotContrib / DIST_TO_CENT;
+        double radiansPerSec = (-velLF - velRF + velLB + velRB) / (4 * DIST_TO_CENT);
         rotation += radiansPerSec * deltaTimeSeconds;
 
         double cosRot = cos(rotation);
         double sinRot = sin(rotation);
-        double globalVelX = cosRot * localVelX - sinRot * localVelY;
-        double globalVelY = sinRot * localVelX + cosRot * localVelY;
+        double globalVelX = cosRot * velocityLocal_X - sinRot * velocityLocal_Y;
+        double globalVelY = sinRot * velocityLocal_X + cosRot * velocityLocal_Y;
 
         positionGlobal_X += globalVelX * deltaTimeSeconds;
         positionGlobal_Y += globalVelY * deltaTimeSeconds;
