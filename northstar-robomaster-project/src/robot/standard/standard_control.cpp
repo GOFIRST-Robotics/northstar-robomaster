@@ -36,10 +36,12 @@
 
 // turret
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
+#include "control/turret/algorithms/neo_world_frame_yaw_turret_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -177,6 +179,22 @@ tap::motor::DjiMotor yawMotor(
     1,
     YAW_MOTOR_CONFIG.startEncoderValue);
 
+tap::motor::RevMotor yawMotor1(
+    drivers(),
+    tap::motor::REV_MOTOR1,
+    CanBus::CAN_BUS1,
+    false,
+    "YawMotor1",
+    1);  // gear ratio
+
+tap::motor::RevMotor yawMotor2(
+    drivers(),
+    tap::motor::REV_MOTOR2,
+    CanBus::CAN_BUS1,
+    false,
+    "YawMotor2",
+    1);  // gear ratio
+
 StandardTurretSubsystem turret(
     drivers(),
     &pitchMotor,
@@ -184,6 +202,14 @@ StandardTurretSubsystem turret(
     PITCH_MOTOR_CONFIG,
     YAW_MOTOR_CONFIG,
     &getTurretMCBCanComm());
+
+RevTurretSubsystem revTurret(
+    drivers(),
+    &pitchMotor,
+    &yawMotor1,
+    &yawMotor2,
+    PITCH_MOTOR_CONFIG,
+    YAW_MOTOR_REV_CONFIG);
 
 // turret controlers
 algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
@@ -239,12 +265,18 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
     worldFrameYawTurretPosPid,
     worldFrameYawTurretVelPid);
 
+algorithms::NeoWorldFrameYawTurretImuCascadePidTurretController neoWorldFrameYawTurretImuController(
+    *drivers(),
+    revTurret.yawMotor,
+    worldFrameYawTurretPosPid,  // PIDS ARE NOT RIGHT
+    worldFrameYawTurretVelPid);
+
 // turret commands
 user::TurretUserControlCommand turretUserControlCommand(
     drivers(),
     drivers()->controlOperatorInterface,
     &turret,
-    &worldFrameYawTurretImuController,
+    &neoWorldFrameYawTurretImuController,
     &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
@@ -264,16 +296,16 @@ ToggleCommandMapping xCtrlPressedCvControl(
     {&turretCVControlCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
 
-user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    &turret,
-    &worldFrameYawChassisImuController,
-    &worldFramePitchChassisImuController,
-    &worldFrameYawTurretCanImuController,
-    &worldFramePitchTurretCanImuController,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &turret,
+//     &worldFrameYawChassisImuController,
+//     &worldFramePitchChassisImuController,
+//     &worldFrameYawTurretCanImuController,
+//     &worldFramePitchTurretCanImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(

@@ -127,9 +127,9 @@ void FlywheelSubsystem::refresh()
     rightWheel.setControlValue(desiredRpmRampRight.getValue());
     upWheel.setControlValue(desiredRpmRampUp.getValue());
 
-    debugLeft = leftWheel.getVelocity();
-    debugRight = rightWheel.getVelocity();
-    debugUp = upWheel.getVelocity();
+    debugLeft = leftWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    debugRight = rightWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    debugUp = upWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
 
     debugLeftD = desiredRpmRampLeft.getValue();
     debugRightD = desiredRpmRampRight.getValue();

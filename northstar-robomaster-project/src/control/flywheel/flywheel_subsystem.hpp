@@ -49,11 +49,20 @@ public:
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
     }
 
-    float getCurrentLeftFlywheelMotorRPM() const { return leftWheel.getVelocity(); }
+    float getCurrentLeftFlywheelMotorRPM() const
+    {
+        return leftWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    }
 
-    float getCurrentRightFlywheelMotorRPM() const { return rightWheel.getVelocity(); }
+    float getCurrentRightFlywheelMotorRPM() const
+    {
+        return rightWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    }
 
-    float getCurrentUpFlywheelMotorRPM() const { return upWheel.getVelocity(); }
+    float getCurrentUpFlywheelMotorRPM() const
+    {
+        return upWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    }
 
     void refresh() override;
 

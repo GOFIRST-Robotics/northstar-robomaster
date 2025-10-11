@@ -67,6 +67,14 @@ static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
     .limitMotorAngles = true,
 };
 
+static constexpr TurretMotorConfig YAW_MOTOR_REV_CONFIG = {
+    .startAngle = 0,
+    .startEncoderValue = 0,  // enc res 8191
+    .minAngle = 0,
+    .maxAngle = 0,
+    .limitMotorAngles = false,
+};
+
 static constexpr float TURRET_CG_X = 80.0f;                 // 30.17;
 static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
 static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 12000 // 7'000;
