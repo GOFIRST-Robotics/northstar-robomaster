@@ -50,7 +50,9 @@ RevMotor::RevMotor(
     REVMotorId desMotorIdentifier,
     tap::can::CanBus motorCanBus,
     bool isInverted,
-    const char* name)
+    const char* name,
+    float gearRatio,
+    tap::encoder::EncoderInterface* externalEncoder)
     : CanRxListener(drivers, static_cast<uint32_t>(desMotorIdentifier), motorCanBus),
       motorName(name),
       drivers(drivers),
@@ -58,8 +60,12 @@ RevMotor::RevMotor(
       motorCanBus(motorCanBus),
       desiredOutput(0),
       motorInverted(isInverted),
-      targetVoltage(0),
-      isEncoderInverted(false)
+      internalEncoder(isInverted, gearRatio),
+      encoder(
+          {externalEncoder != nullptr ? externalEncoder
+                                      : const_cast<RevMotorEncoder*>(&this->getInternalEncoder()),
+           externalEncoder != nullptr ? const_cast<RevMotorEncoder*>(&this->getInternalEncoder())
+                                      : nullptr})
 {
     // motorDisconnectTimeout.stop();
 }
@@ -76,6 +82,9 @@ void RevMotor::processMessage(const modm::can::Message& message)
     uint64_t rawValue = 0;
     std::memcpy(&rawValue, message.data, sizeof(uint64_t));
 
+    // restart disconnect timer, since you just received a message from the motor
+    motorDisconnectTimeout.restart(MOTOR_DISCONNECT_TIME);
+
     if (receivedArbId == CreateArbitrationControlId(APICommand::Period0, this))
     {
         period0_.dutyCycle = int16_t(rawValue & 0xFFFF) / 32768.0f;
@@ -87,16 +96,14 @@ void RevMotor::processMessage(const modm::can::Message& message)
     }
     else if (receivedArbId == CreateArbitrationControlId(APICommand::Period1, this))
     {
-        uint32_t velocity = rawValue & 0xFFFFFFFF;
-        std::memcpy(&period1_.velocity, &velocity, 4);
+        this->internalEncoder.processMessage(message, APICommand::Period1);
         period1_.temperature = (rawValue >> 32) & 0xFF;
         period1_.voltage = ((rawValue >> 40) & 0xFFFF) / 128.0f;
         period1_.current = ((rawValue >> 48) & 0xFFF) / 32.0f;
     }
     else if (receivedArbId == CreateArbitrationControlId(APICommand::Period2, this))
     {
-        uint32_t position = rawValue & 0xFFFFFFFF;
-        std::memcpy(&period2_.position, &position, 4);
+        this->internalEncoder.processMessage(message, APICommand::Period2);
         period2_.iAccum = float((rawValue >> 32) & 0xFFFFFFFF) / 1000.0f;
     }
     else if (receivedArbId == CreateArbitrationControlId(APICommand::Period3, this))
@@ -117,6 +124,16 @@ void RevMotor::processMessage(const modm::can::Message& message)
         std::memcpy(&period4_.altEncoderVelocity, &velocity, 4);
         std::memcpy(&period4_.altEncoderPosition, &position, 4);
     }
+}
+
+bool RevMotor::isMotorOnline() const
+{
+    /*
+     * motor online if the disconnect timout has not expired (if it received message but
+     * somehow got disconnected) and the timeout hasn't been stopped (initially, the timeout
+     * is stopped)
+     */
+    return !motorDisconnectTimeout.isExpired() && !motorDisconnectTimeout.isStopped();
 }
 
 // Add these implementations to rev_motor.cpp
@@ -181,7 +198,47 @@ modm::can::Message RevMotor::constructRevMotorHeartBeat(const RevMotor* motor)
     return canMessage;
 }
 
-void RevMotor::setParameter(Parameter param, float paramVal) { paramQueue.push({param, paramVal}); }
+void RevMotor::setPeriodicStatusFrame(APICommand periodic, uint16_t periodMs)
+{
+    uint32_t RevArbitrationId = CreateArbitrationControlId(periodic, this);
+    uint8_t canRevIdLength = 5;
+    modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
+
+    // Pack periodMs as little-endian uint16_t
+    canMessage.data[0] = static_cast<uint8_t>(periodMs & 0xFF);
+    canMessage.data[1] = static_cast<uint8_t>((periodMs >> 8) & 0xFF);
+
+    // The next three bytes are reserved and should be set to 0xFF
+    canMessage.data[2] = 0xFF;
+    canMessage.data[3] = 0xFF;
+    canMessage.data[4] = 0xFF;
+    canMessage.data[5] = 0xFF;
+    canMessage.data[6] = 0xFF;
+    canMessage.data[7] = 0xFF;
+    canMessage.length = 2;
+
+    // Send the CAN message using the driver's CAN transmit handler
+    paramQueue.push(canMessage);
+}
+
+void RevMotor::setParameter(Parameter param, float paramVal)
+{
+    uint32_t RevArbitrationId = CreateArbitrationParameterId(param, this);
+    uint8_t canRevIdLength = 8;
+    modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
+    std::memcpy(&canMessage.data[0], &paramVal, sizeof(paramVal));
+
+    canMessage.data[4] = static_cast<uint8_t>(2);
+    canMessage.length = 5;
+
+    // Zero out the remaining bytes
+    for (int i = 5; i < 8; i++)
+    {
+        canMessage.data[i] = 0;
+    }
+
+    paramQueue.push(canMessage);
+}
 
 /**
  * constructs a can message for the given REV motor by using the motor's id and the
@@ -191,48 +248,25 @@ void RevMotor::setParameter(Parameter param, float paramVal) { paramQueue.push({
  */
 modm::can::Message RevMotor::createRevCanMessage(const RevMotor* motor)
 {
+    if (!paramQueue.empty())
+    {
+        modm::can::Message canMessage = paramQueue.front();
+        paramQueue.pop();
+        return canMessage;
+    }
     uint32_t RevArbitrationId;
 
-    if (paramQueue.size() > 0)
-    {
-        Parameter pram = paramQueue.front().first;
-        // If there are parameters to set, we will use the first one
-        RevArbitrationId = CreateArbitrationParameterId(pram, motor);
-    }
-    else
-    {
-        // If no parameters, use the control mode
-        RevArbitrationId = CreateArbitrationControlId(controlModeToAPI(currentControlMode), motor);
-    }
+    // If no parameters, use the control mode
+    RevArbitrationId = CreateArbitrationControlId(controlModeToAPI(currentControlMode), motor);
 
     uint8_t canRevIdLength = 8;
     modm::can::Message canMessage(RevArbitrationId, canRevIdLength, 0, true);
-    if (!paramQueue.empty())
+    // fill with control value data
+    std::memcpy(&canMessage.data[0], &controlValue, sizeof(controlValue));
+    // Zero out the remaining bytes
+    for (int i = sizeof(controlValue); i < 8; i++)
     {
-        auto [param, parameterVal] = paramQueue.front();
-
-        paramQueue.pop();
-
-        // Pack float (little endian)
-        std::memcpy(&canMessage.data[0], &parameterVal, sizeof(parameterVal));
-
-        canMessage.data[4] = static_cast<uint8_t>(2);
-        canMessage.length = 5;
-
-        // Zero out the remaining bytes
-        for (int i = 5; i < 8; i++)
-        {
-            canMessage.data[i] = 0;
-        }
-    }
-    else
-    {  // fill with control value data
-        std::memcpy(&canMessage.data[0], &controlValue, sizeof(controlValue));
-        // Zero out the remaining bytes
-        for (int i = sizeof(controlValue); i < 8; i++)
-        {
-            canMessage.data[i] = 0;
-        }
+        canMessage.data[i] = 0;
     }
     return canMessage;
 }

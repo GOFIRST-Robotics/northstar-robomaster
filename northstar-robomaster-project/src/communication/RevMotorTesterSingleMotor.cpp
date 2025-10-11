@@ -34,6 +34,12 @@ void RevMotorTesterSingleMotor::initialize()
     singularMotor.setParameter(Parameter::kOutputMin_0, -1.0f);
     singularMotor.setParameter(Parameter::kOutputMax_0, 1.0f);
     singularMotor.setControlMode(tap::motor::RevMotor::ControlMode::VELOCITY);
+
+    singularMotor.setPeriodicStatusFrame(APICommand::Period0, 0);
+    singularMotor.setPeriodicStatusFrame(APICommand::Period1, 2);
+    singularMotor.setPeriodicStatusFrame(APICommand::Period2, 2);
+    singularMotor.setPeriodicStatusFrame(APICommand::Period3, 0);
+    singularMotor.setPeriodicStatusFrame(APICommand::Period4, 0);
 }
 
 void RevMotorTesterSingleMotor::refresh()

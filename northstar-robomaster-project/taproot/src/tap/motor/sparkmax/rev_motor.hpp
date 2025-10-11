@@ -34,6 +34,8 @@
 
 #include "tap/architecture/timeout.hpp"
 #include "tap/communication/can/can_rx_listener.hpp"
+#include "tap/communication/sensors/encoder/multi_encoder.hpp"
+#include "tap/motor/sparkmax/rev_motor_encoder.hpp"
 
 namespace tap::motor
 {
@@ -312,26 +314,31 @@ public:
      *      counter-clockwise when looking at the shaft from the side opposite the motor.
      *      If `true` then the positive rotation direction will be clockwise.
      * @param name a name to associate with the motor for use in the motor menu
-     * @param encoderWrapped the starting encoderValue to store for this motor.
-     *      Will be overwritten by the first reported encoder value from the motor
-     * @param encoderRevolutions the starting number of encoder revolutions to store.
-     *      See comment for RevMotor::encoderRevolutions for more details.
      */
     RevMotor(
         Drivers* drivers,
         REVMotorId desMotorIdentifier,
         tap::can::CanBus motorCanBus,
         bool isInverted,
-        const char* name
-        // uint16_t encoderWrapped = ENC_RESOLUTION / 2,
-        // int64_t encoderRevolutions = 0
-    );
+        const char* name,
+        float gearRatio = 1,
+        tap::encoder::EncoderInterface* externalEncoder = nullptr);
 
     mockable ~RevMotor();
 
     void initialize();
 
     DISALLOW_COPY_AND_ASSIGN(RevMotor)
+
+    tap::encoder::EncoderInterface* getEncoder() const
+    {
+        return const_cast<tap::encoder::MultiEncoder<2>*>(&this->encoder);
+    }
+
+    /**
+     * Returns the builtin encoder associated with the motor.
+     */
+    mockable const RevMotorEncoder& getInternalEncoder() const { return this->internalEncoder; }
 
     // /**
     //  * Overrides virtual method in the can class, called every time a message with the
@@ -343,9 +350,10 @@ public:
     void processMessage(const modm::can::Message& message);
 
     /**
-     * @return the raw `desiredOutput` value which will be sent to the motor controller
-     *      (specified via `setDesiredOutput()`)
+     * @return `true` if a CAN message has been received from the motor within the last
+     *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
      */
+    bool isMotorOnline() const;
 
     mockable uint32_t getMotorIdentifier() const;
 
@@ -356,6 +364,8 @@ public:
     mockable const char* getName() const;
 
     void setTargetVoltage(float targetVoltage);
+
+    void setPeriodicStatusFrame(APICommand periodic, uint16_t periodMs);
 
     /**
      * Control modes available for RevMotor operation
@@ -397,9 +407,6 @@ public:
      */
     float getControlValue() const;
 
-    float getPosition() const { return period2_.position; }
-    float getVelocity() const { return isEncoderInverted ? -period1_.velocity : period1_.velocity; }
-
     /**
      * calculates the 29 bit ID for the REV Spark max motor controller. The basis for this is that
      * in the id is the control mode with some 28 bit number for a specific control mode like
@@ -421,6 +428,9 @@ public:
     void setEncoderInverted(bool isInverted) { isEncoderInverted = isInverted; }
 
 private:
+    // wait time before the motor is considered disconnected, in milliseconds
+    static const uint32_t MOTOR_DISCONNECT_TIME = 100;
+
     const char* motorName;
 
     Drivers* drivers;
@@ -436,10 +446,6 @@ private:
     float voltage;
 
     float current;
-
-    float velocity;
-
-    float position;
 
     float targetVoltage;
 
@@ -458,9 +464,13 @@ private:
 
     bool isControlAndNotParam;
 
-    std::queue<std::pair<Parameter, float>> paramQueue;
-    // std::queue<Parameter> parameters;
-    // std::queue<float> paramVals;
+    std::queue<modm::can::Message> paramQueue;
+
+    RevMotorEncoder internalEncoder;
+
+    tap::encoder::MultiEncoder<2> encoder;
+
+    tap::arch::MilliTimeout motorDisconnectTimeout;
 };
 
 }  // namespace tap::motor
