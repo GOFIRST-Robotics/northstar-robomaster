@@ -72,10 +72,6 @@ protected:
     tap::Drivers *drivers;
 
 private:
-    modm::Pid<float> velocityPidLeftWheel;
-    modm::Pid<float> velocityPidRightWheel;
-    modm::Pid<float> velocityPidUpWheel;
-
     float desiredLaunchSpeedLeft;
     float desiredLaunchSpeedRight;
     float desiredLaunchSpeedUp;
@@ -96,19 +92,6 @@ private:
     float launchSpeedToFlywheelRpm(float launchSpeed) const;
 
     std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> spinToRPMMap;
-    std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT> feedforwardmap;
-
-    modm::Pid<float> topFlyWheelPid;
-    modm::Pid<float> bottomLeftFlyWheelPid;
-    modm::Pid<float> bottomRightFlyWheelPid;
-
-    float previousTopSetPoint = 0.0f;
-    float previousLeftSetPoint = 0.0f;
-    float previousRightSetPoint = 0.0f;
-
-    float previousLaunchSpeedLeft = 0.0f;
-    float previousLaunchSpeedRight = 0.0f;
-    float previousLaunchSpeedUp = 0.0f;
 };
 
 }  // namespace src::control::flywheel
