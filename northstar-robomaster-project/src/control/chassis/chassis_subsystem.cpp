@@ -72,8 +72,19 @@ inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrap
 
 float ChassisSubsystem::getChassisZeroTurret()
 {
+    
     float angle = (getTurretYaw());
     return (angle > M_PI) ? angle - M_TWOPI : angle;
+}
+
+float ChassisSubsystem::getChassisRotationSpeed()
+{
+    float motorSum = 0.0f;
+    for (const Motor& i : motors)
+    {
+        motorSum += i.getEncoder()->getVelocity() / 19.0f;
+    }
+    return (WHEEL_DIAMETER_M / (2 * DIST_TO_CENTER)) * motorSum;
 }
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
@@ -95,6 +106,22 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
 {
     float robotHeading = fmod(drivers->bmi088.getYaw() + getTurretYaw(), 2 * M_PI);
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
+}
+
+float ChassisSubsystem::chassisSpeedRotationPID()
+{
+    // P
+    float currRotationPidP = getChassisZeroTurret() * 1.0f;  // P
+    currRotationPidP = limitVal<float>(currRotationPidP, -1, 1);
+
+    // D
+    float currentRotationPidD = (getChassisRotationSpeed() - drivers->bmi088.getGz()) * 1.0f;  // D
+
+    currentRotationPidD = limitVal<float>(currentRotationPidD, -2, 2);
+
+    float chassisRotationSpeed = limitVal<float>(currRotationPidP + currentRotationPidD, -1, 1);
+
+    return chassisRotationSpeed;
 }
 
 void ChassisSubsystem::driveBasedOnHeading(
