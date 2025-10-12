@@ -90,11 +90,7 @@ public:
 private:
     inline float mpsToRpm(float mps)
     {
-        static constexpr float GEAR_RATIO = 19.0f;
-        static float WHEEL_CIRCUMFERANCE_M = M_PI * WHEEL_DIAMETER_M;
-        static constexpr float SEC_PER_M = 60.0f;
-
-        return (mps / WHEEL_CIRCUMFERANCE_M) * SEC_PER_M * GEAR_RATIO;
+        return mps / (M_PI * WHEEL_DIAMETER_M) * 60.0f / CHASSIS_GEAR_RATIO;
     }
 
     src::can::TurretMCBCanComm* turretMcbCanComm;

@@ -42,10 +42,38 @@ ChassisSubsystem::ChassisSubsystem(
               VELOCITY_PID_MAX_ERROR_SUM,
               VELOCITY_PID_MAX_OUTPUT)},
       motors{
-          Motor(drivers, config.leftFrontId, config.canBus, false, "LF"),
-          Motor(drivers, config.leftBackId, config.canBus, false, "LB"),
-          Motor(drivers, config.rightFrontId, config.canBus, false, "RF"),
-          Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
+          Motor(
+              drivers,
+              config.leftFrontId,
+              config.canBus,
+              false,
+              "LF",
+              false,
+              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+          Motor(
+              drivers,
+              config.leftBackId,
+              config.canBus,
+              false,
+              "LB",
+              false,
+              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+          Motor(
+              drivers,
+              config.rightFrontId,
+              config.canBus,
+              false,
+              "RF",
+              false,
+              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+          Motor(
+              drivers,
+              config.rightBackId,
+              config.canBus,
+              false,
+              "RB",
+              false,
+              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
       },
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor)
@@ -135,7 +163,9 @@ void ChassisSubsystem::refresh()
                      float increment) {
         ramp.setTarget(desiredOutput);
         ramp.update(increment);
-        pid.update(ramp.getValue() - motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI);
+        pid.update(
+            ramp.getValue() -
+            motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO);
         motor.setDesiredOutput(pid.getValue());
     };
 
