@@ -128,15 +128,12 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RB] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
 }
 
-double xPosOdometry;
-double yPosOdometry;
-double xVelOdometry;
-double yVelOdometry;
-double rotationOdometry;
-double rotationOdometryDegrees;
-
-double LF_GetShaftRPM;
-double LF_EncoderVal;
+float xPosOdometry;
+float yPosOdometry;
+float xVelOdometry;
+float yVelOdometry;
+float rotationOdometry;
+float rotationOdometryDegrees;
 
 void ChassisSubsystem::refresh()
 {
@@ -161,15 +158,11 @@ void ChassisSubsystem::refresh()
             mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
     }
 
-    LF_GetShaftRPM = motors[static_cast<int>(MotorId::LF)].getShaftRPM();
-    LF_EncoderVal =
-        motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity() / (M_TWOPI * 60.0);
-
     chassisOdometry->updateOdometry(
-        motors[static_cast<int>(MotorId::LF)].getShaftRPM(),
-        motors[static_cast<int>(MotorId::LB)].getShaftRPM(),
-        motors[static_cast<int>(MotorId::RF)].getShaftRPM(),
-        motors[static_cast<int>(MotorId::RB)].getShaftRPM());
+        motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity(),
+        motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
+        motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
+        motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
 
     xPosOdometry = chassisOdometry->getWorldPositionX();
     yPosOdometry = chassisOdometry->getWorldPositionY();

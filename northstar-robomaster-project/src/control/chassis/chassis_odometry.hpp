@@ -8,20 +8,22 @@ namespace src::chassis
 {
 class ChassisOdometry
 {
-    static constexpr double ONE_OVER_FOUR_SQRT_TWO = 0.17677669529;
+    static constexpr float ONE_OVER_FOUR_SQRT_TWO = 0.17677669529f;
+    static constexpr float SQRT_TWO_OVER_FOUR = 0.35355339059f;
 
-    double RPM_TO_MPS;
-    double DIST_TO_CENT;
+    // rad/sec to m/sec
+    float RPS_TO_MPS;
+    float DIST_TO_CENT;
 
 public:
     // member variables
-    double positionGlobal_X;
-    double positionGlobal_Y;
+    float positionGlobal_X;
+    float positionGlobal_Y;
 
-    double velocityLocal_X;
-    double velocityLocal_Y;
+    float velocityLocal_X;
+    float velocityLocal_Y;
 
-    double rotation;
+    float rotation;
 
     uint32_t previousTimeMS = 0;
 
@@ -29,18 +31,18 @@ public:
         : positionGlobal_X(0),
           positionGlobal_Y(0),
           rotation(0),
-          RPM_TO_MPS((PI * wheelDiameter / 60.0) / gearRatio),
+          RPS_TO_MPS(wheelDiameter / 2.0),
           DIST_TO_CENT(distanceToCenter)
     {
     }
 
-    double getWorldPositionX() { return positionGlobal_X; }
-    double getWorldPositionY() { return positionGlobal_Y; }
+    float getWorldPositionX() { return positionGlobal_X; }
+    float getWorldPositionY() { return positionGlobal_Y; }
 
-    double getLocalVelocityX() { return velocityLocal_X; }
-    double getLocalVelocityY() { return velocityLocal_Y; }
+    float getLocalVelocityX() { return velocityLocal_X; }
+    float getLocalVelocityY() { return velocityLocal_Y; }
 
-    double getRotation() { return rotation; }
+    float getRotation() { return rotation; }
 
     void zeroOdometry()
     {
@@ -49,11 +51,8 @@ public:
         rotation = 0;
     }
 
-    void updateOdometry(
-        int16_t motorRPM_LF,
-        int16_t motorRPM_LB,
-        int16_t motorRPM_RF,
-        int16_t motorRPM_RB)
+    // values are in radians per second
+    void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
     {
         uint32_t currentTimeMS = tap::arch::clock::getTimeMilliseconds();
         if (previousTimeMS == 0)
@@ -62,28 +61,36 @@ public:
             return;
         }
 
-        double deltaTimeSeconds = (currentTimeMS - previousTimeMS) / 1000.0;
+        float deltaTimeSeconds = (currentTimeMS - previousTimeMS) / 1000.0f;
         previousTimeMS = currentTimeMS;
 
-        double velLF = motorRPM_LF * RPM_TO_MPS;
-        double velLB = motorRPM_LB * RPM_TO_MPS;
-        double velRF = motorRPM_RF * RPM_TO_MPS;
-        double velRB = motorRPM_RB * RPM_TO_MPS;
+        float mps_LF = motorRPS_LF * RPS_TO_MPS;
+        float mps_LB = motorRPS_LB * RPS_TO_MPS;
+        float mps_RF = motorRPS_RF * RPS_TO_MPS;
+        float mps_RB = motorRPS_RB * RPS_TO_MPS;
 
-        double localVelX = (velLF + velRF + velLB + velRB) * ONE_OVER_FOUR_SQRT_TWO;
-        double localVelY = (velLF - velRF - velLB + velRB) * ONE_OVER_FOUR_SQRT_TWO;
+        float localVelX = (mps_LF + mps_RF + mps_LB + mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
+        float localVelY = (mps_LF - mps_RF - mps_LB + mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
+
+        // i tihnk this is more real
+        // float localVelX = (mps_LF + mps_RF - mps_LB - mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
+        // float localVelY = (mps_LF - mps_RF + mps_LB - mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
+
+        // other potentially real???
+        // float localVelX = (mps_LF - mps_RF + mps_LB - mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
+        // float localVelY = (-mps_LF - mps_RF + mps_LB + mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
 
         velocityLocal_X = localVelX;
         velocityLocal_Y = localVelY;
 
-        // may need to flip signs on vars depending on motor direction
-        double radiansPerSec = (-velLF - velRF + velLB + velRB) / (4 * DIST_TO_CENT);
+        float radiansPerSec = (-mps_LF - mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
+        // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         rotation += radiansPerSec * deltaTimeSeconds;
 
-        double cosRot = cos(rotation);
-        double sinRot = sin(rotation);
-        double globalVelX = cosRot * velocityLocal_X - sinRot * velocityLocal_Y;
-        double globalVelY = sinRot * velocityLocal_X + cosRot * velocityLocal_Y;
+        float cosRot = cos(rotation);
+        float sinRot = sin(rotation);
+        float globalVelX = cosRot * velocityLocal_X - sinRot * velocityLocal_Y;
+        float globalVelY = sinRot * velocityLocal_X + cosRot * velocityLocal_Y;
 
         positionGlobal_X += globalVelX * deltaTimeSeconds;
         positionGlobal_Y += globalVelY * deltaTimeSeconds;
