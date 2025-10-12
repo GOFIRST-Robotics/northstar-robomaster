@@ -72,7 +72,6 @@ inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrap
 
 float ChassisSubsystem::getChassisZeroTurret()
 {
-    
     float angle = (getTurretYaw());
     return (angle > M_PI) ? angle - M_TWOPI : angle;
 }
@@ -115,7 +114,7 @@ float ChassisSubsystem::chassisSpeedRotationPID()
     currRotationPidP = limitVal<float>(currRotationPidP, -1, 1);
 
     // D
-    float currentRotationPidD = (getChassisRotationSpeed() - drivers->bmi088.getGz()) * 1.0f;  // D
+    float currentRotationPidD = (drivers->bmi088.getGz()) * 1.0f;  // D
 
     currentRotationPidD = limitVal<float>(currentRotationPidD, -2, 2);
 
