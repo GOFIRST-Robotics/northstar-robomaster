@@ -27,7 +27,7 @@ public:
 
     uint32_t previousTimeMS = 0;
 
-    ChassisOdometry(float distanceToCenter, float wheelDiameter, float gearRatio)
+    ChassisOdometry(float distanceToCenter, float wheelDiameter)
         : positionGlobal_X(0),
           positionGlobal_Y(0),
           rotation(0),
