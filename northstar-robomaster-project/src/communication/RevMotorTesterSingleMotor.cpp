@@ -38,8 +38,8 @@ void RevMotorTesterSingleMotor::initialize()
 
 void RevMotorTesterSingleMotor::refresh()
 {
-    singularMotor.setControlValue(
-        drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) *
-        2000);
+    // singularMotor.setControlValue(
+    //     drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) *
+    //     2000);
 }
 }  // namespace Communications::Rev

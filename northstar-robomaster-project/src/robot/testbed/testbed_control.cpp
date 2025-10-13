@@ -8,7 +8,6 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
-#include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "control/cycle_state_command_mapping.hpp"
 #include "control/dummy_subsystem.hpp"
 #include "robot/testbed/testbed_drivers.hpp"
@@ -21,6 +20,7 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
+#include "control/agitator/fire_rate_cycler_mapping.hpp"
 #include "control/agitator/manual_fire_rate_reselection_manager.hpp"
 #include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
@@ -191,11 +191,23 @@ HoldRepeatCommandMapping leftMousePressedShoot(
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
-HoldRepeatCommandMapping leftSwitchDownPressedShoot(
-    drivers(),
-    {&rotateAndUnjamAgitatorLimited},
+FireRateCyclerMapping rightSwitchUpPressedShoot(
+    *drivers(),
+    rotateAndUnjamAgitatorLimited,
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP),
-    false);
+    &manualFireRateReselectionManager,
+    &rotateAgitator);
+
+CycleStateCommandMapping<
+    FireRateCyclerMapping::LaunchMode,
+    FireRateCyclerMapping::NUM_SHOOTER_STATES,
+    FireRateCyclerMapping>
+    rightSwitchdownCycleShotSpeed(
+        drivers(),
+        RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
+        FireRateCyclerMapping::SINGLE,
+        &rightSwitchUpPressedShoot,
+        &FireRateCyclerMapping::setShooterState);
 
 #endif  // AGITATOR_TEST
 
@@ -626,10 +638,11 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 {
 #ifdef AGITATOR_TEST
     drivers->commandMapper.addMap(&leftMousePressedShoot);
-    drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
+    drivers->commandMapper.addMap(&rightSwitchUpPressedShoot);
     drivers->commandMapper.addMap(&qPressed10RPS);
     drivers->commandMapper.addMap(&wPressed30RPS);
     drivers->commandMapper.addMap(&ePressedFullAuto);
+    drivers->commandMapper.addMap(&rightSwitchdownCycleShotSpeed);
 
 #endif
 #ifdef FLYWHEEL_TEST

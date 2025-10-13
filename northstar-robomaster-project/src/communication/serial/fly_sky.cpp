@@ -1,4 +1,4 @@
-//#define FLY_SKY
+#define FLY_SKY
 #ifdef FLY_SKY
 /*
  * FlySky iBUS receiver driver for Taproot.
@@ -125,11 +125,11 @@ Remote::SwitchState FlySky::getSwitch(Remote::Switch sw) const
     }
     else if (value < .25 && value > -.25)
     {
-        switchState = Remote::SwitchState::DOWN;
+        switchState = Remote::SwitchState::UP;
     }
     else if (value < 1.25 && value > .75)
     {
-        switchState = Remote::SwitchState::UP;
+        switchState = Remote::SwitchState::DOWN;
     }
     else
     {
@@ -155,8 +155,8 @@ void FlySky::parsePacket()
 
     drivers->commandMapper.handleKeyStateChange(
         getChannel(Channel::SWITCH_A),
-        Remote::SwitchState::UNKNOWN,
-        Remote::SwitchState::UNKNOWN,
+        getSwitch(Remote::Switch::LEFT_SWITCH),
+        getSwitch(Remote::Switch::RIGHT_SWITCH),
         getChannel(Channel::SWITCH_B),
         false);
 
