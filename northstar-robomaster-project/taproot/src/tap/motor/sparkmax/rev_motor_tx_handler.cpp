@@ -26,9 +26,7 @@
  */
 
 #include "rev_motor_tx_handler.hpp"
-//DO I WANT THIS?
-#include "rev_motor.hpp"
-
+// DO I WANT THIS?
 #include <cassert>
 
 #include "tap/algorithms/math_user_utils.hpp"
@@ -94,13 +92,50 @@ void RevMotorTxHandler::encodeAndSendCanData()
             RevMotor* motor = can1MotorStore[i];
             if (motor != nullptr)
             {
-                // Create and send heartbeat for this motor
-                modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
-                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
-
                 // Create and send control message for this motor
                 modm::can::Message controlMsg = motor->createRevCanMessage(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, controlMsg);
+            }
+        }
+    }
+
+    // Process CAN bus 2 motors
+    if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS2))
+    {
+        // Then do the same for CAN2
+        for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
+        {
+            RevMotor* motor = can2MotorStore[i];
+            if (motor != nullptr)
+            {
+                // Create and send control message for this motor
+                modm::can::Message controlMsg = motor->createRevCanMessage(motor);
+                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, controlMsg);
+            }
+        }
+    }
+
+    if (!messageSuccess)
+    {
+        RAISE_ERROR(drivers, "sendMessage failure");
+    }
+}
+
+void RevMotorTxHandler::heartBeat()
+{
+    bool messageSuccess = true;
+
+    // Process CAN bus 1 motors
+    if (drivers->can.isReadyToSend(can::CanBus::CAN_BUS1))
+    {
+        for (int i = 0; i < REV_MOTORS_PER_CAN; i++)
+        {
+            RevMotor* motor = can1MotorStore[i];
+            if (motor != nullptr)
+            {
+                // Create and send heartbeat for this motor
+                modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
+                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS1, heartbeatMsg);
             }
         }
     }
@@ -118,10 +153,6 @@ void RevMotorTxHandler::encodeAndSendCanData()
                 // Create and send heartbeat for this motor
                 modm::can::Message heartbeatMsg = motor->constructRevMotorHeartBeat(motor);
                 messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, heartbeatMsg);
-
-                // Create and send control message for this motor
-                modm::can::Message controlMsg = motor->createRevCanMessage(motor);
-                messageSuccess &= drivers->can.sendMessage(can::CanBus::CAN_BUS2, controlMsg);
             }
         }
     }

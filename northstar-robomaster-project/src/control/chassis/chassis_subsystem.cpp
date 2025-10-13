@@ -42,10 +42,17 @@ ChassisSubsystem::ChassisSubsystem(
               VELOCITY_PID_MAX_ERROR_SUM,
               VELOCITY_PID_MAX_OUTPUT)},
       motors{
-          Motor(drivers, config.leftFrontId, config.canBus, false, "LF"),
-          Motor(drivers, config.leftBackId, config.canBus, false, "LB"),
-          Motor(drivers, config.rightFrontId, config.canBus, false, "RF"),
-          Motor(drivers, config.rightBackId, config.canBus, false, "RB"),
+          Motor(drivers, config.leftFrontId, config.canBus, false, "LF", false, CHASSIS_GEAR_RATIO),
+          Motor(drivers, config.leftBackId, config.canBus, false, "LB", false, CHASSIS_GEAR_RATIO),
+          Motor(
+              drivers,
+              config.rightFrontId,
+              config.canBus,
+              false,
+              "RF",
+              false,
+              CHASSIS_GEAR_RATIO),
+          Motor(drivers, config.rightBackId, config.canBus, false, "RB", false, CHASSIS_GEAR_RATIO),
       },
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor)
@@ -161,7 +168,9 @@ void ChassisSubsystem::refresh()
                      float increment) {
         ramp.setTarget(desiredOutput);
         ramp.update(increment);
-        pid.update(ramp.getValue() - motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI);
+        pid.update(
+            ramp.getValue() -
+            motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO);
         motor.setDesiredOutput(pid.getValue());
     };
 

@@ -8,6 +8,8 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
+#include "control/agitator/multi_shot_cv_command_mapping.hpp"
+#include "control/cycle_state_command_mapping.hpp"
 #include "control/dummy_subsystem.hpp"
 #include "robot/testbed/testbed_drivers.hpp"
 
@@ -19,6 +21,7 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
+#include "control/agitator/manual_fire_rate_reselection_manager.hpp"
 #include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
 #include "control/agitator/velocity_agitator_subsystem.hpp"
@@ -69,6 +72,8 @@
 #include "control/governor/plate_hit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
 
+#include "ref_system_constants.hpp"
+
 src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
 
 using namespace tap::control::setpoint;
@@ -82,11 +87,13 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::turret;
 using namespace src::control::governor;
+using namespace tap::control::governor;
 using namespace tap::communication::serial;
 
 // what to test
 // #define FLYWHEEL_TEST
-// #define AGITATOR_TEST
+// #define REV_TEST
+#define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
 // #define SENTRY_CONSTANTS
 
@@ -99,10 +106,12 @@ namespace testbed_control
 DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
+#ifdef FLYWHEEL_TEST
 Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers());
 
-src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
+#endif
 
 #ifdef FLYWHEEL_TEST
 FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
@@ -129,6 +138,13 @@ ConstantVelocityAgitatorCommand rotateAgitator(agitator, constants::AGITATOR_ROT
 
 UnjamSpokeAgitatorCommand unjamAgitator(agitator, constants::AGITATOR_UNJAM_CONFIG);
 
+MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
+    *drivers(),
+    agitator,
+    rotateAgitator,
+    unjamAgitator);
+
+// agitator governors
 ManualFireRateReselectionManager manualFireRateReselectionManager;
 
 SetFireRateCommand setFireRateCommandFullAuto(
@@ -141,35 +157,46 @@ SetFireRateCommand setFireRateCommand10RPS(
     manualFireRateReselectionManager,
     10,
     &rotateAgitator);
+SetFireRateCommand setFireRateCommand30RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    30,
+    &rotateAgitator);
+
+ToggleCommandMapping qPressed10RPS(
+    drivers(),
+    {&setFireRateCommand10RPS},
+    RemoteMapState(RemoteMapState({Remote::Key::Q})));
+
+ToggleCommandMapping wPressed30RPS(
+    drivers(),
+    {&setFireRateCommand30RPS},
+    RemoteMapState(RemoteMapState({Remote::Key::Q})));
+
+ToggleCommandMapping ePressedFullAuto(
+    drivers(),
+    {&setFireRateCommandFullAuto},
+    RemoteMapState(RemoteMapState({Remote::Key::W})));
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
-MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
-    *drivers(),
-    agitator,
-    rotateAgitator,
-    unjamAgitator);
-
-GovernorLimitedCommand<1> agitatorFireRate(
+GovernorLimitedCommand<1> rotateAndUnjamAgitatorLimited(
     {&agitator},
     rotateAndUnjamAgitator,
     {&fireRateLimitGovernor});
 
-HoldRepeatCommandMapping leftMousePressed(
+HoldRepeatCommandMapping leftMousePressedShoot(
     drivers(),
-    {&agitatorFireRate},  // TODO
+    {&rotateAndUnjamAgitatorLimited},
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
-ToggleCommandMapping vPressed(
+HoldRepeatCommandMapping leftSwitchDownPressedShoot(
     drivers(),
-    {&setFireRateCommandFullAuto},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
+    {&rotateAndUnjamAgitatorLimited},
+    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP),
+    false);
 
-ToggleCommandMapping gPressed(
-    drivers(),
-    {&setFireRateCommand10RPS},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
 #endif  // AGITATOR_TEST
 
 #ifdef STANDARD_TURRET_TEST
@@ -547,7 +574,9 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     chassisSubsystem.initialize();
 #endif
-    // revMotorTesterSingleMotor.initialize();
+#ifdef FLYWHEEL_TEST
+    revMotorTesterSingleMotor.initialize();
+#endif
 }
 
 void registerTestSubsystems(src::testbed::Drivers *drivers)
@@ -568,6 +597,9 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #endif  // STANDARD_TURRET_TEST
 #ifdef CHASSIS_TEST
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
+#endif
+#ifdef FLYWHEEL_TEST
+    drivers->commandScheduler.registerSubsystem(&revMotorTesterSingleMotor);
 #endif
 }
 
@@ -593,9 +625,11 @@ void startTestCommands(src::testbed::Drivers *drivers)
 void registerTestIoMappings(src::testbed::Drivers *drivers)
 {
 #ifdef AGITATOR_TEST
-    drivers->commandMapper.addMap(&leftMousePressed);
-    drivers->commandMapper.addMap(&vPressed);
-    drivers->commandMapper.addMap(&gPressed);
+    drivers->commandMapper.addMap(&leftMousePressedShoot);
+    drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
+    drivers->commandMapper.addMap(&qPressed10RPS);
+    drivers->commandMapper.addMap(&wPressed30RPS);
+    drivers->commandMapper.addMap(&ePressedFullAuto);
 
 #endif
 #ifdef FLYWHEEL_TEST

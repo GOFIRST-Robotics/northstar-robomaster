@@ -32,6 +32,7 @@ ImuCalibrateCommand::ImuCalibrateCommand(
     tap::Drivers *drivers,
     const std::vector<TurretIMUCalibrationConfig> &turretsAndControllers,
     chassis::ChassisSubsystem *chassis,
+    src::control::buzzer::PlaySongCommand *song,
     float velocityZeroThreshold,
     float positionZeroThreshold)
     : ImuCalibrateCommandBase(),
@@ -39,7 +40,8 @@ ImuCalibrateCommand::ImuCalibrateCommand(
       positionZeroThreshold(positionZeroThreshold),
       drivers(drivers),
       turretsAndControllers(turretsAndControllers),
-      chassis(chassis)
+      chassis(chassis),
+      song(song)
 {
     for (auto &config : turretsAndControllers)
     {
@@ -144,17 +146,16 @@ void ImuCalibrateCommand::execute()
                 calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
                 calibrationState = CalibrationState::BUZZING;
             }
-            buzzerTimer.restart(1000);
+            buzzerTimer.restart(200);
             break;
         case CalibrationState::BUZZING:
             if (buzzerTimer.isExpired())
             {
                 calibrationState = CalibrationState::WAITING_CALIBRATION_COMPLETE;
             }
-            tap::buzzer::playNote(&drivers->pwm, notes[4 - buzzerTimer.timeRemaining() / 201]);
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
-            tap::buzzer::silenceBuzzer(&drivers->pwm);
+            drivers->commandScheduler.addCommand(song);
             break;
     }
 
