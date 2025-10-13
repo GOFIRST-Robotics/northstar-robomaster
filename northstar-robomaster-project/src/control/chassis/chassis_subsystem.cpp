@@ -114,8 +114,7 @@ float ChassisSubsystem::chassisSpeedRotationPID()
     currRotationPidP = limitVal<float>(currRotationPidP, -1, 1);
 
     // D
-    float currentRotationPidD =
-        (yawMotor->getEncoder()->getVelocity() - getChassisRotationSpeed()) * 1.0f;  // D
+    float currentRotationPidD = (drivers->bmi088.getGz()) * 1.0f;  // D
 
     currentRotationPidD = limitVal<float>(currentRotationPidD, -2, 2);
 
