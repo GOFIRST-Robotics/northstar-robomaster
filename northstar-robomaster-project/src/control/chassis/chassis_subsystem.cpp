@@ -42,22 +42,8 @@ ChassisSubsystem::ChassisSubsystem(
               VELOCITY_PID_MAX_ERROR_SUM,
               VELOCITY_PID_MAX_OUTPUT)},
       motors{
-          Motor(
-              drivers,
-              config.leftFrontId,
-              config.canBus,
-              false,
-              "LF",
-              false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
-          Motor(
-              drivers,
-              config.leftBackId,
-              config.canBus,
-              false,
-              "LB",
-              false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+          Motor(drivers, config.leftFrontId, config.canBus, false, "LF", false, CHASSIS_GEAR_RATIO),
+          Motor(drivers, config.leftBackId, config.canBus, false, "LB", false, CHASSIS_GEAR_RATIO),
           Motor(
               drivers,
               config.rightFrontId,
@@ -65,15 +51,8 @@ ChassisSubsystem::ChassisSubsystem(
               false,
               "RF",
               false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
-          Motor(
-              drivers,
-              config.rightBackId,
-              config.canBus,
-              false,
-              "RB",
-              false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+              CHASSIS_GEAR_RATIO),
+          Motor(drivers, config.rightBackId, config.canBus, false, "RB", false, CHASSIS_GEAR_RATIO),
       },
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor)
