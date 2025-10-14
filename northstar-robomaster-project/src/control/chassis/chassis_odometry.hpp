@@ -25,7 +25,7 @@ public:
 
     float rotation;
 
-    uint32_t previousTimeMS = 0;
+    uint32_t previousTimeMicroSeconds = 0;
 
     ChassisOdometry(float distanceToCenter, float wheelDiameter)
         : positionGlobal_X(0),
@@ -54,15 +54,15 @@ public:
     // values are in radians per second
     void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
     {
-        uint32_t currentTimeMS = tap::arch::clock::getTimeMilliseconds();
-        if (previousTimeMS == 0)
+        uint32_t currentTimeMicroSeconds = tap::arch::clock::getTimeMicroseconds();
+        if (previousTimeMicroSeconds == 0)
         {
-            previousTimeMS = currentTimeMS;
+            previousTimeMicroSeconds = currentTimeMicroSeconds;
             return;
         }
 
-        float deltaTimeSeconds = (currentTimeMS - previousTimeMS) / 1000.0f;
-        previousTimeMS = currentTimeMS;
+        float deltaTimeSeconds = (currentTimeMicroSeconds - previousTimeMicroSeconds) / 1'000'000.0;
+        previousTimeMicroSeconds = currentTimeMicroSeconds;
 
         float mps_LF = motorRPS_LF * RPS_TO_MPS;
         float mps_LB = motorRPS_LB * RPS_TO_MPS;
@@ -78,11 +78,11 @@ public:
 
         // float radiansPerSec = (-mps_LF - mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
-        rotation += radiansPerSec * deltaTimeSeconds;
+        rotation -= radiansPerSec * deltaTimeSeconds;
 
         float cosRot = cos(rotation);
         float sinRot = sin(rotation);
-        float globalVelX = cosRot * velocityLocal_X - sinRot * velocityLocal_Y;
+        float globalVelX = velocityLocal_X * cosRot - velocityLocal_Y * sinRot;
         float globalVelY = sinRot * velocityLocal_X + cosRot * velocityLocal_Y;
 
         positionGlobal_X += globalVelX * deltaTimeSeconds;
