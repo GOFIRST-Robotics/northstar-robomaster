@@ -43,22 +43,8 @@ ChassisSubsystem::ChassisSubsystem(
               VELOCITY_PID_MAX_ERROR_SUM,
               VELOCITY_PID_MAX_OUTPUT)},
       motors{
-          Motor(
-              drivers,
-              config.leftFrontId,
-              config.canBus,
-              false,
-              "LF",
-              false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
-          Motor(
-              drivers,
-              config.leftBackId,
-              config.canBus,
-              false,
-              "LB",
-              false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+          Motor(drivers, config.leftFrontId, config.canBus, false, "LF", false, CHASSIS_GEAR_RATIO),
+          Motor(drivers, config.leftBackId, config.canBus, false, "LB", false, CHASSIS_GEAR_RATIO),
           Motor(
               drivers,
               config.rightFrontId,
@@ -66,15 +52,8 @@ ChassisSubsystem::ChassisSubsystem(
               false,
               "RF",
               false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
-          Motor(
-              drivers,
-              config.rightBackId,
-              config.canBus,
-              false,
-              "RB",
-              false,
-              tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508),
+              CHASSIS_GEAR_RATIO),
+          Motor(drivers, config.rightBackId, config.canBus, false, "RB", false, CHASSIS_GEAR_RATIO),
       },
       turretMcbCanComm(turretMcbCanComm),
       yawMotor(yawMotor),
@@ -163,6 +142,8 @@ float yVelOdometry;
 float rotationOdometry;
 float rotationOdometryDegrees;
 
+float encoderLF_Velocity;
+
 void ChassisSubsystem::refresh()
 {
     auto runPid = [](Pid& pid,
@@ -174,7 +155,7 @@ void ChassisSubsystem::refresh()
         ramp.update(increment);
         pid.update(
             ramp.getValue() -
-            motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO);
+            ((motor.getEncoder()->getVelocity() * 60.0f) / M_TWOPI) / CHASSIS_GEAR_RATIO);
         motor.setDesiredOutput(pid.getValue());
     };
 
@@ -199,6 +180,7 @@ void ChassisSubsystem::refresh()
     xVelOdometry = chassisOdometry->getLocalVelocityX();
     yVelOdometry = chassisOdometry->getLocalVelocityY();
     rotationOdometry = chassisOdometry->getRotation();
+    encoderLF_Velocity = motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity();
 
     rotationOdometryDegrees = fmod(((180 / PI) * rotationOdometry), 360.0);
     if (rotationOdometryDegrees < 0)

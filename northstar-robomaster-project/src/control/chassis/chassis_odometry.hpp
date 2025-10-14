@@ -69,22 +69,15 @@ public:
         float mps_RF = motorRPS_RF * RPS_TO_MPS;
         float mps_RB = motorRPS_RB * RPS_TO_MPS;
 
-        float localVelX = (mps_LF + mps_RF + mps_LB + mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
-        float localVelY = (mps_LF - mps_RF - mps_LB + mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
-
         // i tihnk this is more real
-        // float localVelX = (mps_LF + mps_RF - mps_LB - mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
-        // float localVelY = (mps_LF - mps_RF + mps_LB - mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
-
-        // other potentially real???
-        // float localVelX = (mps_LF - mps_RF + mps_LB - mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
-        // float localVelY = (-mps_LF - mps_RF + mps_LB + mps_RB) * ONE_OVER_FOUR_SQRT_TWO;
+        float localVelX = (mps_LF + mps_RF - mps_LB - mps_RB) * SQRT_TWO_OVER_FOUR;
+        float localVelY = (mps_LF - mps_RF + mps_LB - mps_RB) * SQRT_TWO_OVER_FOUR;
 
         velocityLocal_X = localVelX;
         velocityLocal_Y = localVelY;
 
-        float radiansPerSec = (-mps_LF - mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
-        // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
+        // float radiansPerSec = (-mps_LF - mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
+        double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         rotation += radiansPerSec * deltaTimeSeconds;
 
         float cosRot = cos(rotation);

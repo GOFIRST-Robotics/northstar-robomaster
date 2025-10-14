@@ -82,7 +82,9 @@
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
 #include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/tuff_startup_noise.hpp"
 #include "control/buzzer/song/twinkle_twinkle.hpp"
+
 
 // HUD
 #include "tap/communication/serial/ref_serial_transmitter.hpp"
@@ -133,6 +135,8 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
 PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+
+PlaySongCommand playTuffStartupNoise(&buzzerSubsystem, tsnSong);
 
 PressCommandMapping ctrlShiftZSong(
     drivers(),
@@ -522,7 +526,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playMegalovaniaCommand);
+    &playTuffStartupNoise);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
