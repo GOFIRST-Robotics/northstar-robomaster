@@ -179,22 +179,6 @@ tap::motor::DjiMotor yawMotor(
     1,
     YAW_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::RevMotor yawMotor1(
-    drivers(),
-    tap::motor::REV_MOTOR1,
-    CanBus::CAN_BUS1,
-    false,
-    "YawMotor1",
-    1);  // gear ratio
-
-tap::motor::RevMotor yawMotor2(
-    drivers(),
-    tap::motor::REV_MOTOR2,
-    CanBus::CAN_BUS1,
-    false,
-    "YawMotor2",
-    1);  // gear ratio
-
 StandardTurretSubsystem turret(
     drivers(),
     &pitchMotor,
@@ -202,14 +186,6 @@ StandardTurretSubsystem turret(
     PITCH_MOTOR_CONFIG,
     YAW_MOTOR_CONFIG,
     &getTurretMCBCanComm());
-
-RevTurretSubsystem revTurret(
-    drivers(),
-    &pitchMotor,
-    &yawMotor1,
-    &yawMotor2,
-    PITCH_MOTOR_CONFIG,
-    YAW_MOTOR_REV_CONFIG);
 
 // turret controlers
 algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
@@ -265,18 +241,12 @@ algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurret
     worldFrameYawTurretPosPid,
     worldFrameYawTurretVelPid);
 
-algorithms::NeoWorldFrameYawTurretImuCascadePidTurretController neoWorldFrameYawTurretImuController(
-    *drivers(),
-    revTurret.yawMotor,
-    worldFrameYawTurretPosPid,  // PIDS ARE NOT RIGHT
-    worldFrameYawTurretVelPid);
-
 // turret commands
 user::TurretUserControlCommand turretUserControlCommand(
     drivers(),
     drivers()->controlOperatorInterface,
     &turret,
-    &neoWorldFrameYawTurretImuController,
+    &worldFrameYawTurretImuController,
     &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);

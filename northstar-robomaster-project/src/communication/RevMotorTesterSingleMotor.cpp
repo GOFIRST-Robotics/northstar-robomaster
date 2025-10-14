@@ -20,7 +20,8 @@ RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
           REVMotorId::REV_MOTOR1,
           tap::can::CanBus::CAN_BUS1,
           false,
-          "SingleRevMotor")
+          "SingleRevMotor",
+          18.0f / 120.0f)
 {
 }
 
@@ -42,10 +43,15 @@ void RevMotorTesterSingleMotor::initialize()
     singularMotor.setPeriodicStatusFrame(APICommand::Period4, 0);
 }
 
+float debugVelo;
+float debugPos;
 void RevMotorTesterSingleMotor::refresh()
 {
     singularMotor.setControlValue(
         drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) *
         2000);
+
+    debugVelo = singularMotor.getEncoder()->getVelocity() * 60 / M_TWOPI;
+    debugPos = singularMotor.getEncoder()->getPosition().getUnwrappedValue();
 }
 }  // namespace Communications::Rev

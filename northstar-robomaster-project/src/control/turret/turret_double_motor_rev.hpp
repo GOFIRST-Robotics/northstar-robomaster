@@ -41,6 +41,8 @@ public:
     {
         motor1->initialize();
         motor2->initialize();
+        motor1->setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
+        motor2->setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
     }
 
     /// Updates the measured motor angle

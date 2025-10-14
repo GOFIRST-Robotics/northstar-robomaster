@@ -18,17 +18,17 @@ void RevMotorEncoder::processMessage(const modm::can::Message& message, APIComma
 {
     encoderDisconnectTimeout.restart(MOTOR_DISCONNECT_TIME);
 
-    uint32_t receivedArbId = message.getIdentifier();
-    uint64_t rawValue = 0;
-    std::memcpy(&rawValue, message.data, sizeof(uint64_t));
-
     if (period == APICommand::Period1)
     {
-        shaftRPM = rawValue & 0xFFFFFFFF;
+        std::memcpy(&shaftRPM, message.data, sizeof(float));
     }
     else if (period == APICommand::Period2)
     {
-        uint16_t encoderActual = rawValue & 0xFFFFFFFF;
+        float encoderPos;  // REV sends this in rotations
+        std::memcpy(&encoderPos, message.data, sizeof(encoderPos));
+
+        uint16_t encoderActual = static_cast<uint16_t>(std::llround(encoderPos * 42.0f)) % 42 + 1;
+
         updateEncoderValue(encoderActual);
     }
 }

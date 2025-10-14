@@ -62,7 +62,7 @@ private:
 
     tap::arch::MilliTimeout encoderDisconnectTimeout;
 
-    int16_t shaftRPM;
+    float shaftRPM;
 };
 
 }  // namespace tap::motor

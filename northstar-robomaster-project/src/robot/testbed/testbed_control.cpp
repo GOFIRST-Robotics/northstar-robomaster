@@ -61,6 +61,10 @@
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
 
+// NEO turret
+#include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/user/neo_turret_user_control_command.hpp"
+
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
 #include "tap/control/governor/governor_with_fallback_command.hpp"
@@ -93,9 +97,10 @@ using namespace tap::communication::serial;
 // what to test
 // #define FLYWHEEL_TEST
 // #define REV_TEST
-#define AGITATOR_TEST
+// #define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
 // #define SENTRY_CONSTANTS
+#define NEO_TURRET_TEST
 
 // #define CHASSIS_TEST
 // #define HERO_CHASSIS_CONSTANTS
@@ -108,7 +113,7 @@ DummySubsystem dummySubsystem(drivers());
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
-#ifdef FLYWHEEL_TEST
+#ifdef REV_TEST
 Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers());
 
 #endif
@@ -198,6 +203,62 @@ HoldRepeatCommandMapping leftSwitchDownPressedShoot(
     false);
 
 #endif  // AGITATOR_TEST
+
+#ifdef NEO_TURRET_TEST
+
+tap::motor::DjiMotor pitchMotor(
+    drivers(),
+    PITCH_MOTOR_ID,
+    CAN_BUS_MOTORS,
+    true,
+    "PitchMotor",
+    false,
+    1,
+    PITCH_MOTOR_CONFIG.startEncoderValue);
+
+tap::motor::RevMotor yawMotor1(
+    drivers(),
+    tap::motor::REV_MOTOR1,
+    CanBus::CAN_BUS1,
+    false,
+    "YawMotor1",
+    18.0f / 120.0f);  // gear ratio
+
+tap::motor::RevMotor yawMotor2(
+    drivers(),
+    tap::motor::REV_MOTOR2,
+    CanBus::CAN_BUS1,
+    false,
+    "YawMotor2",
+    18.0f / 120.0f);  // gear ratio
+
+RevTurretSubsystem revTurret(
+    drivers(),
+    &pitchMotor,
+    &yawMotor1,
+    &yawMotor2,
+    PITCH_MOTOR_CONFIG,
+    YAW_MOTOR_REV_CONFIG);
+
+algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuController(
+    *drivers(),
+    revTurret.yawMotor,
+    world_rel_chassis_imu::YAW_PID_CONFIG);
+
+algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuController(
+    *drivers(),
+    revTurret.pitchMotor,
+    world_rel_chassis_imu::PITCH_PID_CONFIG);
+
+user::NeoTurretUserControlCommand turretUserControlCommand(
+    drivers(),
+    drivers()->controlOperatorInterface,
+    &revTurret,
+    &worldFrameYawChassisImuController,
+    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    USER_YAW_INPUT_SCALAR,
+    USER_PITCH_INPUT_SCALAR);
+#endif
 
 #ifdef STANDARD_TURRET_TEST
 // turret subsystem
@@ -574,8 +635,11 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     chassisSubsystem.initialize();
 #endif
-#ifdef FLYWHEEL_TEST
+#ifdef REV_TEST
     revMotorTesterSingleMotor.initialize();
+#endif
+#ifdef NEO_TURRET_TEST
+    revTurret.initialize();
 #endif
 }
 
@@ -598,8 +662,11 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
 #endif
-#ifdef FLYWHEEL_TEST
+#ifdef REV_TEST
     drivers->commandScheduler.registerSubsystem(&revMotorTesterSingleMotor);
+#endif
+#ifdef NEO_TURRET_TEST
+    drivers->commandScheduler.registerSubsystem(&revTurret);
 #endif
 }
 
@@ -614,12 +681,15 @@ void setDefaultTestCommands(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
 #endif
+#ifdef NEO_TURRET_TEST
+    revTurret.setDefaultCommand(&turretUserControlCommand);
+#endif
 }
 
 void startTestCommands(src::testbed::Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+    // drivers->bmi088.setMountingTransform(
+    //     tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
 }
 
 void registerTestIoMappings(src::testbed::Drivers *drivers)
