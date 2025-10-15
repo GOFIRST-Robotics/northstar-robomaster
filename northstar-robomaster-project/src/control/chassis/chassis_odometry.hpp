@@ -15,43 +15,37 @@ class ChassisOdometry
     float RPS_TO_MPS;
     float DIST_TO_CENT;
 
-public:
-    // member variables
-    float positionGlobal_X;
-    float positionGlobal_Y;
+    modm::Vector<float, 2> positionGlobal;
+    modm::Vector<float, 2> velocityGlobal;
+    modm::Vector<float, 2> velocityLocal;
 
-    float velocityLocal_X;
-    float velocityLocal_Y;
-
+    // radians
     float rotation;
 
     uint32_t previousTimeMicroSeconds = 0;
 
+public:
     ChassisOdometry(float distanceToCenter, float wheelDiameter)
-        : positionGlobal_X(0),
-          positionGlobal_Y(0),
-          rotation(0),
-          RPS_TO_MPS(wheelDiameter / 2.0),
+        : RPS_TO_MPS(wheelDiameter / 2.0),
           DIST_TO_CENT(distanceToCenter)
     {
+        zeroOdometry();
     }
 
-    float getWorldPositionX() { return positionGlobal_X; }
-    float getWorldPositionY() { return positionGlobal_Y; }
-
-    float getLocalVelocityX() { return velocityLocal_X; }
-    float getLocalVelocityY() { return velocityLocal_Y; }
-
+    modm::Vector<float, 2> getPositionGlobal() { return positionGlobal; }
+    modm::Vector<float, 2> getVelocityGlobal() { return velocityGlobal; }
+    modm::Vector<float, 2> getVelocityLocal() { return velocityLocal; }
     float getRotation() { return rotation; }
 
     void zeroOdometry()
     {
-        positionGlobal_X = 0;
-        positionGlobal_Y = 0;
+        positionGlobal = modm::Vector<float, 2>(0, 0);
+        velocityGlobal = modm::Vector<float, 2>(0, 0);
+        velocityLocal = modm::Vector<float, 2>(0, 0);
         rotation = 0;
     }
 
-    // values are in radians per second
+    // input is in radians per second
     void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
     {
         uint32_t currentTimeMicroSeconds = tap::arch::clock::getTimeMicroseconds();
@@ -69,24 +63,27 @@ public:
         float mps_RF = motorRPS_RF * RPS_TO_MPS;
         float mps_RB = motorRPS_RB * RPS_TO_MPS;
 
-        // i tihnk this is more real
         float localVelX = (mps_LF + mps_RF - mps_LB - mps_RB) * SQRT_TWO_OVER_FOUR;
         float localVelY = (mps_LF - mps_RF + mps_LB - mps_RB) * SQRT_TWO_OVER_FOUR;
 
-        velocityLocal_X = localVelX;
-        velocityLocal_Y = localVelY;
+        velocityLocal.x = localVelX;
+        velocityLocal.y = localVelY;
 
-        // float radiansPerSec = (-mps_LF - mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         rotation -= radiansPerSec * deltaTimeSeconds;
 
-        float cosRot = cos(rotation);
-        float sinRot = sin(rotation);
-        float globalVelX = velocityLocal_X * cosRot - velocityLocal_Y * sinRot;
-        float globalVelY = sinRot * velocityLocal_X + cosRot * velocityLocal_Y;
+        velocityGlobal = convertLocalToGlobal(velocityLocal);
+        positionGlobal += velocityGlobal * deltaTimeSeconds;
+    }
 
-        positionGlobal_X += globalVelX * deltaTimeSeconds;
-        positionGlobal_Y += globalVelY * deltaTimeSeconds;
+    modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2> &local)
+    {
+        float cosR = cos(rotation);
+        float sinR = sin(rotation);
+
+        return modm::Vector<float, 2>(
+            local.x * cosR - local.y * sinR,
+            local.x * sinR + local.y * cosR);
     }
 };
 

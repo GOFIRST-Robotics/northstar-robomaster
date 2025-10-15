@@ -85,7 +85,6 @@
 #include "control/buzzer/song/tuff_startup_noise.hpp"
 #include "control/buzzer/song/twinkle_twinkle.hpp"
 
-
 // HUD
 #include "tap/communication/serial/ref_serial_transmitter.hpp"
 
@@ -387,6 +386,10 @@ ToggleCommandMapping gPressed(
 //     RemoteMapState(RemoteMapState::MouseButton::LEFT),
 //     false);
 
+// chassis odometry
+src::chassis::ChassisOdometry *chassisOdometry =
+    new src::chassis::ChassisOdometry(src::chassis::DIST_TO_CENTER, src::chassis::WHEEL_DIAMETER_M);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -404,9 +407,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     },
     &drivers()->turretMCBCanCommBus2,
     &yawMotor,
-    new src::chassis::ChassisOdometry(
-        src::chassis::DIST_TO_CENTER,
-        src::chassis::WHEEL_DIAMETER_M));
+    chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -438,33 +439,12 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
-src::chassis::ChassisDriveDistanceCommand driveDist1(
+src::chassis::ChassisDriveDistanceCommand driveAMeterForwardCommand(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    3,
+    chassisOdometry,
     0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist2(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    3,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist3(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    -3,
-    0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist4(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    -3,
-    0.2);
+    1,
+    0.01);
 
 // Chassis Governors
 

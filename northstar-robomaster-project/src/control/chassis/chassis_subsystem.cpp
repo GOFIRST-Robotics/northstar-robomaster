@@ -175,10 +175,10 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
 
-    xPosOdometry = chassisOdometry->getWorldPositionX();
-    yPosOdometry = chassisOdometry->getWorldPositionY();
-    xVelOdometry = chassisOdometry->getLocalVelocityX();
-    yVelOdometry = chassisOdometry->getLocalVelocityY();
+    xPosOdometry = chassisOdometry->getPositionGlobal().x;
+    yPosOdometry = chassisOdometry->getPositionGlobal().y;
+    xVelOdometry = chassisOdometry->getVelocityLocal().x;
+    yVelOdometry = chassisOdometry->getVelocityLocal().y;
     rotationOdometry = chassisOdometry->getRotation();
     encoderLF_Velocity = motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity();
 

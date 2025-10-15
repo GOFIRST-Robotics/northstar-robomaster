@@ -4,6 +4,8 @@
 
 #include "modm/math/filter/pid.hpp"
 
+#include "chassis_subsystem.hpp"
+
 namespace src
 {
 class Drivers;
@@ -25,7 +27,7 @@ public:
 
     ChassisDriveDistanceCommand(
         ChassisSubsystem *chassis,
-        src::control::ControlOperatorInterface *operatorInterface,
+        src::chassis::ChassisOdometry *chassisOdometry,
         float xDist,
         float yDist,
         float maxError);
@@ -42,17 +44,10 @@ public:
 
 private:
     src::chassis::ChassisSubsystem *chassis;
+    src::chassis::ChassisOdometry *chassisOdometry;
 
-    src::control::ControlOperatorInterface *operatorInterface;
-
-    float xDist;  // Forward
-    float yDist;  // Sideways
+    modm::Vector<float, 2> targetPosition;
     float maxError;
-
-    float xDistanceCounter;
-    float yDistanceCounter;
-
-    uint32_t prevTime;
 
     using Pid = modm::Pid<float>;
 

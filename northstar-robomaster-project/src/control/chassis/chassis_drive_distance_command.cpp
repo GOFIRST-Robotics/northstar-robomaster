@@ -4,48 +4,36 @@
 
 #include "robot/control_operator_interface.hpp"
 
-#include "chassis_subsystem.hpp"
-
 using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
 ChassisDriveDistanceCommand::ChassisDriveDistanceCommand(
     ChassisSubsystem* chassis,
-    src::control::ControlOperatorInterface* operatorInterface,
+    src::chassis::ChassisOdometry* chassisOdometry,
     float xDist,
     float yDist,
     float maxError)
     : chassis(chassis),
-      operatorInterface(operatorInterface),
-      xDist(xDist),
-      yDist(yDist),
+      chassisOdometry(chassisOdometry),
       maxError(maxError)
 
 {
     addSubsystemRequirement(chassis);
     xPid = Pid(2.0f, 0.0f, 0.0f, 0.0f, 1.0f);
     yPid = Pid(2.0f, 0.0f, 0.0f, 0.0f, 1.f);
+
+    targetPosition = chassisOdometry->convertLocalToGlobal(modm::Vector<float, 2>(xDist, yDist));
 }
 
-void ChassisDriveDistanceCommand::initialize()
-{
-    prevTime = tap::arch::clock::getTimeMilliseconds();
-    xDistanceCounter = 0.0f;
-    yDistanceCounter = 0.0f;
-}
+void ChassisDriveDistanceCommand::initialize() {}
 
 void ChassisDriveDistanceCommand::execute()
 {
     auto scale = [](float raw) -> float { return limitVal(raw, -1.0f, 1.0f) * 0.5f; };
-    uint32_t curTime = tap::arch::clock::getTimeMilliseconds();
-    uint32_t dt = curTime - prevTime;
-    prevTime = curTime;
-    xPid.update(xDist - xDistanceCounter);
-    yPid.update(yDist - yDistanceCounter);
+    xPid.update(targetPosition.x - chassisOdometry->getPositionGlobal().x);
+    yPid.update(targetPosition.y - chassisOdometry->getPositionGlobal().y);
     chassis->setVelocityTurretDrive(scale(xPid.getValue()), scale(yPid.getValue()), 0);
-    xDistanceCounter += xPid.getValue() * 0.5f * (dt / 1000.0);
-    yDistanceCounter += yPid.getValue() * 0.5f * (dt / 1000.0);
 }
 
 void ChassisDriveDistanceCommand::end(bool interrupted)
@@ -55,7 +43,7 @@ void ChassisDriveDistanceCommand::end(bool interrupted)
 
 bool ChassisDriveDistanceCommand::isFinished() const
 {
-    return abs(xDist - xDistanceCounter) <= maxError && abs(yDist - yDistanceCounter) <= maxError;
+    return chassisOdometry->getPositionGlobal().getDistanceTo(targetPosition) <= maxError;
 }
 
 };  // namespace src::chassis
