@@ -36,7 +36,6 @@
 
 // turret
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
-#include "control/turret/algorithms/neo_world_frame_yaw_turret_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
@@ -142,7 +141,19 @@ PressCommandMapping ctrlShiftZSong(
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+FlywheelSubsystem flywheel(
+    drivers(),
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    UP_MOTOR_ID,
+    CAN_BUS,
+    tap::motor::RevMotor::PIDConfig{
+        .PIDSlot = 0,
+        .kP = FLYWHEEL_PID_KP,
+        .kI = FLYWHEEL_PID_KI,
+        .kD = FLYWHEEL_PID_KD,
+        .kF = FLYWHEEL_PID_KF,
+    });
 
 // flywheel commands
 FlywheelRunCommand flywheelRunCommand(&flywheel);

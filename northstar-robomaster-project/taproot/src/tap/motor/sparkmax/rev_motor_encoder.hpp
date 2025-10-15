@@ -10,7 +10,6 @@
 
 namespace tap::motor
 {
-enum class APICommand : uint16_t;
 /**
  * A class designed to interface with the encoder for REV brand motors and motor controllers
  * over CAN.
@@ -54,7 +53,7 @@ public:
      * @param[in] message the message to be processed.
      * @param[in] period the period for velo or position.
      */
-    mockable void processMessage(const modm::can::Message& message, APICommand period);
+    mockable void processMessage(const modm::can::Message& message);
 
 private:
     // wait time before the motor is considered disconnected, in milliseconds

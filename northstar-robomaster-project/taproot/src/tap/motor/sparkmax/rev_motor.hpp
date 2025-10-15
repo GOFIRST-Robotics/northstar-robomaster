@@ -37,14 +37,12 @@
 #include "tap/communication/sensors/encoder/multi_encoder.hpp"
 #include "tap/motor/sparkmax/rev_motor_encoder.hpp"
 
+#include "../motor_interface.hpp"
+
+#include "rev_motor_constants.hpp"
+
 namespace tap::motor
 {
-/**
- * CAN IDs for the feedback messages sent by DJI motor controllers. Motor `i` in the set
- * {1, 2,...,8} sends feedback data with in a CAN message with ID 0x200 + `i`.
- * for declaring a new motor, must be one of these motor
- * identifiers
- */
 enum REVMotorId : uint32_t
 {
     REV_MOTOR1 = 0x001,
@@ -57,278 +55,286 @@ enum REVMotorId : uint32_t
     REV_MOTOR8 = 0x008,
 };
 
-enum class APICommand : uint16_t
-{
-    ClearFaults = (6 << 4) | 14,
-    FactoryDefaults = (7 << 4) | 4,
-    FactoryReset = (7 << 4) | 5,
-    Identify = (7 << 4) | 6,
-    Heartbeat = (9 << 4) | 2,
-    BurnFlash = (63 << 4) | 2,
-    FirmwareVersion = (9 << 4) | 8,
-
-    Setpoint = (0 << 4) | 1,
-    DutyCycle = (0 << 4) | 2,
-    Velocity = (1 << 4) | 2,
-    SmartVelocity = (1 << 4) | 3,
-    Position = (3 << 4) | 2,
-    Voltage = (4 << 4) | 2,
-    Current = (4 << 4) | 3,
-    SmartMotion = (5 << 4) | 2,
-
-    Period0 = (6 << 4) | 0,
-    Period1 = (6 << 4) | 1,
-    Period2 = (6 << 4) | 2,
-    Period3 = (6 << 4) | 3,
-    Period4 = (6 << 4) | 4
-};
-
-enum class Parameter : uint32_t
-{
-    kInputMode = 1,
-    kMotorType = 2,
-    kCommAdvance = 3,
-    kSensorType = 4,
-    kCtrlType = 5,
-    kIdleMode = 6,
-    kInputDeadband = 7,
-    kFeedbackSensorPID0 = 8,
-    kFeedbackSensorPID1 = 9,
-    kPolePairs = 10,
-    kCurrentChop = 11,
-    kCurrentChopCycles = 12,
-    kP_0 = 13,
-    kI_0 = 14,
-    kD_0 = 15,
-    kF_0 = 16,
-    kIZone_0 = 17,
-    kDFilter_0 = 18,
-    kOutputMin_0 = 19,
-    kOutputMax_0 = 20,
-    kP_1 = 21,
-    kI_1 = 22,
-    kD_1 = 23,
-    kF_1 = 24,
-    kIZone_1 = 25,
-    kDFilter_1 = 26,
-    kOutputMin_1 = 27,
-    kOutputMax_1 = 28,
-    kP_2 = 29,
-    kI_2 = 30,
-    kD_2 = 31,
-    kF_2 = 32,
-    kIZone_2 = 33,
-    kDFilter_2 = 34,
-    kOutputMin_2 = 35,
-    kOutputMax_2 = 36,
-    kP_3 = 37,
-    kI_3 = 38,
-    kD_3 = 39,
-    kF_3 = 40,
-    kIZone_3 = 41,
-    kDFilter_3 = 42,
-    kOutputMin_3 = 43,
-    kOutputMax_3 = 44,
-    kInverted = 45,
-    kOutputRatio = 46,
-    kSerialNumberLow = 47,
-    kSerialNumberMid = 48,
-    kSerialNumberHigh = 49,
-    kLimitSwitchFwdPolarity = 50,
-    kLimitSwitchRevPolarity = 51,
-    kHardLimitFwdEn = 52,
-    kHardLimitRevEn = 53,
-    kSoftLimitFwdEn = 54,
-    kSoftLimitRevEn = 55,
-    kRampRate = 56,
-    kFollowerID = 57,
-    kFollowerConfig = 58,
-    kSmartCurrentStallLimit = 59,
-    kSmartCurrentFreeLimit = 60,
-    kSmartCurrentConfig = 61,
-    kMotorKv = 63,
-    kMotorR = 64,
-    kMotorL = 65,
-    kEncoderCountsPerRev = 69,
-    kEncoderAverageDepth = 70,
-    kEncoderSampleDelta = 71,
-    kEncoderInverted = 72,
-    kClosedLoopVoltageMode = 74,
-    kCompensatedNominalVoltage = 75,
-    kSmartMotionMaxVelocity_0 = 76,
-    kSmartMotionMaxAccel_0 = 77,
-    kSmartMotionMinVelOutput_0 = 78,
-    kSmartMotionAllowedClosedLoopError_0 = 79,
-    kSmartMotionAccelStrategy_0 = 80,
-    kSmartMotionMaxVelocity_1 = 81,
-    kSmartMotionMaxAccel_1 = 82,
-    kSmartMotionMinVelOutput_1 = 83,
-    kSmartMotionAllowedClosedLoopError_1 = 84,
-    kSmartMotionAccelStrategy_1 = 85,
-    kSmartMotionMaxVelocity_2 = 86,
-    kSmartMotionMaxAccel_2 = 87,
-    kSmartMotionMinVelOutput_2 = 88,
-    kSmartMotionAllowedClosedLoopError_2 = 89,
-    kSmartMotionAccelStrategy_2 = 90,
-    kSmartMotionMaxVelocity_3 = 91,
-    kSmartMotionMaxAccel_3 = 92,
-    kSmartMotionMinVelOutput_3 = 93,
-    kSmartMotionAllowedClosedLoopError_3 = 94,
-    kSmartMotionAccelStrategy_3 = 95,
-    kIMaxAccum_0 = 96,
-    kSlot3Placeholder1_0 = 97,
-    kSlot3Placeholder2_0 = 98,
-    kSlot3Placeholder3_0 = 99,
-    kIMaxAccum_1 = 100,
-    kSlot3Placeholder1_1 = 101,
-    kSlot3Placeholder2_1 = 102,
-    kSlot3Placeholder3_1 = 103,
-    kIMaxAccum_2 = 104,
-    kSlot3Placeholder1_2 = 105,
-    kSlot3Placeholder2_2 = 106,
-    kSlot3Placeholder3_2 = 107,
-    kIMaxAccum_3 = 108,
-    kSlot3Placeholder1_3 = 109,
-    kSlot3Placeholder2_3 = 110,
-    kSlot3Placeholder3_3 = 111,
-    kPositionConversionFactor = 112,
-    kVelocityConversionFactor = 113,
-    kClosedLoopRampRate = 114,
-    kSoftLimitFwd = 115,
-    kSoftLimitRev = 116,
-    kAnalogPositionConversion = 119,
-    kAnalogVelocityConversion = 120,
-    kAnalogAverageDepth = 121,
-    kAnalogSensorMode = 122,
-    kAnalogInverted = 123,
-    kAnalogSampleDelta = 124,
-    kDataPortConfig = 127,
-    kAltEncoderCountsPerRev = 128,
-    kAltEncoderAverageDepth = 129,
-    kAltEncoderSampleDelta = 130,
-    kAltEncoderInverted = 131,
-    kAltEncoderPositionFactor = 132,
-    kAltEncoderVelocityFactor = 133,
-    kHallSensorSampleRate = 136,
-    kHallSensorAverageDepth = 137,
-    kDutyCyclePositionFactor = 139,
-    kDutyCycleVelocityFactor = 140,
-    kDutyCycleInverted = 141,
-    kDutyCycleAverageDepth = 143,
-    kPositionPIDWrapEnable = 149,
-    kPositionPIDMinInput = 150,
-    kPositionPIDMaxInput = 151,
-    kDutyCyclePrescalar = 153,
-    kDutyCycleZeroOffset = 154
-};
-
-/**
- * @brief Periodic status 0 structure
- */
-struct Period0Status
-{
-    float dutyCycle;
-    uint16_t faults;
-    uint16_t stickyFaults;
-    bool isInverted;
-    bool idleMode;
-    bool isFollower;
-    std::chrono::steady_clock::time_point timestamp;
-};
-
-/**
- * @brief Periodic status 1 structure
- */
-struct Period1Status
-{
-    float velocity;
-    float temperature;
-    float voltage;
-    float current;
-    std::chrono::steady_clock::time_point timestamp;
-};
-
-/**
- * @brief Periodic status 2 structure
- */
-struct Period2Status
-{
-    float position;
-    float iAccum;
-    std::chrono::steady_clock::time_point timestamp;
-};
-
-/**
- * @brief Periodic status 3 structure
- */
-struct Period3Status
-{
-    float analogVoltage;
-    float analogVelocity;
-    float analogPosition;
-    std::chrono::steady_clock::time_point timestamp;
-};
-
-/**
- * @brief Periodic status 4 structure
- */
-struct Period4Status
-{
-    float altEncoderVelocity;
-    float altEncoderPosition;
-    std::chrono::steady_clock::time_point timestamp;
-};
-
-/**
- * A class designed to interface with DJI brand motors and motor controllers over CAN.
- * This includes the C610 and C620 motor controllers and the GM6020 motor (that has a
- * built-in motor controller).
- *
- * @note: the default positive rotation direction (i.e.: when `this->isMotorInverted()
- *      == false`) is counter clockwise when looking at the shaft from the side opposite
- *      the motor. This is specified in the C620 user manual (page 18).
- *
- * DJI motor encoders store a consistent encoding for a given angle across power-cycles.
- * This means the encoder angle reported by the motor can have meaning if the encoding
- * for an angle is unique as it is for the GM6020s. However for geared motors like the
- * M3508 where a full encoder revolution does not correspond 1:1 to a shaft revolution,
- * it is impossible to know the orientation of the shaft given just the encoder value.
- *
- * Extends the CanRxListener class to attach a message handler for feedback data from the
- * motor to the CAN Rx dispatch handler.
- *
- * @note Currently there is no error handling for using a motor without having it be properly
- * initialize. You must call the `initialize` function in order for this class to work properly.
- */
 class RevMotor : public can::CanRxListener
 {
 public:
-    // 0 - 8191 for dji motors
-    // static constexpr uint16_t ENC_RESOLUTION = 42;
+    // Maximum output for the Spark Max in Volts
+    static constexpr uint16_t MAX_OUTPUT_SPARK_MAX = 12;
+
+    enum class APICommand : uint16_t
+    {
+        ClearFaults = (6 << 4) | 14,
+        FactoryDefaults = (7 << 4) | 4,
+        FactoryReset = (7 << 4) | 5,
+        Identify = (7 << 4) | 6,
+        Heartbeat = (9 << 4) | 2,
+        BurnFlash = (63 << 4) | 2,
+        FirmwareVersion = (9 << 4) | 8,
+
+        Setpoint = (0 << 4) | 1,
+        DutyCycle = (0 << 4) | 2,
+        Velocity = (1 << 4) | 2,
+        SmartVelocity = (1 << 4) | 3,
+        Position = (3 << 4) | 2,
+        Voltage = (4 << 4) | 2,
+        Current = (4 << 4) | 3,
+        SmartMotion = (5 << 4) | 2,
+
+        Period0 = (6 << 4) | 0,
+        Period1 = (6 << 4) | 1,
+        Period2 = (6 << 4) | 2,
+        Period3 = (6 << 4) | 3,
+        Period4 = (6 << 4) | 4
+    };
+
+    enum class Parameter : uint32_t
+    {
+        kInputMode = 1,
+        kMotorType = 2,
+        kCommAdvance = 3,
+        kSensorType = 4,
+        kCtrlType = 5,
+        kIdleMode = 6,
+        kInputDeadband = 7,
+        kFeedbackSensorPID0 = 8,
+        kFeedbackSensorPID1 = 9,
+        kPolePairs = 10,
+        kCurrentChop = 11,
+        kCurrentChopCycles = 12,
+        kP_0 = 13,
+        kI_0 = 14,
+        kD_0 = 15,
+        kF_0 = 16,
+        kIZone_0 = 17,
+        kDFilter_0 = 18,
+        kOutputMin_0 = 19,
+        kOutputMax_0 = 20,
+        kP_1 = 21,
+        kI_1 = 22,
+        kD_1 = 23,
+        kF_1 = 24,
+        kIZone_1 = 25,
+        kDFilter_1 = 26,
+        kOutputMin_1 = 27,
+        kOutputMax_1 = 28,
+        kP_2 = 29,
+        kI_2 = 30,
+        kD_2 = 31,
+        kF_2 = 32,
+        kIZone_2 = 33,
+        kDFilter_2 = 34,
+        kOutputMin_2 = 35,
+        kOutputMax_2 = 36,
+        kP_3 = 37,
+        kI_3 = 38,
+        kD_3 = 39,
+        kF_3 = 40,
+        kIZone_3 = 41,
+        kDFilter_3 = 42,
+        kOutputMin_3 = 43,
+        kOutputMax_3 = 44,
+        kInverted = 45,
+        kOutputRatio = 46,
+        kSerialNumberLow = 47,
+        kSerialNumberMid = 48,
+        kSerialNumberHigh = 49,
+        kLimitSwitchFwdPolarity = 50,
+        kLimitSwitchRevPolarity = 51,
+        kHardLimitFwdEn = 52,
+        kHardLimitRevEn = 53,
+        kSoftLimitFwdEn = 54,
+        kSoftLimitRevEn = 55,
+        kRampRate = 56,
+        kFollowerID = 57,
+        kFollowerConfig = 58,
+        kSmartCurrentStallLimit = 59,
+        kSmartCurrentFreeLimit = 60,
+        kSmartCurrentConfig = 61,
+        kMotorKv = 63,
+        kMotorR = 64,
+        kMotorL = 65,
+        kEncoderCountsPerRev = 69,
+        kEncoderAverageDepth = 70,
+        kEncoderSampleDelta = 71,
+        kEncoderInverted = 72,
+        kClosedLoopVoltageMode = 74,
+        kCompensatedNominalVoltage = 75,
+        kSmartMotionMaxVelocity_0 = 76,
+        kSmartMotionMaxAccel_0 = 77,
+        kSmartMotionMinVelOutput_0 = 78,
+        kSmartMotionAllowedClosedLoopError_0 = 79,
+        kSmartMotionAccelStrategy_0 = 80,
+        kSmartMotionMaxVelocity_1 = 81,
+        kSmartMotionMaxAccel_1 = 82,
+        kSmartMotionMinVelOutput_1 = 83,
+        kSmartMotionAllowedClosedLoopError_1 = 84,
+        kSmartMotionAccelStrategy_1 = 85,
+        kSmartMotionMaxVelocity_2 = 86,
+        kSmartMotionMaxAccel_2 = 87,
+        kSmartMotionMinVelOutput_2 = 88,
+        kSmartMotionAllowedClosedLoopError_2 = 89,
+        kSmartMotionAccelStrategy_2 = 90,
+        kSmartMotionMaxVelocity_3 = 91,
+        kSmartMotionMaxAccel_3 = 92,
+        kSmartMotionMinVelOutput_3 = 93,
+        kSmartMotionAllowedClosedLoopError_3 = 94,
+        kSmartMotionAccelStrategy_3 = 95,
+        kIMaxAccum_0 = 96,
+        kSlot3Placeholder1_0 = 97,
+        kSlot3Placeholder2_0 = 98,
+        kSlot3Placeholder3_0 = 99,
+        kIMaxAccum_1 = 100,
+        kSlot3Placeholder1_1 = 101,
+        kSlot3Placeholder2_1 = 102,
+        kSlot3Placeholder3_1 = 103,
+        kIMaxAccum_2 = 104,
+        kSlot3Placeholder1_2 = 105,
+        kSlot3Placeholder2_2 = 106,
+        kSlot3Placeholder3_2 = 107,
+        kIMaxAccum_3 = 108,
+        kSlot3Placeholder1_3 = 109,
+        kSlot3Placeholder2_3 = 110,
+        kSlot3Placeholder3_3 = 111,
+        kPositionConversionFactor = 112,
+        kVelocityConversionFactor = 113,
+        kClosedLoopRampRate = 114,
+        kSoftLimitFwd = 115,
+        kSoftLimitRev = 116,
+        kAnalogPositionConversion = 119,
+        kAnalogVelocityConversion = 120,
+        kAnalogAverageDepth = 121,
+        kAnalogSensorMode = 122,
+        kAnalogInverted = 123,
+        kAnalogSampleDelta = 124,
+        kDataPortConfig = 127,
+        kAltEncoderCountsPerRev = 128,
+        kAltEncoderAverageDepth = 129,
+        kAltEncoderSampleDelta = 130,
+        kAltEncoderInverted = 131,
+        kAltEncoderPositionFactor = 132,
+        kAltEncoderVelocityFactor = 133,
+        kHallSensorSampleRate = 136,
+        kHallSensorAverageDepth = 137,
+        kDutyCyclePositionFactor = 139,
+        kDutyCycleVelocityFactor = 140,
+        kDutyCycleInverted = 141,
+        kDutyCycleAverageDepth = 143,
+        kPositionPIDWrapEnable = 149,
+        kPositionPIDMinInput = 150,
+        kPositionPIDMaxInput = 151,
+        kDutyCyclePrescalar = 153,
+        kDutyCycleZeroOffset = 154
+    };
+
+    /**
+     * @brief Periodic status 0 structure
+     */
+    struct Period0Status
+    {
+        float dutyCycle;
+        uint16_t faults;
+        uint16_t stickyFaults;
+        bool isInverted;
+        bool idleMode;
+        bool isFollower;
+        std::chrono::steady_clock::time_point timestamp;
+    };
+
+    /**
+     * @brief Periodic status 1 structure
+     */
+    struct Period1Status
+    {
+        float velocity;
+        float temperature;
+        float voltage;
+        float current;
+        std::chrono::steady_clock::time_point timestamp;
+    };
+
+    /**
+     * @brief Periodic status 2 structure
+     */
+    struct Period2Status
+    {
+        float position;
+        float iAccum;
+        std::chrono::steady_clock::time_point timestamp;
+    };
+
+    /**
+     * @brief Periodic status 3 structure
+     */
+    struct Period3Status
+    {
+        float analogVoltage;
+        float analogVelocity;
+        float analogPosition;
+        std::chrono::steady_clock::time_point timestamp;
+    };
+
+    /**
+     * @brief Periodic status 4 structure
+     */
+    struct Period4Status
+    {
+        float altEncoderVelocity;
+        float altEncoderPosition;
+        std::chrono::steady_clock::time_point timestamp;
+    };
+    struct PIDConfig
+    {
+        uint8_t PIDSlot = 0;  // slots 0-3
+        float kP = 0.0f;
+        float kI = 0.0f;
+        float kD = 0.0f;
+        float kF = 0.0f;
+        float kIZone = 0.0f;
+        float kDFilter = 0.0f;
+        float kOutputMin = -1.0f;
+        float kOutputMax = 1.0f;
+    };
+    /**
+     * Control modes available for RevMotor operation
+     */
+    enum class ControlMode : uint8_t
+    {
+        DUTY_CYCLE,     // Direct duty cycle control (0.0 to 1.0)
+        VELOCITY,       // Velocity control in RPM
+        POSITION,       // Position control in rotations
+        VOLTAGE,        // Voltage control in volts
+        CURRENT,        // Current control in amps
+        SMART_MOTION,   // Smart motion with acceleration and velocity limits
+        SMART_VELOCITY  // Smart velocity with acceleration limits
+    };
 
     /**
      * @param drivers a pointer to the drivers struct
      * @param desMotorIdentifier the ID of this motor controller
      * @param motorCanBus the CAN bus the motor is on
+     * @param controlMode the control mode for this motor
      * @param isInverted if `false` the positive rotation direction of the shaft is
      *      counter-clockwise when looking at the shaft from the side opposite the motor.
      *      If `true` then the positive rotation direction will be clockwise.
      * @param name a name to associate with the motor for use in the motor menu
+     * @param gearRatio the ratio of input revolutions to output revolutions of this encoder.
+     * @param encoderHomePosition the zero position for the encoder in encoder ticks.
+     * @param externalEncoder a pointer to an external encoder to average with the internal encoder.
      */
     RevMotor(
         Drivers* drivers,
         REVMotorId desMotorIdentifier,
         tap::can::CanBus motorCanBus,
+        ControlMode controlMode,
         bool isInverted,
         const char* name,
         float gearRatio = 1,
+        uint32_t encoderHomePosition = 0,
         tap::encoder::EncoderInterface* externalEncoder = nullptr);
 
     mockable ~RevMotor();
 
     void initialize();
-
-    DISALLOW_COPY_AND_ASSIGN(RevMotor)
 
     tap::encoder::EncoderInterface* getEncoder() const
     {
@@ -340,48 +346,33 @@ public:
      */
     mockable const RevMotorEncoder& getInternalEncoder() const { return this->internalEncoder; }
 
-    // /**
-    //  * Overrides virtual method in the can class, called every time a message with the
-    //  * CAN message id this class is attached to is received by the can receive handler.
-    //  * Parses the data in the message and updates this class's fields accordingly.
-    //  *
-    //  * @param[in] message the message to be processed.
-    //  */
-    void processMessage(const modm::can::Message& message);
+    DISALLOW_COPY_AND_ASSIGN(RevMotor)
 
     /**
-     * @return `true` if a CAN message has been received from the motor within the last
-     *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
+     * Overrides virtual method in the can class, called every time a message with the
+     * CAN message id this class is attached to is received by the can receive handler.
+     * Parses the data in the message and updates this class's fields accordingly.
+     *
+     * @param[in] message the message to be processed.
      */
-    bool isMotorOnline() const;
-
-    mockable uint32_t getMotorIdentifier() const;
-
-    mockable bool isMotorInverted() const { return motorInverted; };
-
-    mockable tap::can::CanBus getCanBus() const;
-
-    mockable const char* getName() const;
-
-    void setTargetVoltage(float targetVoltage);
-
-    void setPeriodicStatusFrame(APICommand periodic, uint16_t periodMs);
+    void processMessage(const modm::can::Message& message) override;
 
     /**
-     * Control modes available for RevMotor operation
+     * Set the PID configuration for the motor controller.
+     *
+     * @param[in] config the PID configuration to set.
+     * @param[in] slot the PID slot to set the configuration for (0-3).
      */
-    enum class ControlMode
-    {
-        DUTY_CYCLE,     // Direct duty cycle control (0.0 to 1.0)
-        VELOCITY,       // Velocity control in RPM
-        POSITION,       // Position control in rotations
-        VOLTAGE,        // Voltage control in volts
-        CURRENT,        // Current control in amps
-        SMART_MOTION,   // Smart motion with acceleration and velocity limits
-        SMART_VELOCITY  // Smart velocity with acceleration limits
-    };
+    void setMotorPID(const PIDConfig& config, uint8_t slot = 0);
 
-    APICommand controlModeToAPI(ControlMode mode);
+    /**
+     * Set the control value for the motor. The meaning of this value is based off the control
+     * mode.
+     *
+     * @param[in] controlValue the control value of the motor.
+     *
+     */
+    void setControlValue(float controlValue);
 
     /**
      * Set the control mode for this motor
@@ -390,22 +381,10 @@ public:
     void setControlMode(ControlMode mode);
 
     /**
-     * Get the current control mode for this motor
-     * @return The active control mode
+     * @return `true` if a CAN message has been received from the motor within the last
+     *      `MOTOR_DISCONNECT_TIME` ms, `false` otherwise.
      */
-    ControlMode getControlMode() const;
-
-    /**
-     * Set the control value based on the current control mode
-     * @param value The control value in appropriate units for the current mode
-     */
-    void setControlValue(float value);
-
-    /**
-     * Get the current control value
-     * @return The control value in the units of the current mode
-     */
-    float getControlValue() const;
+    bool isMotorOnline() const;
 
     /**
      * calculates the 29 bit ID for the REV Spark max motor controller. The basis for this is that
@@ -415,17 +394,46 @@ public:
      */
     modm::can::Message createRevCanMessage(const RevMotor* motor);
 
+    /**
+     * @return the raw `desiredOutput` value which will be sent to the motor controller
+     *      (specified via `setDesiredOutput()`) in the units of the current mode
+     */
+    float getControlValue() const;
+
+    /**
+     * Get the current control mode for this motor
+     * @return The active control mode
+     */
+    ControlMode getControlMode() const;
+
+    mockable uint32_t getMotorIdentifier() const;
+
+    mockable bool isMotorInverted() const { return motorInverted; };
+
+    mockable tap::can::CanBus getCanBus() const;
+
+    mockable const char* getName() const;
+
+    /**
+     * Set the period for a given periodic status frame in milliseconds.
+     * Set to 0 to disable the frame.
+     * @param[in] periodic the periodic status frame to set the period of
+     * @param[in] periodMs the period in milliseconds
+     */
+    void setPeriodicStatusFrame(APICommand periodic, uint16_t periodMs);
+
+    APICommand controlModeToAPI(ControlMode mode);
+
     uint8_t GetAPIClass(APICommand cmd) const;
     uint8_t GetAPIIndex(APICommand cmd) const;
 
     uint32_t CreateArbitrationControlId(APICommand cmd, const RevMotor* motor) const;
+
     uint32_t CreateArbitrationParameterId(Parameter pram, const RevMotor* motor) const;
 
     modm::can::Message constructRevMotorHeartBeat(const RevMotor* motor);
 
     void setParameter(Parameter param, float paramVal);
-
-    void setEncoderInverted(bool isInverted) { isEncoderInverted = isInverted; }
 
 private:
     // wait time before the motor is considered disconnected, in milliseconds
@@ -447,11 +455,7 @@ private:
 
     float current;
 
-    float targetVoltage;
-
     bool motorInverted;
-
-    bool isEncoderInverted;
 
     Period0Status period0_{};
     Period1Status period1_{};
@@ -459,7 +463,8 @@ private:
     Period3Status period3_{};
     Period4Status period4_{};
 
-    ControlMode currentControlMode = ControlMode::VOLTAGE;
+    ControlMode controlMode = ControlMode::VOLTAGE;
+
     float controlValue = 0.0f;
 
     bool isControlAndNotParam;
@@ -475,4 +480,4 @@ private:
 
 }  // namespace tap::motor
 
-#endif  // TAPROOT_DJI_MOTOR_HPP_
+#endif  // TAPROOT_REV_MOTOR_HPP_

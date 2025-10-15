@@ -19,6 +19,7 @@ RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
           drivers,
           REVMotorId::REV_MOTOR1,
           tap::can::CanBus::CAN_BUS1,
+          tap::motor::RevMotor::ControlMode::VELOCITY,
           false,
           "SingleRevMotor",
           18.0f / 120.0f)
@@ -28,19 +29,13 @@ RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
 void RevMotorTesterSingleMotor::initialize()
 {
     singularMotor.initialize();
-    singularMotor.setParameter(Parameter::kP_0, 0.00f);
-    singularMotor.setParameter(Parameter::kI_0, 0.00f);
-    singularMotor.setParameter(Parameter::kD_0, 0.00f);
-    singularMotor.setParameter(Parameter::kF_0, 0.00009f);
-    singularMotor.setParameter(Parameter::kOutputMin_0, -1.0f);
-    singularMotor.setParameter(Parameter::kOutputMax_0, 1.0f);
-    singularMotor.setControlMode(tap::motor::RevMotor::ControlMode::VELOCITY);
-
-    singularMotor.setPeriodicStatusFrame(APICommand::Period0, 0);
-    singularMotor.setPeriodicStatusFrame(APICommand::Period1, 2);
-    singularMotor.setPeriodicStatusFrame(APICommand::Period2, 2);
-    singularMotor.setPeriodicStatusFrame(APICommand::Period3, 0);
-    singularMotor.setPeriodicStatusFrame(APICommand::Period4, 0);
+    tap::motor::RevMotor::PIDConfig pidConfig{
+        .kP = 0.0f,
+        .kI = 0.0f,
+        .kD = 0.0f,
+        .kF = 0.00009f,
+    };
+    singularMotor.setMotorPID(pidConfig);
 }
 
 float debugVelo;

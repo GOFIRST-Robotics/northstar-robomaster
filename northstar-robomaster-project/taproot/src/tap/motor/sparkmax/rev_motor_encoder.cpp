@@ -14,15 +14,17 @@ RevMotorEncoder::RevMotorEncoder(bool isInverted, float gearRatio, uint32_t enco
     encoderDisconnectTimeout.stop();
 }
 
-void RevMotorEncoder::processMessage(const modm::can::Message& message, APICommand period)
+void RevMotorEncoder::processMessage(const modm::can::Message& message)
 {
     encoderDisconnectTimeout.restart(MOTOR_DISCONNECT_TIME);
 
-    if (period == APICommand::Period1)
+    uint32_t period = message.getIdentifier() & ~0xF;
+
+    if (period == 2051840)
     {
         std::memcpy(&shaftRPM, message.data, sizeof(float));
     }
-    else if (period == APICommand::Period2)
+    else if (period == 2051880)
     {
         float encoderPos;  // REV sends this in rotations
         std::memcpy(&encoderPos, message.data, sizeof(encoderPos));
