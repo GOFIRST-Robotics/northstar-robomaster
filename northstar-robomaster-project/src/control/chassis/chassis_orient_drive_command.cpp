@@ -29,7 +29,7 @@ void ChassisOrientDriveCommand::execute()
     float rotationFromPID = chassis->chassisSpeedRotationPID();
 
     float rotationalAlpha =
-        std::max<float>(1.0f - abs(chassis->getChassisZeroTurret()) / M_PI, 0.2f);
+        std::max<float>(1.0f - abs(chassis->getChassisZeroTurret()) / M_PI, 0.01f);
 
     rotationalValue =
         tap::algorithms::lowPassFilter(rotationalValue, rotationFromPID, rotationalAlpha);

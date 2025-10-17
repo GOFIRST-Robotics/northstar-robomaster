@@ -117,13 +117,14 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
 float ChassisSubsystem::chassisSpeedRotationPID()
 {
     // P
-    float currRotationPidP = getChassisZeroTurret() * 1.0f;  // P
-    currRotationPidP = limitVal<float>(currRotationPidP, -1, 1);
+    float currRotationPidP = getChassisZeroTurret() * CHASSIS_ROTATION_P;  // P
+    currRotationPidP =
+        limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 
     // D
-    float currentRotationPidD = (drivers->bmi088.getGz()) * 1.0f;  // D
+    float currentRotationPidD = -(drivers->bmi088.getGz()) * CHASSIS_ROTATION_D;  // D
 
-    currentRotationPidD = limitVal<float>(currentRotationPidD, -2, 2);
+    currentRotationPidD = limitVal<float>(currentRotationPidD, -1, 1);
 
     float chassisRotationSpeed = limitVal<float>(currRotationPidP + currentRotationPidD, -1, 1);
 
@@ -176,12 +177,25 @@ void ChassisSubsystem::refresh()
 
     for (size_t ii = 0; ii < motors.size(); ii++)
     {
-        runPid(
-            pidControllers[ii],
-            rampControllers[ii],
-            motors[ii],
-            desiredOutput[ii],
-            mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
+        if (abs(motors[ii].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) >
+            abs(desiredOutput[ii]))
+        {
+            runPid(
+                pidControllers[ii],
+                rampControllers[ii],
+                motors[ii],
+                desiredOutput[ii],
+                mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS * 4));
+        }
+        else
+        {
+            runPid(
+                pidControllers[ii],
+                rampControllers[ii],
+                motors[ii],
+                desiredOutput[ii],
+                mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
+        }
     }
 }
 }  // namespace src::chassis
