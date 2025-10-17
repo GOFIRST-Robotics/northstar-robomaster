@@ -8,6 +8,8 @@ namespace src::chassis
 {
 class ChassisOdometry
 {
+    static constexpr float ONE_OVER_THREE = 1.0f / 3.0f;
+    static constexpr float THREE_SQRT_TWO_OVER_SIXTEEN = 0.26516504294f;
     static constexpr float ONE_OVER_FOUR_SQRT_TWO = 0.17677669529f;
     static constexpr float SQRT_TWO_OVER_FOUR = 0.35355339059f;
 
@@ -63,8 +65,8 @@ public:
         float mps_RF = motorRPS_RF * RPS_TO_MPS;
         float mps_RB = motorRPS_RB * RPS_TO_MPS;
 
-        float localVelX = (mps_LF + mps_RF - mps_LB - mps_RB) * SQRT_TWO_OVER_FOUR;
-        float localVelY = (mps_LF - mps_RF + mps_LB - mps_RB) * SQRT_TWO_OVER_FOUR;
+        float localVelX = (mps_LF + mps_RF - mps_LB - mps_RB) * ONE_OVER_THREE;
+        float localVelY = (mps_LF - mps_RF + mps_LB - mps_RB) * ONE_OVER_THREE;
 
         velocityLocal.x = localVelX;
         velocityLocal.y = localVelY;
