@@ -17,6 +17,10 @@ ChassisOrientDriveCommand::ChassisOrientDriveCommand(
       operatorInterface(operatorInterface)
 {
     addSubsystemRequirement(chassis);
+}
+
+void ChassisOrientDriveCommand::initialize()
+{
     rotationalValue = chassis->getChassisRotationSpeed();
 }
 
@@ -29,7 +33,7 @@ void ChassisOrientDriveCommand::execute()
     float rotationFromPID = chassis->chassisSpeedRotationPID();
 
     float rotationalAlpha =
-        std::max<float>(1.0f - abs(chassis->getChassisZeroTurret()) / M_PI, 0.01f);
+        std::max<float>(1.0f - abs(chassis->getChassisZeroTurret()) / M_PI, AUTO_ROTATION_ALPHA);
 
     rotationalValue =
         tap::algorithms::lowPassFilter(rotationalValue, rotationFromPID, rotationalAlpha);

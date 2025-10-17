@@ -24,6 +24,7 @@ static constexpr float VELOCITY_PID_MAX_OUTPUT = DjiMotor::MAX_OUTPUT_C620;
 static constexpr float CHASSIS_ROTATION_P = 0.9f;
 static constexpr float CHASSIS_ROTATION_D = 0.01f;
 static constexpr float CHASSIS_ROTATION_MAX_VEL = 1.0f;
+static constexpr float AUTO_ROTATION_ALPHA = 0.01f;
 
 static constexpr float CHASSIS_GEAR_RATIO = (187.0f / 3591.0f);
 

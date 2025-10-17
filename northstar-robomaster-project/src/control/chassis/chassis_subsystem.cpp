@@ -88,7 +88,7 @@ float ChassisSubsystem::getChassisRotationSpeed()
     float motorSum = 0.0f;
     for (const Motor& i : motors)
     {
-        motorSum += i.getEncoder()->getVelocity() / 19.0f;
+        motorSum += i.getEncoder()->getVelocity();
     }
     return (WHEEL_DIAMETER_M / (2 * DIST_TO_CENTER)) * motorSum;
 }
