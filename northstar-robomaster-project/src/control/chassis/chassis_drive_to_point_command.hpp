@@ -20,17 +20,17 @@ namespace src::chassis
 {
 class ChassisSubsystem;
 
-class ChassisDriveDistanceCommand : public tap::control::Command
+class ChassisDriveToPointCommand : public tap::control::Command
 {
 public:
-    ChassisDriveDistanceCommand(
+    ChassisDriveToPointCommand(
         ChassisSubsystem *chassis,
         src::chassis::ChassisOdometry *chassisOdometry,
-        float xDist,
-        float yDist,
+        float xPosition,
+        float yPosition,
         float maxError);
 
-    const char *getName() const override { return "Chassis drive dist"; }
+    const char *getName() const override { return "Chassis drive to point"; }
 
     void initialize() override;
 

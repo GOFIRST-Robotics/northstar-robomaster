@@ -16,10 +16,11 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_drive_distance_command.hpp"
+#include "control/chassis/chassis_drive_to_point_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
@@ -439,12 +440,12 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
-src::chassis::ChassisDriveDistanceCommand driveAMeterForwardCommand(
+src::chassis::ChassisDriveToPointCommand driveToOneMeterForward(
     &chassisSubsystem,
     chassisOdometry,
     0,
     1,
-    0.01);
+    0.02);
 
 // Chassis Governors
 
@@ -460,6 +461,11 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     false);
 
 // chassis Mappings
+PressCommandMapping lClickPressedDriveOneMeter(
+    drivers(),
+    {&driveToOneMeterForward},
+    RemoteMapState(RemoteMapState::MouseButton::LEFT));
+
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
     {&chassisBeyBladeFastCommand},
@@ -615,6 +621,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&lClickPressedDriveOneMeter);
 }
 }  // namespace standard_control
 
