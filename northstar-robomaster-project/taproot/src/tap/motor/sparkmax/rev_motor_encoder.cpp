@@ -20,11 +20,11 @@ void RevMotorEncoder::processMessage(const modm::can::Message& message)
 
     uint32_t period = message.getIdentifier() & ~0xF;
 
-    if (period == 2051840)
+    if (period == 0x2051840)
     {
         std::memcpy(&shaftRPM, message.data, sizeof(float));
     }
-    else if (period == 2051880)
+    else if (period == 0x2051880)
     {
         float encoderPos;  // REV sends this in rotations
         std::memcpy(&encoderPos, message.data, sizeof(encoderPos));

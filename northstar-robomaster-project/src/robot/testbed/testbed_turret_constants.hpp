@@ -222,7 +222,7 @@ namespace world_rel_chassis_imu
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
     .kp = 1.0f,
     .ki = 0.0f,
-    .kd = 0.1f,
+    .kd = 0.02f,
     .maxICumulative = 0.0f,
     .maxOutput = 12.0f,
     .tQDerivativeKalman = 1.0f,

@@ -108,8 +108,10 @@ void RevMotor::processMessage(const modm::can::Message& message)
         this->internalEncoder.processMessage(message);
         period1_.temperature = (rawValue >> 32) & 0xFF;
         period1_.voltage = ((rawValue >> 40) & 0xFFFF) / 128.0f;
-        period1_.current = ((rawValue >> 48) & 0xFFF) / 32.0f;
-    }
+        uint16_t rawCurrent = ((((rawValue >> 56) & 0xFF) << 4) | (((rawValue >> 48) & 0xF0) >> 4));
+        period1_.current = rawCurrent / 32.0;
+    }  //- period1_.current = ((rawValue >> 48) & 0xFFF) / 32.0f;
+
     else if (receivedArbId == CreateArbitrationControlId(APICommand::Period2, this))
     {
         this->internalEncoder.processMessage(message);
