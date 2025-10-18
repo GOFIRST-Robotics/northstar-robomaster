@@ -4,7 +4,6 @@
 
 #include "robot/control_operator_interface.hpp"
 
-
 using tap::algorithms::limitVal;
 
 namespace src::chassis
@@ -31,17 +30,23 @@ void ChassisDriveToPointCommand::execute()
     auto scale = [](float raw) -> float { return limitVal(raw, -1.0f, 1.0f) * 0.5f; };
     modm::Vector<float, 2> dirToTarget = (targetPosition - chassisOdometry->getPositionGlobal());
 
-    float length = dirToTarget.getLength();
-    if (length > 1)
+    float distanceToTarget = dirToTarget.getLength();
+    modm::Vector<float, 2> velocityToTarget;
+
+    if (distanceToTarget > MAXIMUM_MPS)
     {
-        dirToTarget /= length;
+        velocityToTarget = dirToTarget.normalized() * MAXIMUM_MPS;
     }
-    else if (length < 0.35f)
+    else if (distanceToTarget < MINIMUM_MPS)
     {
-        dirToTarget = dirToTarget.normalized() * 0.35f;
+        velocityToTarget = dirToTarget.normalized() * MINIMUM_MPS;
+    }
+    else
+    {
+        velocityToTarget = dirToTarget;
     }
 
-    chassis->setVelocityFieldDrive(dirToTarget.y, -dirToTarget.x, 0);
+    chassis->setVelocityFieldDrive(velocityToTarget.y, -velocityToTarget.x, 0);
 }
 
 void ChassisDriveToPointCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }

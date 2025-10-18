@@ -41,6 +41,9 @@ public:
     bool isFinished() const override;
 
 private:
+    static constexpr float MAXIMUM_MPS = 1.0f;
+    static constexpr float MINIMUM_MPS = 0.38f;
+
     src::chassis::ChassisSubsystem *chassis;
     src::chassis::ChassisOdometry *chassisOdometry;
 
