@@ -408,6 +408,45 @@ public:
 
     mockable uint32_t getMotorIdentifier() const;
 
+    float getDuty() const { return period0_.dutyCycle; };
+    uint16_t getFaults() const { return period0_.faults; };
+    uint16_t getStickFaults() const { return period0_.stickyFaults; };
+    bool getIsInverted() const { return period0_.isInverted; };
+    bool getIdleMode() const { return period0_.idleMode; };
+    std::chrono::steady_clock::time_point getPeriod0Timestamp() const
+    {
+        return period0_.timestamp;
+    };
+
+    float getTemperture() const { return period1_.temperature; };
+    float getVoltage() const { return period1_.voltage; };
+    float getCurrent() const { return period1_.current; };
+    std::chrono::steady_clock::time_point getPeriod1Timestamp() const
+    {
+        return period1_.timestamp;
+    };
+
+    float getIAccum() const { return period2_.iAccum; };
+    std::chrono::steady_clock::time_point getPeriod2Timestamp() const
+    {
+        return period2_.timestamp;
+    };
+
+    float getAnalogVoltage() const { return period3_.analogVoltage; };
+    float getAnalogVelocity() const { return period3_.analogVelocity; };
+    float getAnalogPosition() const { return period3_.analogPosition; };
+    std::chrono::steady_clock::time_point getPeriod3Timestamp() const
+    {
+        return period3_.timestamp;
+    };
+
+    float getAltEncoderVelocity() const { return period4_.altEncoderVelocity; };
+    float getAltEncoderPosition() const { return period4_.altEncoderPosition; };
+    std::chrono::steady_clock::time_point getPeriod4Timestamp() const
+    {
+        return period4_.timestamp;
+    };
+
     mockable bool isMotorInverted() const { return motorInverted; };
 
     mockable tap::can::CanBus getCanBus() const;

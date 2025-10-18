@@ -83,6 +83,7 @@ src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
 using namespace tap::control::setpoint;
 using namespace tap::control;
 using namespace src::testbed;
+using namespace tap::motor;
 // using namespace src::control::turret;
 using namespace src::control;
 using namespace src::flywheel;
@@ -218,8 +219,9 @@ tap::motor::DjiMotor pitchMotor(
 
 tap::motor::RevMotor yawMotor1(
     drivers(),
-    tap::motor::REV_MOTOR1,
+    REV_MOTOR1,
     CanBus::CAN_BUS1,
+    RevMotor::ControlMode::VOLTAGE,
     false,
     "YawMotor1",
     18.0f / 120.0f);  // gear ratio
@@ -228,6 +230,7 @@ tap::motor::RevMotor yawMotor2(
     drivers(),
     tap::motor::REV_MOTOR2,
     CanBus::CAN_BUS1,
+    RevMotor::ControlMode::VOLTAGE,
     false,
     "YawMotor2",
     18.0f / 120.0f);  // gear ratio

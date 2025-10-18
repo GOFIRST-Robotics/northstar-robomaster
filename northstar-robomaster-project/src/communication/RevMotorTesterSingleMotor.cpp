@@ -19,34 +19,37 @@ RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
           drivers,
           REVMotorId::REV_MOTOR1,
           tap::can::CanBus::CAN_BUS1,
-          tap::motor::RevMotor::ControlMode::VELOCITY,
+          tap::motor::RevMotor::ControlMode::VOLTAGE,
           false,
           "SingleRevMotor",
-          18.0f / 120.0f)
+          18.0f / 120.0f),
+      pid(0.0f, 0.0f, 0.0f, 10.0f, 12.0f)
 {
 }
 
 void RevMotorTesterSingleMotor::initialize()
 {
     singularMotor.initialize();
-    tap::motor::RevMotor::PIDConfig pidConfig{
-        .kP = 0.0f,
-        .kI = 0.0f,
-        .kD = 0.0f,
-        .kF = 0.00009f,
-    };
-    singularMotor.setMotorPID(pidConfig);
+    // tap::motor::RevMotor::PIDConfig pidConfig{
+    //     .kP = 0.0f,
+    //     .kI = 0.0f,
+    //     .kD = 0.0f,
+    //     .kF = 0.00009f,
+    // };
+    // singularMotor.setMotorPID(pidConfig);
 }
 
 float debugVelo;
 float debugPos;
+float debugCurrent;
 void RevMotorTesterSingleMotor::refresh()
 {
-    singularMotor.setControlValue(
-        drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) *
-        2000);
+    float targetCurrent =
+        drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) * 2;
+    pid.update(targetCurrent - singularMotor.getCurrent());
 
     debugVelo = singularMotor.getEncoder()->getVelocity() * 60 / M_TWOPI;
     debugPos = singularMotor.getEncoder()->getPosition().getUnwrappedValue();
+    debugCurrent = singularMotor.getCurrent();
 }
 }  // namespace Communications::Rev
