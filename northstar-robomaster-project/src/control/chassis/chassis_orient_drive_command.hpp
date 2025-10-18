@@ -42,8 +42,6 @@ private:
 
     src::control::ControlOperatorInterface *operatorInterface;
 
-    modm::Pid<float> orientPid;
-
-    float angleOffset;
+    float rotationalValue;
 };
 }  // namespace src::chassis
