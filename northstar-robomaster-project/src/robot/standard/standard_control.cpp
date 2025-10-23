@@ -17,6 +17,7 @@
 #include "drivers_singleton.hpp"
 
 // chassis
+#include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_drive_distance_command.hpp"
@@ -99,6 +100,9 @@
 #include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 #include "control/clientDisplay/indicators/vision_indicator.hpp"
+
+// STATE MACHINE
+#include "control/stateMachine/state_machine_subsytem.hpp"
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
@@ -410,6 +414,10 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     &yawMotor,
     chassisOdometry);
 
+// chassis auto drive
+src::chassis::ChassisAutoDrive *chassisAutoDrive =
+    new src::chassis::ChassisAutoDrive(&chassisSubsystem, chassisOdometry);
+
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
@@ -563,6 +571,10 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
+// STATE MACHINE
+src::stateMachine::StateMachineSubsystem stateMachineSubsystem =
+    src::stateMachine::StateMachineSubsystem(drivers(), &chassisSubsystem, chassisAutoDrive);
+
 void initializeSubsystems(Drivers *drivers)
 {
     dummySubsystem.initialize();
@@ -584,11 +596,12 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
+    drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -621,7 +634,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     drivers->commandMapper.addMap(&ctrlShiftZSong);
-    drivers->commandMapper.addMap(&lClickPressedDriveOneMeter);
+    // drivers->commandMapper.addMap(&lClickPressedDriveOneMeter);
 }
 }  // namespace standard_control
 

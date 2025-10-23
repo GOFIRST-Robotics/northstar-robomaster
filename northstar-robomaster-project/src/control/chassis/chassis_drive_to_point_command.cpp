@@ -43,7 +43,7 @@ void ChassisDriveToPointCommand::execute()
     }
     else
     {
-        velocityToTarget = dirToTarget;
+        velocityToTarget = dirToTarget.normalized();
     }
 
     chassis->setVelocityFieldDrive(velocityToTarget.y, -velocityToTarget.x, 0);

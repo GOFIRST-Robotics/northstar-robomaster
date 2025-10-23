@@ -1,8 +1,11 @@
 #ifndef CHASSIS_ODOMETRY_HPP
 #define CHASSIS_ODOMETRY_HPP
 
-#include "control/chassis/constants/chassis_constants.hpp"
+#include "tap/architecture/clock.hpp"
+
 #include "modm/math/geometry/angle.hpp"
+#include "modm/math/geometry/vector.hpp"
+
 
 namespace src::chassis
 {

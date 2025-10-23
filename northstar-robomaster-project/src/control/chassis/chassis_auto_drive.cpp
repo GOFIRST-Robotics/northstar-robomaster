@@ -20,28 +20,26 @@ void ChassisAutoDrive::updateAutoDrive()
 {
     if (!tryUpdatePath())
     {
+        desiredGlobalVelocity = modm::Vector<float, 2>(0, 0);
         return;
     }
 
     modm::Vector<float, 2> dirToTarget = (path[0] - chassisOdometry->getPositionGlobal());
 
     float distanceToTarget = dirToTarget.getLength();
-    modm::Vector<float, 2> velocityToTarget;
+    modm::Vector<float, 2> velocityToTarget = dirToTarget;
 
     if (distanceToTarget > MAXIMUM_MPS)
     {
-        velocityToTarget = dirToTarget.normalized() * MAXIMUM_MPS;
+        velocityToTarget = (dirToTarget / distanceToTarget) * MAXIMUM_MPS;
     }
     else if (distanceToTarget < MINIMUM_MPS)
     {
-        velocityToTarget = dirToTarget.normalized() * MINIMUM_MPS;
-    }
-    else
-    {
-        velocityToTarget = dirToTarget;
+        velocityToTarget = (dirToTarget / distanceToTarget) * MINIMUM_MPS;
     }
 
-    chassis->setVelocityFieldDrive(velocityToTarget.y, -velocityToTarget.x, 0);
+    velocityToTarget.x = -velocityToTarget.x;  // flipped for some reason??
+    desiredGlobalVelocity = velocityToTarget;
 }
 
 };  // namespace src::chassis
