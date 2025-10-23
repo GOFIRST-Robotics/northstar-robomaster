@@ -29,7 +29,7 @@ public:
 
     const char *getName() const override { return "Chassis tank drive"; }
 
-    void initialize() override {}
+    void initialize() override;
 
     void execute() override;
 
