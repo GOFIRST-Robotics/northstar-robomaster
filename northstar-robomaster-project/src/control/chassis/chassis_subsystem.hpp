@@ -77,6 +77,15 @@ public:
 
     float getChassisZeroTurret();
 
+    float getChassiPowerLimit()
+    {
+        return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
+    }
+
+    float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
+
+    float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
+
     void refresh() override;
 
     void refreshSafeDisconnect() override

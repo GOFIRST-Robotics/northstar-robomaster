@@ -9,6 +9,9 @@ using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
+modm::Pair<int, float> lastComputedMaxWheelSpeed = CHASSIS_POWER_TO_MAX_SPEED_LUT[0];
+modm::Pair<int, float> lastComputedMaxAccelSpeed = CHASSIS_POWER_TO_MAX_ACCEL_LUT[0];
+
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
     const ChassisConfig& config,
@@ -131,6 +134,46 @@ float ChassisSubsystem::chassisSpeedRotationPID()
     return chassisRotationSpeed;
 }
 
+float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit)
+{
+    if (!refSerialOnline)
+    {
+        chassisPowerLimit = 80;
+    }
+
+    // only re-interpolate when needed (since this function is called a lot and the chassis
+    // power limit rarely changes, this helps cut down on unnecessary array
+    // searching/interpolation)
+    if (lastComputedMaxWheelSpeed.first != (int)chassisPowerLimit)
+    {
+        lastComputedMaxWheelSpeed.first = (int)chassisPowerLimit;
+        lastComputedMaxWheelSpeed.second =
+            CHASSIS_POWER_TO_SPEED_INTERPOLATOR.interpolate(chassisPowerLimit);
+    }
+
+    return lastComputedMaxWheelSpeed.second;
+}
+
+float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit)
+{
+    if (!refSerialOnline)
+    {
+        chassisPowerLimit = 80;
+    }
+
+    // only re-interpolate when needed (since this function is called a lot and the chassis
+    // power limit rarely changes, this helps cut down on unnecessary array
+    // searching/interpolation)
+    if (lastComputedMaxAccelSpeed.first != (int)chassisPowerLimit)
+    {
+        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
+        lastComputedMaxAccelSpeed.second =
+            CHASSIS_POWER_TO_ACCEL_INTERPOLATOR.interpolate(chassisPowerLimit);
+    }
+
+    return lastComputedMaxAccelSpeed.second;
+}
+
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
@@ -154,10 +197,12 @@ void ChassisSubsystem::driveBasedOnHeading(
     int LB = static_cast<int>(MotorId::LB);
     int RF = static_cast<int>(MotorId::RF);
     int RB = static_cast<int>(MotorId::RB);
-    desiredOutput[LF] = limitVal<float>(LFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-    desiredOutput[LB] = limitVal<float>(LBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-    desiredOutput[RF] = limitVal<float>(RFSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
-    desiredOutput[RB] = limitVal<float>(RBSpeed, -MAX_WHEELSPEED_RPM, MAX_WHEELSPEED_RPM);
+    float calculatedMaxRPMPower =
+        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
+    desiredOutput[LF] = limitVal<float>(LFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
+    desiredOutput[LB] = limitVal<float>(LBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
+    desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
+    desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
 
 void ChassisSubsystem::refresh()
@@ -177,6 +222,8 @@ void ChassisSubsystem::refresh()
 
     for (size_t ii = 0; ii < motors.size(); ii++)
     {
+        float calculatedMaxRPMAccel =
+            getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
         if (abs(motors[ii].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) >
             abs(desiredOutput[ii]))
         {
@@ -185,7 +232,7 @@ void ChassisSubsystem::refresh()
                 rampControllers[ii],
                 motors[ii],
                 desiredOutput[ii],
-                mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS * 4));
+                mpsToRpm(calculatedMaxRPMAccel * 4));
         }
         else
         {
@@ -194,7 +241,7 @@ void ChassisSubsystem::refresh()
                 rampControllers[ii],
                 motors[ii],
                 desiredOutput[ii],
-                mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
+                mpsToRpm(calculatedMaxRPMAccel));
         }
     }
 }
