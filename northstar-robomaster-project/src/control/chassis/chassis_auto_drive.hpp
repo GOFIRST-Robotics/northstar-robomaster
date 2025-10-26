@@ -21,18 +21,24 @@ class ChassisAutoDrive
     std::deque<modm::Vector<float, 2>> path;
 
     modm::Vector<float, 2> desiredGlobalVelocity;
+    float desiredRotation;  // radians per second
 
 public:
     ChassisAutoDrive(ChassisSubsystem* chassis, ChassisOdometry* chassisOdometry);
 
     std::deque<modm::Vector<float, 2>> getPath() { return path; }
     modm::Vector<float, 2> getDesiredGlobalVelocity() { return desiredGlobalVelocity; }
+    float getDesiredRotation() { return desiredRotation; }
 
     void resetPath();
     void addPointToPath(modm::Vector<float, 2> newPoint);
     void updateAutoDrive();
 
+    float getOdometryRotation() { return chassisOdometry->getRotation(); }
+
 private:
+    modm::Vector<float, 2> currentIdealVelocity;
+
     bool tryUpdatePath()
     {
         if (path.size() == 0)

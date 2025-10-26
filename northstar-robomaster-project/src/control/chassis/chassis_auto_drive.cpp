@@ -39,7 +39,20 @@ void ChassisAutoDrive::updateAutoDrive()
     }
 
     velocityToTarget.x = -velocityToTarget.x;  // flipped for some reason??
-    desiredGlobalVelocity = velocityToTarget;
+    currentIdealVelocity = velocityToTarget;
+
+    desiredGlobalVelocity =
+        desiredGlobalVelocity + (currentIdealVelocity - desiredGlobalVelocity).normalized() * 0.003;
+
+    desiredRotation = desiredRotation + chassisOdometry->getRotation() * 0.1;
+    if (desiredRotation > .8)
+    {
+        desiredRotation = .8;
+    }
+    else if (desiredRotation < -.8)
+    {
+        desiredRotation = -.8;
+    }
 }
 
 };  // namespace src::chassis

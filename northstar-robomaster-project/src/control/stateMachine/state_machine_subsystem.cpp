@@ -35,10 +35,17 @@ void StateMachineSubsystem::refresh()
 
     modm::Vector<float, 2> autoDriveDesiredGlobalVelocity =
         chassisAutoDrive->getDesiredGlobalVelocity();
-    chassisSubsystem->setVelocityFieldDrive(
+    float autoDriveDesiredRotation = chassisAutoDrive->getDesiredRotation();
+    // chassisSubsystem->setVelocityFieldDrive(
+    //     autoDriveDesiredGlobalVelocity.y,
+    //     autoDriveDesiredGlobalVelocity.x,
+    //     0);
+
+    chassisSubsystem->driveBasedOnHeading(
         autoDriveDesiredGlobalVelocity.y,
         autoDriveDesiredGlobalVelocity.x,
-        0);
+        autoDriveDesiredRotation,
+        chassisAutoDrive->getOdometryRotation());
 }
 
 }  // namespace src::stateMachine
