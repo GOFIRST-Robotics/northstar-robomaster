@@ -73,6 +73,10 @@ public:
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
+    float chassisSpeedRotationPID();
+
+    float getChassisRotationSpeed();
+
     float getChassisZeroTurret();
 
     void refresh() override;

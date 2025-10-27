@@ -92,17 +92,15 @@ void ImuCalibrateCommand::execute()
             // calibrated. The onboard Bmi088 will never be in the `IMU_NOT_CONNECTED` state unless
             // the Bmi088 is shorted (which has never happened). The turret MCB will only be
             // offline if the turret MCB is unplugged.
-            bool turretMCBsReady = true;
             bool turretsOnline = true;
 
             for (auto &config : turretsAndControllers)
             {
-                // turretMCBsReady &= config.turretMCBCanComm->isConnected();
                 turretsOnline &= config.turret->isOnline();
             }
 
-            if (turretsOnline && (turretMCBsReady || (drivers->bmi088.getImuState() !=
-                                                      Bmi088::ImuState::IMU_NOT_CONNECTED)))
+            if (turretsOnline &&
+                ((drivers->bmi088.getImuState() != Bmi088::ImuState::IMU_NOT_CONNECTED)))
             {
                 calibrationLongTimeout.restart(MAX_CALIBRATION_WAITTIME_MS);
                 calibrationTimer.restart(WAIT_TIME_TURRET_RESPONSE_MS);
@@ -143,16 +141,10 @@ void ImuCalibrateCommand::execute()
                 // plus 1 second extra to handle sending the request and processing it
                 // TODO to handle the case where the turret MCB doesn't receive information,
                 // potentially add ACK sequence to turret MCB CAN comm class.
-                calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
-                calibrationState = CalibrationState::BUZZING;
-            }
-            buzzerTimer.restart(200);
-            break;
-        case CalibrationState::BUZZING:
-            if (buzzerTimer.isExpired())
-            {
+                // calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
                 calibrationState = CalibrationState::WAITING_CALIBRATION_COMPLETE;
             }
+            calibrationTimer.restart(200);
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
             drivers->commandScheduler.addCommand(song);

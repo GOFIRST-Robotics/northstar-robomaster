@@ -85,6 +85,16 @@ float ChassisSubsystem::getChassisZeroTurret()
     return (angle > M_PI) ? angle - M_TWOPI : angle;
 }
 
+float ChassisSubsystem::getChassisRotationSpeed()
+{
+    float motorSum = 0.0f;
+    for (const Motor& i : motors)
+    {
+        motorSum += i.getEncoder()->getVelocity();
+    }
+    return (WHEEL_DIAMETER_M / (2 * DIST_TO_CENTER)) * motorSum;
+}
+
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
     // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
@@ -104,6 +114,23 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
 {
     float robotHeading = fmod(drivers->bmi088.getYaw() + getTurretYaw(), 2 * M_PI);
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
+}
+
+float ChassisSubsystem::chassisSpeedRotationPID()
+{
+    // P
+    float currRotationPidP = getChassisZeroTurret() * CHASSIS_ROTATION_P;  // P
+    currRotationPidP =
+        limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
+
+    // D
+    float currentRotationPidD = -(drivers->bmi088.getGz()) * CHASSIS_ROTATION_D;  // D
+
+    currentRotationPidD = limitVal<float>(currentRotationPidD, -1, 1);
+
+    float chassisRotationSpeed = limitVal<float>(currRotationPidP + currentRotationPidD, -1, 1);
+
+    return chassisRotationSpeed;
 }
 
 void ChassisSubsystem::driveBasedOnHeading(
@@ -161,12 +188,25 @@ void ChassisSubsystem::refresh()
 
     for (size_t ii = 0; ii < motors.size(); ii++)
     {
-        runPid(
-            pidControllers[ii],
-            rampControllers[ii],
-            motors[ii],
-            desiredOutput[ii],
-            mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
+        if (abs(motors[ii].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) >
+            abs(desiredOutput[ii]))
+        {
+            runPid(
+                pidControllers[ii],
+                rampControllers[ii],
+                motors[ii],
+                desiredOutput[ii],
+                mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS * 4));
+        }
+        else
+        {
+            runPid(
+                pidControllers[ii],
+                rampControllers[ii],
+                motors[ii],
+                desiredOutput[ii],
+                mpsToRpm(RAMP_UP_RPM_INCREMENT_MPS));
+        }
     }
 
     chassisOdometry->updateOdometry(
