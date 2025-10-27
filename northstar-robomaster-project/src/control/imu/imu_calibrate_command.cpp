@@ -142,15 +142,9 @@ void ImuCalibrateCommand::execute()
                 // TODO to handle the case where the turret MCB doesn't receive information,
                 // potentially add ACK sequence to turret MCB CAN comm class.
                 // calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
-                calibrationState = CalibrationState::BUZZING;
-            }
-            buzzerTimer.restart(200);
-            break;
-        case CalibrationState::BUZZING:
-            if (buzzerTimer.isExpired())
-            {
                 calibrationState = CalibrationState::WAITING_CALIBRATION_COMPLETE;
             }
+            calibrationTimer.restart(200);
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
             drivers->commandScheduler.addCommand(song);
