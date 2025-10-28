@@ -75,7 +75,23 @@ public:
     {
         TURRET_DATA = 1,
         ROBOT_ID = 2,
-        ALIVE = 3
+        ALIVE = 3,
+        ODOMETRY = 4
+    };
+
+    struct OdometryData
+    {
+        float pos_x;
+        float pos_y;
+        float pos_z;
+
+        float rot_r;
+        float rot_p;
+        float rot_y;
+
+        float turret_p;
+        float turret_y;
+
     };
 
 private:
@@ -88,6 +104,8 @@ private:
     bool aimDataUpdated[control::turret::NUM_TURRETS] = {};
 
     mockable void sendRobotIdMessage();
+
+    mockable void sendRobotOdometry();
 
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
 };

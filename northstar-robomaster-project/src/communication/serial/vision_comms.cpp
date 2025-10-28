@@ -111,6 +111,52 @@ void VisionComms::sendRobotIdMessage()
         sizeof(robotTypeMessage));
 }
 
+
+void VisionComms::sendRobotOdometry()
+{
+
+    DJISerial::SerialMessage<sizeof(OdometryData)> odometryMessage;
+    OdometryData odometryData = OdometryData();
+    
+
+    odometryData.pos_x = 1;
+    odometryData.pos_y = 2;
+    odometryData.pos_z = 3;
+
+    odometryData.rot_r = 4;
+    odometryData.rot_p = 5;
+    odometryData.rot_y = 6;
+
+    odometryData.turret_p = 7;
+    odometryData.turret_y = 8;
+
+
+
+    odometryMessage.messageType = MessageType::ODOMETRY;
+    
+    
+    
+    odometryMessage.data[0] = odometryData.pos_x;
+    odometryMessage.data[1] = odometryData.pos_y;
+    odometryMessage.data[2] = odometryData.pos_z;
+
+    odometryMessage.data[3] = odometryData.rot_r;
+    odometryMessage.data[4] = odometryData.rot_p;
+    odometryMessage.data[5] = odometryData.rot_y;
+
+    odometryMessage.data[6] = odometryData.turret_p;
+    odometryMessage.data[7] = odometryData.turret_y;
+
+
+
+
+    odometryMessage.setCRC16();
+    drivers->uart.write(
+        VISION_COMMS_TX_UART_PORT,
+        reinterpret_cast<uint8_t*>(&odometryMessage),
+        sizeof(odometryMessage));
+}
+
 bool VisionComms::isCvOnline() const { return !cvOfflineTimeout.isExpired(); }
 
 }  // namespace src::serial
