@@ -40,7 +40,6 @@ void TurretDoubleMotorRev::updateMotorAngle()
         chassisFrameMeasuredAngle.setUnwrappedValue(config.startAngle);
     }
 }
-
 void TurretDoubleMotorRev::setMotorOutput(float out)
 {
     out = limitVal(out, -MAX_OUT_REV, MAX_OUT_REV);

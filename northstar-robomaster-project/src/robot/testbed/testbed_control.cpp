@@ -221,16 +221,16 @@ tap::motor::RevMotor yawMotor1(
     drivers(),
     REV_MOTOR1,
     CanBus::CAN_BUS1,
-    RevMotor::ControlMode::VOLTAGE,
+    RevMotor::ControlMode::DUTY_CYCLE,
     false,
     "YawMotor1",
     18.0f / 120.0f);  // gear ratio
 
 tap::motor::RevMotor yawMotor2(
     drivers(),
-    tap::motor::REV_MOTOR2,
+    REV_MOTOR2,
     CanBus::CAN_BUS1,
-    RevMotor::ControlMode::VOLTAGE,
+    RevMotor::ControlMode::DUTY_CYCLE,
     false,
     "YawMotor2",
     18.0f / 120.0f);  // gear ratio
@@ -242,6 +242,16 @@ RevTurretSubsystem revTurret(
     &yawMotor2,
     PITCH_MOTOR_CONFIG,
     YAW_MOTOR_REV_CONFIG);
+
+tap::algorithms::SmoothPid worldFrameYawTurretPosPid(world_rel_turret_imu::YAW_POS_PID_CONFIG);
+
+tap::algorithms::SmoothPid worldFrameYawTurretVelPid(world_rel_turret_imu::YAW_VEL_PID_CONFIG);
+
+algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuController(
+    *drivers(),
+    revTurret.yawMotor,
+    worldFrameYawTurretPosPid,
+    worldFrameYawTurretVelPid);
 
 algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuController(
     *drivers(),
@@ -257,7 +267,7 @@ user::NeoTurretUserControlCommand turretUserControlCommand(
     drivers(),
     drivers()->controlOperatorInterface,
     &revTurret,
-    &worldFrameYawChassisImuController,
+    &worldFrameYawTurretImuController,
     &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);

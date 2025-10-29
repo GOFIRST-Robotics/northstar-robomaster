@@ -35,13 +35,17 @@ float debugCurrent;
 float debugPidValue;
 void RevMotorTesterSingleMotor::refresh()
 {
-    float targetCurrent =
-        drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) * 2;
-    pid.update(targetCurrent - singularMotor.getCurrent());
-    debugPidValue = pid.getValue();
-    singularMotor.setControlValue(debugPidValue);
-    debugVelo = singularMotor.getEncoder()->getVelocity() * 60 / M_TWOPI;
-    debugPos = singularMotor.getEncoder()->getPosition().getUnwrappedValue();
-    debugCurrent = singularMotor.getCurrent();
+    // float targetCurrent =
+    //     drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) *
+    //     2;
+    // pid.update(targetCurrent - singularMotor.getCurrent());
+    // debugPidValue = pid.getValue();
+    // singularMotor.setControlValue(debugPidValue);
+    // debugVelo = singularMotor.getEncoder()->getVelocity() * 60 / M_TWOPI;
+    // debugPos = singularMotor.getEncoder()->getPosition().getUnwrappedValue();
+    // debugCurrent = singularMotor.getCurrent();
+    float targetVoltage =
+        drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL);
+    singularMotor.setControlValue(targetVoltage);
 }
 }  // namespace Communications::Rev
