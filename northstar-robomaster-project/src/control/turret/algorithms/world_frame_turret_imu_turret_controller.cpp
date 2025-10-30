@@ -168,6 +168,7 @@ static inline void updateWorldFrameSetpoint(
  */
 float debugpositionControllerError;
 float debugvelocityPidOutput;
+float debugPositionPidOutput;
 float debugworldFrameAngleError;
 float debugchassisFrameAngleMeasurement;
 
@@ -188,7 +189,7 @@ static inline float runWorldFrameTurretImuController(
     debugpositionControllerError = positionControllerError;
     const float positionPidOutput =
         positionPid.runController(positionControllerError, worldFrameVelocityMeasured, dt);
-
+    debugPositionPidOutput = positionPidOutput;
     const float velocityControllerError = positionPidOutput - worldFrameVelocityMeasured;
     const float velocityPidOutput =
         velocityPid.runControllerDerivateError(velocityControllerError, dt);
@@ -220,7 +221,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::initialize()
         velocityPid,
         worldFrameSetpoint);
 }
-
+float lastpidOut = 0;
 void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
@@ -251,7 +252,12 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
         positionPid,
         velocityPid);
 
-    turretMotor.setMotorOutput(pidOut);
+    if (pidOut > 4)
+    {
+        std::cout << "wtdf";
+    }
+    lastpidOut = pidOut;
+    turretMotor.setMotorOutput(pidOut / 10.0f);
 }
 
 void WorldFrameYawTurretImuCascadePidTurretController::setSetpoint(WrappedFloat desiredSetpoint)
