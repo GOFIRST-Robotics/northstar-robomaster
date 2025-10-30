@@ -96,6 +96,18 @@ float ChassisSubsystem::getChassisRotationSpeed()
     return (WHEEL_DIAMETER_M / (2 * DIST_TO_CENTER)) * motorSum;
 }
 
+float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
+{
+    float maxWheelSpeed =
+        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
+    float allowedwheelSpeed = (maxWheelSpeed - ((abs(vert) + abs(hor)) * maxWheelSpeed));
+    if (allowedwheelSpeed < 0.0f)
+    {
+        allowedwheelSpeed = 0.0f;
+    }
+    return (allowedwheelSpeed * (WHEEL_DIAMETER_M / 2)) / DIST_TO_CENTER;
+}
+
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
     // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();

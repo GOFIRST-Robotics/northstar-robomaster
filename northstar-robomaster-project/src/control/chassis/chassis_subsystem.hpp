@@ -73,6 +73,8 @@ public:
 
     float chassisSpeedRotationPID();
 
+    float calculateMaxRotationSpeed(float vert, float hor);
+
     float getChassisRotationSpeed();
 
     float getChassisZeroTurret();

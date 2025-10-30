@@ -56,6 +56,8 @@ private:
 
     bool isVariable;
 
-    float calculateBeyBladeRotationSpeed(float distance, uint32_t dt);
+    float calcSpeed;
+
+    float calculateBeyBladeRotationSpeed(float maxSpeed, uint32_t dt);
 };
 }  // namespace src::chassis
