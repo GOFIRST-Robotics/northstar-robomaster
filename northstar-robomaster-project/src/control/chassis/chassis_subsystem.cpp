@@ -169,7 +169,7 @@ float yVelOdometry;
 float rotationOdometry;
 float rotationOdometryDegrees;
 
-float encoderLF_Velocity;
+float poopBalls;
 
 void ChassisSubsystem::refresh()
 {
@@ -220,7 +220,7 @@ void ChassisSubsystem::refresh()
     xVelOdometry = chassisOdometry->getVelocityLocal().x;
     yVelOdometry = chassisOdometry->getVelocityLocal().y;
     rotationOdometry = chassisOdometry->getRotation();
-    encoderLF_Velocity = motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity();
+    poopBalls = chassisOdometry->calculateRobotHeading();
 
     rotationOdometryDegrees = fmod(((180 / PI) * rotationOdometry), 360.0);
     if (rotationOdometryDegrees < 0)

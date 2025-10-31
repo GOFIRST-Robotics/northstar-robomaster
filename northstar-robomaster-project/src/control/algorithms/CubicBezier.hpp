@@ -8,8 +8,6 @@
 #include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 
-namespace src::cubicBezier
-{
 class CubicBezier
 {
 public:
@@ -24,6 +22,20 @@ public:
           endControl(endControl)
     {
         length = estimateLength();
+    }
+
+    CubicBezier(
+        modm::Vector<float, 2> start,
+        modm::Vector<float, 2> end,
+        modm::Vector<float, 2> startControl,
+        modm::Vector<float, 2> endControl,
+        float length)
+        : start(start),
+          end(end),
+          startControl(startControl),
+          endControl(endControl),
+          length(length)
+    {
     }
 
     modm::Vector<float, 2> getStart() { return start; }
@@ -76,7 +88,5 @@ private:
 
     float length;
 };
-
-}  // namespace src::cubicBezier
 
 #endif

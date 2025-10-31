@@ -1,5 +1,7 @@
 #include "chassis_auto_drive.hpp"
 
+#include "tap/algorithms/wrapped_float.hpp"
+
 namespace src::chassis
 {
 ChassisAutoDrive::ChassisAutoDrive(
@@ -7,52 +9,40 @@ ChassisAutoDrive::ChassisAutoDrive(
     src::chassis::ChassisOdometry* chassisOdometry)
     : chassis(chassis),
       chassisOdometry(chassisOdometry),
-      path(std::deque<modm::Vector<float, 2>>())
+      path(std::deque<CubicBezier>())
 
 {
 }
 
 void ChassisAutoDrive::resetPath() { path.clear(); }
 
-void ChassisAutoDrive::addPointToPath(modm::Vector<float, 2> newPoint) { path.push_back(newPoint); }
+void ChassisAutoDrive::addCurveToPath(CubicBezier newPoint) { path.push_back(newPoint); }
 
 void ChassisAutoDrive::updateAutoDrive()
 {
     if (!tryUpdatePath())
     {
         desiredGlobalVelocity = modm::Vector<float, 2>(0, 0);
+        desiredRotation = 0;
         return;
     }
 
-    modm::Vector<float, 2> dirToTarget = (path[0] - chassisOdometry->getPositionGlobal());
-
+    modm::Vector<float, 2> dirToTarget = getDirectionToCurve(currentT);
     float distanceToTarget = dirToTarget.getLength();
-    modm::Vector<float, 2> velocityToTarget = dirToTarget;
 
-    if (distanceToTarget > MAXIMUM_MPS)
+    if (distanceToTarget < 0.05)
     {
-        velocityToTarget = (dirToTarget / distanceToTarget) * MAXIMUM_MPS;
-    }
-    else if (distanceToTarget < MINIMUM_MPS)
-    {
-        velocityToTarget = (dirToTarget / distanceToTarget) * MINIMUM_MPS;
+        currentT += path.front().evaluateDerivative(currentT).getLength() * 0.01f;
+        return;
     }
 
-    velocityToTarget.x = -velocityToTarget.x;  // flipped for some reason??
-    currentIdealVelocity = velocityToTarget;
-
-    desiredGlobalVelocity =
-        desiredGlobalVelocity + (currentIdealVelocity - desiredGlobalVelocity).normalized() * 0.003;
-
-    desiredRotation = desiredRotation + chassisOdometry->getRotation() * 0.1;
-    if (desiredRotation > .8)
-    {
-        desiredRotation = .8;
-    }
-    else if (desiredRotation < -.8)
-    {
-        desiredRotation = -.8;
-    }
+    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.05);
+    float desiredFacingRadians = atan2(lookaheadDerivative.y, lookaheadDerivative.x);
+    float d = tap::algorithms::Angle(desiredFacingRadians)
+                  .minDifference(getOdometryRotation() + (M_PI_2));
+    // desiredRotation = (desiredFacingRadians - getOdometryRotation() - (M_PI_2)) * -1.2;
+    desiredRotation = d * 1.2;
+    desiredGlobalVelocity = (dirToTarget / distanceToTarget) * 2.0f;
 }
 
 };  // namespace src::chassis

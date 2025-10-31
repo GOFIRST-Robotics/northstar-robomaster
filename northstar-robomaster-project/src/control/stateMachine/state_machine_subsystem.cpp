@@ -26,48 +26,25 @@ void StateMachineSubsystem::refresh()
         return;
     }
 
-    modm::Vector<float, 2> directionToCurve = chassisAutoDrive->getDirectionToCurve(t);
-    float lengthToCurve = directionToCurve.getLength();
-
-    if (lengthToCurve < 0.05)
+    if (!a)
     {
-        t += 0.02f;
-        return;
-    }
-
-    modm::Vector<float, 2> deriv = chassisAutoDrive->getLookaheadDeriv(t, 0.05);
-    float desiredFacingRadians = atan2(deriv.y, deriv.x);
-    float desiredDriveRotation =
-        (desiredFacingRadians - chassisAutoDrive->getOdometryRotation() - (M_PI_2)) * -1.2;
-
-    modm::Vector<float, 2> desiredVelocity = directionToCurve.normalized() * 0.6f;
-    chassisSubsystem->setVelocityFieldDrive(
-        desiredVelocity.y,
-        -desiredVelocity.x,
-        desiredDriveRotation);
-
-    /*if (chassisAutoDrive->getPath().size() == 0)
-    {
-        chassisAutoDrive->addPointToPath(
-            a ? modm::Vector<float, 2>(0, 0) : modm::Vector<float, 2>(0, 1.0f));
-        a = !a;
+        a = true;
+        chassisAutoDrive->addCurveToPath(CubicBezier(
+            modm::Vector<float, 2>(0, 0),
+            modm::Vector<float, 2>(1, 0),
+            modm::Vector<float, 2>(-1, 1),
+            modm::Vector<float, 2>(2, 1)));
     }
 
     chassisAutoDrive->updateAutoDrive();
+    modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
+    float desiredRadiansPerSecond = chassisAutoDrive->getDesiredRotation();
 
-    modm::Vector<float, 2> autoDriveDesiredGlobalVelocity =
-        chassisAutoDrive->getDesiredGlobalVelocity();
-    float autoDriveDesiredRotation = chassisAutoDrive->getDesiredRotation();
-    // chassisSubsystem->setVelocityFieldDrive(
-    //     autoDriveDesiredGlobalVelocity.y,
-    //     autoDriveDesiredGlobalVelocity.x,
-    //     0);
-
-    chassisSubsystem->driveBasedOnHeading(
-        autoDriveDesiredGlobalVelocity.y,
-        autoDriveDesiredGlobalVelocity.x,
-        autoDriveDesiredRotation,
-        chassisAutoDrive->getOdometryRotation());*/
+    // converting Left-Handed to Right-Handed coordinate system
+    chassisSubsystem->setVelocityFieldDrive(
+        desiredGlobalVelocity.y,
+        -desiredGlobalVelocity.x,
+        desiredRadiansPerSecond);
 }
 
 }  // namespace src::stateMachine

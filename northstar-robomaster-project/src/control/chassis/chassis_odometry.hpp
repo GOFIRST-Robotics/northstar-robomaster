@@ -6,7 +6,6 @@
 #include "modm/math/geometry/angle.hpp"
 #include "modm/math/geometry/vector.hpp"
 
-
 namespace src::chassis
 {
 class ChassisOdometry
@@ -15,6 +14,9 @@ class ChassisOdometry
     static constexpr float THREE_SQRT_TWO_OVER_SIXTEEN = 0.26516504294f;
     static constexpr float ONE_OVER_FOUR_SQRT_TWO = 0.17677669529f;
     static constexpr float SQRT_TWO_OVER_FOUR = 0.35355339059f;
+
+    tap::communication::sensors::imu::bmi088::Bmi088* imu;
+    tap::motor::DjiMotor* turretYaw;
 
     // rad/sec to m/sec
     float RPS_TO_MPS;
@@ -30,8 +32,14 @@ class ChassisOdometry
     uint32_t previousTimeMicroSeconds = 0;
 
 public:
-    ChassisOdometry(float distanceToCenter, float wheelDiameter)
-        : RPS_TO_MPS(wheelDiameter / 2.0),
+    ChassisOdometry(
+        tap::communication::sensors::imu::bmi088::Bmi088* imu,
+        tap::motor::DjiMotor* turretYaw,
+        float distanceToCenter,
+        float wheelDiameter)
+        : imu(imu),
+          turretYaw(turretYaw),
+          RPS_TO_MPS(wheelDiameter / 2.0),
           DIST_TO_CENT(distanceToCenter)
     {
         zeroOdometry();
@@ -74,14 +82,15 @@ public:
         velocityLocal.x = localVelX;
         velocityLocal.y = localVelY;
 
-        double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
-        rotation -= radiansPerSec * deltaTimeSeconds;
+        // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
+        // rotation -= radiansPerSec * deltaTimeSeconds;
+        rotation = calculateRobotHeading();
 
         velocityGlobal = convertLocalToGlobal(velocityLocal);
         positionGlobal += velocityGlobal * deltaTimeSeconds;
     }
 
-    modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2> &local)
+    modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2>& local)
     {
         float cosR = cos(rotation);
         float sinR = sin(rotation);
@@ -89,6 +98,11 @@ public:
         return modm::Vector<float, 2>(
             local.x * cosR - local.y * sinR,
             local.x * sinR + local.y * cosR);
+    }
+
+    float calculateRobotHeading()
+    {
+        return fmod(imu->getYaw() + turretYaw->getPositionWrapped(), 2 * M_PI);
     }
 };
 

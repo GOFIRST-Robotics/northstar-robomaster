@@ -392,8 +392,11 @@ ToggleCommandMapping gPressed(
 //     false);
 
 // chassis odometry
-src::chassis::ChassisOdometry *chassisOdometry =
-    new src::chassis::ChassisOdometry(src::chassis::DIST_TO_CENTER, src::chassis::WHEEL_DIAMETER_M);
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
