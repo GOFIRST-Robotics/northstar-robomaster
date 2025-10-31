@@ -6,11 +6,13 @@
 #include "tap/drivers.hpp"
 
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/chassis/chassis_odometry.hpp"
 
 namespace src::serial
 {
 class VisionComms : public tap::communication::serial::DJISerial
 {
+    
 public:
     static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
 
@@ -18,6 +20,9 @@ public:
         tap::communication::serial::Uart::UartPort::Uart1;
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_RX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
+
+    src::chassis::ChassisOdometry* chassisOdometry;
+
 
     struct TurretAimData
     {
@@ -41,7 +46,7 @@ public:
         {3, {.15f, .15f}},  // don't know id 3 is correct
     };
 
-    VisionComms(tap::Drivers* drivers);
+    VisionComms(tap::Drivers* drivers, src::chassis::ChassisOdometry* chassisOdometry);
     DISALLOW_COPY_AND_ASSIGN(VisionComms);
     mockable ~VisionComms();
 
@@ -79,7 +84,18 @@ public:
         ODOMETRY = 4
     };
 
-    struct OdometryData
+    
+
+    
+
+    struct TurretOdometryData
+    {
+        float turret_roll;
+        float turret_yaw;
+
+    }modm_packed;
+
+    struct ChassisOdometryData
     {
         float pos_x;
         float pos_y;
@@ -89,10 +105,18 @@ public:
         float rot_p;
         float rot_y;
 
-        float turret_p;
-        float turret_y;
+        float vel_x;
+        float vel_y;
+        float vel_z;
 
-    };
+    }modm_packed;
+
+    struct OdometryData
+    {
+        TurretOdometryData turret_data;
+        ChassisOdometryData chassis_data;
+
+    }modm_packed;
 
 private:
     static constexpr int16_t TIME_OFFLINE_CV_AIM_DATA_MS = 1'000;
