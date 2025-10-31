@@ -100,12 +100,15 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 {
     float maxWheelSpeed =
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
-    float allowedwheelSpeed = (maxWheelSpeed - ((abs(vert) + abs(hor)) * maxWheelSpeed));
+    float allowedwheelSpeed =
+        (maxWheelSpeed -
+         ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) * maxWheelSpeed));
     if (allowedwheelSpeed < 0.0f)
     {
         allowedwheelSpeed = 0.0f;
     }
-    return (allowedwheelSpeed * (WHEEL_DIAMETER_M / 2)) / DIST_TO_CENTER;
+    return (allowedwheelSpeed * (CHASSIS_GEAR_RATIO) * (M_TWOPI / 60.0f) * (WHEEL_DIAMETER_M / 2)) /
+           DIST_TO_CENTER;
 }
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
@@ -236,7 +239,7 @@ void ChassisSubsystem::refresh()
     {
         float calculatedMaxRPMAccel =
             getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
-        if (abs(motors[ii].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) >
+        if (abs(motors[ii].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) <
             abs(desiredOutput[ii]))
         {
             runPid(
@@ -244,7 +247,9 @@ void ChassisSubsystem::refresh()
                 rampControllers[ii],
                 motors[ii],
                 desiredOutput[ii],
-                mpsToRpm(calculatedMaxRPMAccel * 4));
+                mpsToRpm(getMaxAccelSpeed(
+                    drivers->refSerial.getRefSerialReceivingData(),
+                    getChassiPowerLimit())));
         }
         else
         {
@@ -253,7 +258,7 @@ void ChassisSubsystem::refresh()
                 rampControllers[ii],
                 motors[ii],
                 desiredOutput[ii],
-                mpsToRpm(calculatedMaxRPMAccel));
+                mpsToRpm(CHASSIS_DECCEL_VALUE));
         }
     }
 }

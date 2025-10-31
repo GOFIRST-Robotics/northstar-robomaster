@@ -3,7 +3,6 @@
 
 #include "tap/motor/dji_motor.hpp"
 
-#include "control/chassis/chassis_subsystem.hpp"
 #include "modm/math/interpolation/linear.hpp"
 
 #ifndef CHASSIS_CONSTANTS_HPP_
@@ -33,6 +32,8 @@ static const float DIST_TO_CENTER = .34f;  // from wheel to center
 static const float WHEEL_DIAMETER_M = 0.120f;
 static const float RAMP_UP_RPM_INCREMENT_MPS = 0.01f;
 
+static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
+
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
     {50, 4'500},
     {60, 5'700},
@@ -43,13 +44,15 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
 };
 
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
-    {50, 0.002},
-    {60, 0.003},
-    {70, 0.004},
-    {80, 0.006},
-    {100, 0.008},
-    {120, 0.01},
+    {50, 0.006},
+    {60, 0.008},
+    {70, 0.01},
+    {80, 0.012},
+    {100, 0.014},
+    {120, 0.016},
 };
+
+static constexpr float CHASSIS_DECCEL_VALUE = 0.04f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
     CHASSIS_POWER_TO_MAX_SPEED_LUT,

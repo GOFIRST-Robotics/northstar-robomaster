@@ -33,6 +33,8 @@ void ChassisBeybladeCommand::initialize()
     calcSpeed = 1.0f * direction;
 }
 
+float calcedRot;
+
 void ChassisBeybladeCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -44,12 +46,10 @@ void ChassisBeybladeCommand::execute()
     };
     float verticalSpeed = scale(operatorInterface->getDrivetrainVerticalTranslation());
     float horizontalSpeed = -scale(operatorInterface->getDrivetrainHorizontalTranslation());
-    chassis->setVelocityTurretDrive(
-        verticalSpeed,
-        horizontalSpeed,
-        calculateBeyBladeRotationSpeed(
-            chassis->calculateMaxRotationSpeed(verticalSpeed, horizontalSpeed),
-            dt));
+    calcedRot = calculateBeyBladeRotationSpeed(
+        chassis->calculateMaxRotationSpeed(verticalSpeed, horizontalSpeed),
+        dt);
+    chassis->setVelocityTurretDrive(verticalSpeed, horizontalSpeed, calcedRot);
 }
 
 void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
