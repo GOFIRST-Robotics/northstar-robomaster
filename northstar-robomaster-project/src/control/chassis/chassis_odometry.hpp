@@ -25,6 +25,9 @@ class ChassisOdometry
     modm::Vector<float, 2> positionGlobal;
     modm::Vector<float, 2> velocityGlobal;
     modm::Vector<float, 2> velocityLocal;
+    modm::Vector<float, 2> velocityProjectedLocal;
+    modm::Vector<float, 2> positionProjectedGlobal;
+    modm::Vector<float, 2> velocityProjectedGlobal;
 
     // radians
     float rotation;
@@ -48,6 +51,9 @@ public:
     modm::Vector<float, 2> getPositionGlobal() { return positionGlobal; }
     modm::Vector<float, 2> getVelocityGlobal() { return velocityGlobal; }
     modm::Vector<float, 2> getVelocityLocal() { return velocityLocal; }
+    modm::Vector<float, 2> getPositionProjectedGlobal() { return positionProjectedGlobal; }
+    modm::Vector<float, 2> getVelocityProjectedGlobal() { return velocityProjectedGlobal; }
+    modm::Vector<float, 2> getVelocityProjectedLocal() { return velocityProjectedLocal; }
     float getRotation() { return rotation; }
 
     void zeroOdometry()
@@ -82,18 +88,23 @@ public:
         velocityLocal.x = localVelX;
         velocityLocal.y = localVelY;
 
+        velocityProjectedLocal = correctWheelVelocitiesForTilt(velocityLocal);
+
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
         rotation = calculateRobotHeading();
 
         velocityGlobal = convertLocalToGlobal(velocityLocal);
         positionGlobal += velocityGlobal * deltaTimeSeconds;
+
+        velocityProjectedGlobal = convertLocalToGlobal(velocityProjectedLocal);
+        positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
     }
 
     modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2>& local)
     {
-        float cosR = cos(rotation);
-        float sinR = sin(rotation);
+        float cosR = cosf(rotation);
+        float sinR = sinf(rotation);
 
         return modm::Vector<float, 2>(
             local.x * cosR - local.y * sinR,
@@ -102,7 +113,30 @@ public:
 
     float calculateRobotHeading()
     {
-        return fmod(imu->getYaw() + turretYaw->getPositionWrapped(), 2 * M_PI);
+        return fmodf(imu->getYaw() + turretYaw->getPositionWrapped(), 2 * M_PI);
+    }
+
+    float tilt_from_roll_pitch(float roll, float pitch)
+    {
+        float c = cosf(roll) * cosf(pitch);
+        // clamp for safety
+        if (c > 1.0f) c = 1.0f;
+        if (c < -1.0f) c = -1.0f;
+        return acosf(c);  // result in radians
+    }
+
+    modm::Vector<float, 2> correctWheelVelocitiesForTilt(modm::Vector<float, 2> velocityToCorrect)
+    {
+        float roll = imu->getRoll();
+        float pitch = imu->getPitch();
+        float tilt_angle = tilt_from_roll_pitch(roll, pitch);
+
+        // isotropic correction, scales components equally
+        float correction_factor = cosf(tilt_angle);
+
+        return modm::Vector<float, 2>(
+            velocityToCorrect.x * correction_factor,
+            velocityToCorrect.y * correction_factor);
     }
 };
 
