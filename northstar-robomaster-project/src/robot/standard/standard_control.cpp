@@ -436,7 +436,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     1,
     -1,
     M_PI,
-    true);
+    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -532,7 +532,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playMegalovaniaCommand);
+    &playTwinkleCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -608,7 +608,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
