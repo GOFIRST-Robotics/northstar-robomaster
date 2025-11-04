@@ -195,25 +195,38 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rotational,
     float heading)
 {
+    float maxAccelSpeed =
+        getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
+    rampControllers[0].setTarget(forward);
+    rampControllers[0].update(maxAccelSpeed);
+    float rampedForward = rampControllers[0].getValue();
+    rampControllers[1].setTarget(sideways);
+    rampControllers[1].update(maxAccelSpeed);
+    float rampedSideways = rampControllers[1].getValue();
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);
-    double vx_local = forward * cos_theta + sideways * sin_theta;
-    double vy_local = -forward * sin_theta + sideways * cos_theta;
-    double sqrt2 = sqrt(2.0);
+    double vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+    double vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
     LFSpeed = mpsToRpm(
-        (vx_local - vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Front-left wheel
+        (vx_local - vy_local) / M_SQRT2 +
+        (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vx_local - vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Front-right wheel
+        (-vx_local - vy_local) / M_SQRT2 +
+        (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vx_local + vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Rear-right wheel
+        (-vx_local + vy_local) / M_SQRT2 +
+        (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vx_local + vy_local) / sqrt2 + (rotational)*DIST_TO_CENTER * sqrt2);  // Rear-left wheel
+        (vx_local + vy_local) / M_SQRT2 +
+        (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
     int RF = static_cast<int>(MotorId::RF);
     int RB = static_cast<int>(MotorId::RB);
-    float calculatedMaxRPMPower =
-        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
+    float calculatedMaxRPMPower = limitVal<float>(
+        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit()),
+        -MAX_CHASSIS_WHEEL_SPEED,
+        MAX_CHASSIS_WHEEL_SPEED);
     desiredOutput[LF] = limitVal<float>(LFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[LB] = limitVal<float>(LBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
@@ -222,44 +235,16 @@ void ChassisSubsystem::driveBasedOnHeading(
 
 void ChassisSubsystem::refresh()
 {
-    auto runPid = [](Pid& pid,
-                     tap::algorithms::Ramp& ramp,
-                     Motor& motor,
-                     float desiredOutput,
-                     float increment) {
-        ramp.setTarget(desiredOutput);
-        ramp.update(increment);
+    auto runPid = [](Pid& pid, tap::algorithms::Ramp& ramp, Motor& motor, float desiredOutput) {
         pid.update(
-            ramp.getValue() -
+            desiredOutput -
             motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO);
         motor.setDesiredOutput(pid.getValue());
     };
 
     for (size_t ii = 0; ii < motors.size(); ii++)
     {
-        float calculatedMaxRPMAccel =
-            getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
-        if (abs(motors[ii].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) <
-            abs(desiredOutput[ii]))
-        {
-            runPid(
-                pidControllers[ii],
-                rampControllers[ii],
-                motors[ii],
-                desiredOutput[ii],
-                mpsToRpm(getMaxAccelSpeed(
-                    drivers->refSerial.getRefSerialReceivingData(),
-                    getChassiPowerLimit())));
-        }
-        else
-        {
-            runPid(
-                pidControllers[ii],
-                rampControllers[ii],
-                motors[ii],
-                desiredOutput[ii],
-                mpsToRpm(CHASSIS_DECCEL_VALUE));
-        }
+        runPid(pidControllers[ii], rampControllers[ii], motors[ii], desiredOutput[ii]);
     }
 }
 }  // namespace src::chassis
