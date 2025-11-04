@@ -169,7 +169,15 @@ float yVelOdometry;
 float rotationOdometry;
 float rotationOdometryDegrees;
 
-float poopBalls;
+float pitchDegrees;
+float yawDegrees;
+float rollDegrees;
+
+float xVel;
+float yVel;
+float zVel;
+float xPos;
+float yPos;
 
 void ChassisSubsystem::refresh()
 {
@@ -220,12 +228,23 @@ void ChassisSubsystem::refresh()
     xVelOdometry = chassisOdometry->getVelocityLocal().x;
     yVelOdometry = chassisOdometry->getVelocityLocal().y;
     rotationOdometry = chassisOdometry->getRotation();
-    poopBalls = chassisOdometry->calculateRobotHeading();
 
-    rotationOdometryDegrees = fmod(((180 / PI) * rotationOdometry), 360.0);
-    if (rotationOdometryDegrees < 0)
-    {
-        rotationOdometryDegrees += 360.0;
-    }
+    static float radtodeg = (180 / PI);
+    rotationOdometryDegrees = radtodeg * rotationOdometry;
+    pitchDegrees = chassisOdometry->getImuPitch() * radtodeg;
+    yawDegrees = chassisOdometry->getImuYaw() * radtodeg;
+    rollDegrees = chassisOdometry->getImuRoll() * radtodeg;
+
+    xVel = chassisOdometry->getVelocity3dGlobal().x;
+    yVel = chassisOdometry->getVelocity3dGlobal().y;
+    zVel = chassisOdometry->getVelocity3dGlobal().z;
+    xPos = chassisOdometry->getPositionProjectedGlobal().x;
+    yPos = chassisOdometry->getPositionProjectedGlobal().y;
+
+    modm::Vector<float, 3> testVector =
+        chassisOdometry->flatLocalVelTo3dGlobalVel(modm::Vector<float, 2>(0, 1));
+    xVel = testVector.x;
+    yVel = testVector.y;
+    zVel = testVector.z;
 }
 }  // namespace src::chassis

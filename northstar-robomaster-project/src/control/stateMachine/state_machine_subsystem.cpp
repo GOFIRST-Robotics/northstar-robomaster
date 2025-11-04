@@ -31,9 +31,9 @@ void StateMachineSubsystem::refresh()
         a = true;
         chassisAutoDrive->addCurveToPath(CubicBezier(
             modm::Vector<float, 2>(0, 0),
-            modm::Vector<float, 2>(1, 0),
-            modm::Vector<float, 2>(-1, 1),
-            modm::Vector<float, 2>(2, 1)));
+            modm::Vector<float, 2>(0, 3.4),
+            modm::Vector<float, 2>(0, 1),
+            modm::Vector<float, 2>(0, 2.4)));
     }
 
     chassisAutoDrive->updateAutoDrive();
