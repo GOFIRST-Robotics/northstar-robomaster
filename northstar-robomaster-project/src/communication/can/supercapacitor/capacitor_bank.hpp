@@ -45,6 +45,21 @@ enum MessageType
     PING = 0x10,
 };
 
+struct TXcapMessage
+{
+    uint8_t enable_module;
+    uint8_t reset;
+    uint8_t pow_limit;
+    uint16_t energy_buffer;
+};
+
+struct RXcapMessage
+{
+    float chassis_power;
+    uint8_t error;
+    uint8_t cap_energy;
+};
+
 enum State
 {
     UNKNOWN = -1,
@@ -87,6 +102,8 @@ public:
     void processMessage(const modm::can::Message& message) override;
 
     mockable void initialize();
+
+    void sendMessage(TXcapMessage msg);
 
     mockable void start() const;
     mockable void stop() const;

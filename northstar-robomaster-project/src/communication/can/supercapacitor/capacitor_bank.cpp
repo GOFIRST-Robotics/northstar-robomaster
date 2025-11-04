@@ -35,27 +35,11 @@ CapacitorBank::CapacitorBank(
 
 void CapacitorBank::processMessage(const modm::can::Message& message)
 {
-    switch (static_cast<MessageType>(message.data[0]))
-    {
-        case MessageType::STATUS:  // Update message
-            this->state = static_cast<State>(message.data[1]);
-            this->current =
-                *reinterpret_cast<int16_t*>(const_cast<uint8_t*>(&message.data[2])) / 1000.0;
-            this->voltage =
-                *reinterpret_cast<uint16_t*>(const_cast<uint8_t*>(&message.data[4])) / 1000.0;
-            this->powerLimit = message.data[6];
-            this->availableEnergy = tap::algorithms::limitVal(
-                1.0 / 2.0 * this->capacitance *
-                    (powf(this->voltage, 2) - powf(CAPACITOR_BANK_MIN_VOLTAGE, 2)),
-                0.0,
-                2000.0);
-
-            this->heartbeat.restart(80);
-            break;
-        default:
-            // Ignore unknown message IDs
-            break;
-    }
+    RXcapMessage* nMessage;
+    nMessage->chassis_power = *reinterpret_cast<float*>(const_cast<uint8_t*>(&message.data[0]));
+    // message.data[0] << 24 | message.data[1] << 16 | message.data[2] << 8 | message.data[3]
+    nMessage->error = *reinterpret_cast<uint8_t*>(const_cast<uint8_t*>(&message.data[4]));
+    nMessage->cap_energy = *reinterpret_cast<uint8_t*>(const_cast<uint8_t*>(&message.data[5]));
 
     if (drivers->refSerial.getRefSerialReceivingData())
     {
@@ -65,6 +49,18 @@ void CapacitorBank::processMessage(const modm::can::Message& message)
             this->setPowerLimit(powerLimit);
         }
     }
+}
+
+void CapacitorBank::sendMessage(TXcapMessage msg)
+{
+    modm::can::Message message(CAP_BANK_CAN_ID, 8);
+    message.setExtended(false);
+    message.data[0] = msg.enable_module;
+    message.data[1] = msg.reset;
+    message.data[2] = msg.pow_limit;
+    message.data[3] = (msg.energy_buffer >> 8) & 0xFF;
+    message.data[4] = msg.energy_buffer & 0xFF;
+    this->drivers->can.sendMessage(this->canBus, message);
 }
 
 void CapacitorBank::initialize()
