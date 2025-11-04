@@ -235,7 +235,7 @@ void ChassisSubsystem::driveBasedOnHeading(
 
 void ChassisSubsystem::refresh()
 {
-    auto runPid = [](Pid& pid, tap::algorithms::Ramp& ramp, Motor& motor, float desiredOutput) {
+    auto runPid = [](Pid& pid, Motor& motor, float desiredOutput) {
         pid.update(
             desiredOutput -
             motor.getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO);
@@ -244,7 +244,7 @@ void ChassisSubsystem::refresh()
 
     for (size_t ii = 0; ii < motors.size(); ii++)
     {
-        runPid(pidControllers[ii], rampControllers[ii], motors[ii], desiredOutput[ii]);
+        runPid(pidControllers[ii], motors[ii], desiredOutput[ii]);
     }
 }
 }  // namespace src::chassis
