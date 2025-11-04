@@ -42,8 +42,9 @@ void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMe
             cvOfflineTimeout.restart(TIME_OFFLINE_CV_AIM_DATA_MS);
             return;
         }
-        case 4:
+        case MessageType::ODOMETRY:
         {
+            decodeToOdometeryData(completeMessage);
             return;
         }
         case 5:
@@ -100,6 +101,37 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
             }
         }
     }
+}
+
+bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)
+{
+    int curreIndex = 0;
+    modm::Vector2f receivedPosition = modm::Vector2f();
+    float receivedRotation = 0;
+
+    if (sizeof(OdometryData) > message.header.dataLength)
+    {
+        std::printf("not enough data for odometry");
+        return false;  // Not enough data for another turret aim data
+    }
+
+    //Position data
+    memcpy(&receivedPosition.x, &message.data[curreIndex], sizeof(float));
+    curreIndex += sizeof(float);
+
+    memcpy(&receivedPosition.y, &message.data[curreIndex], sizeof(float));
+    curreIndex += sizeof(float);
+
+    //rotation Data
+    memcpy(&receivedRotation, &message.data[curreIndex], sizeof(float));
+    curreIndex += sizeof(float);
+
+    
+    // send the values received back into odometry
+    chassisOdometry->setOdometryPosAndRot(receivedPosition,receivedRotation);
+
+    
+
 }
 
 void VisionComms::sendRobotIdMessage()

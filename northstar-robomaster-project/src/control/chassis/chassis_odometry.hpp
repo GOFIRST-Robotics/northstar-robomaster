@@ -50,6 +50,12 @@ public:
         rotation = 0;
     }
 
+    void setOdometryPosAndRot(modm::Vector2f pos,float rot)
+    {
+        positionGlobal = pos;
+        rotation = rot;
+    }
+
     // input is in radians per second
     void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
     {

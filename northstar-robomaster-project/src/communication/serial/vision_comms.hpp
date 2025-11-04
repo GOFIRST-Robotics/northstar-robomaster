@@ -133,6 +133,9 @@ private:
     mockable void sendRobotOdometry();
 
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
+
+    bool decodeToOdometeryData(const ReceivedSerialMessage& message);
+
 };
 }  // namespace src::serial
 
