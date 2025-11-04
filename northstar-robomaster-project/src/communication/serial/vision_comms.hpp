@@ -7,6 +7,7 @@
 
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/chassis/chassis_odometry.hpp"
+#include "control/chassis/chassis_subsystem.hpp"
 
 namespace src::serial
 {
@@ -23,6 +24,9 @@ public:
 
     src::chassis::ChassisOdometry* chassisOdometry;
 
+    src::chassis::ChassisSubsystem* chassisSubsystem;
+
+    tap::motor::DjiMotor* pitchMotor;
 
     struct TurretAimData
     {
@@ -46,7 +50,7 @@ public:
         {3, {.15f, .15f}},  // don't know id 3 is correct
     };
 
-    VisionComms(tap::Drivers* drivers, src::chassis::ChassisOdometry* chassisOdometry);
+    VisionComms(tap::Drivers* drivers, src::chassis::ChassisOdometry* chassisOdometry, src::chassis::ChassisSubsystem chassisSubsystem, tap::motor::DjiMotor* yawMotor);
     DISALLOW_COPY_AND_ASSIGN(VisionComms);
     mockable ~VisionComms();
 
@@ -90,8 +94,9 @@ public:
 
     struct TurretOdometryData
     {
-        float turret_roll;
+        float turret_pitch;
         float turret_yaw;
+        float turret_roll;
 
     }modm_packed;
 
@@ -100,10 +105,6 @@ public:
         float pos_x;
         float pos_y;
         float pos_z;
-
-        float rot_r;
-        float rot_p;
-        float rot_y;
 
         float vel_x;
         float vel_y;

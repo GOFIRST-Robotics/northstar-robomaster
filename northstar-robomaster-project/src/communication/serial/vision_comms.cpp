@@ -2,10 +2,12 @@
 
 namespace src::serial
 {
-VisionComms::VisionComms(tap::Drivers* drivers,src::chassis::ChassisOdometry* chassisOdometry)
+VisionComms::VisionComms(tap::Drivers* drivers,src::chassis::ChassisOdometry* chassisOdometry,src::chassis::ChassisSubsystem, tap::motor::DjiMotor* pitchMotor)
     : DJISerial(drivers, VISION_COMMS_RX_UART_PORT),
       lastAimData(),
-      chassisOdometry(chassisOdometry)
+      chassisOdometry(chassisOdometry),
+      chassisSubsystem(chassisSubsystem),
+      pitchMotor(pitchMotor)
 {
     for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
     {
@@ -121,26 +123,23 @@ void VisionComms::sendRobotOdometry()
     
 
     modm::Vector2f global_pos = chassisOdometry->getPositionGlobal();
-    float rot = chassisOdometry->getRotation();
     modm::Vector2f global_vel = chassisOdometry->getVelocityGlobal();
 
     //Chassis data
-    odometryData.chassis_data.pos_x = global_pos.x;
-    odometryData.chassis_data.pos_y = global_pos.y;
+    odometryData.chassis_data.pos_x = global_pos.x;//meters
+    odometryData.chassis_data.pos_y = global_pos.y;//meters
     odometryData.chassis_data.pos_z = 0; //TODO: this assumes the robot is on level ground. Odometry should support z for varied height fields
 
-    odometryData.chassis_data.rot_r = 0;//TODO: these assume that there is no rotation in the other axis, odometry should support these for slopes
-    odometryData.chassis_data.rot_p = 0;
-    odometryData.chassis_data.rot_y = rot;
 
-    odometryData.chassis_data.vel_x = global_vel.x;
-    odometryData.chassis_data.vel_y = global_vel.y;
+    odometryData.chassis_data.vel_x = global_vel.x;//meters/second
+    odometryData.chassis_data.vel_y = global_vel.y;//meters/second
     odometryData.chassis_data.vel_z = 0;//TODO: see z on position (it doesn't exist)
 
 
     //Turret Data
-    odometryData.turret_data.turret_roll = 10;
-    odometryData.turret_data.turret_yaw = 11;
+    odometryData.turret_data.turret_pitch = pitchMotor->getPositionWrapped();//radians
+    odometryData.turret_data.turret_yaw = drivers->bmi088.getYaw();//radians
+    odometryData.turret_data.turret_roll = drivers->bmi088.getRoll();//radians
 
 
 
@@ -153,18 +152,15 @@ void VisionComms::sendRobotOdometry()
     odometryMessage.data[1] = odometryData.chassis_data.pos_y;
     odometryMessage.data[2] = odometryData.chassis_data.pos_z;
 
-    odometryMessage.data[3] = odometryData.chassis_data.rot_r;
-    odometryMessage.data[4] = odometryData.chassis_data.rot_p;
-    odometryMessage.data[5] = odometryData.chassis_data.rot_y;
-
-    odometryMessage.data[6] = odometryData.chassis_data.vel_x;
-    odometryMessage.data[7] = odometryData.chassis_data.vel_y;
-    odometryMessage.data[8] = odometryData.chassis_data.vel_z;
+    odometryMessage.data[3] = odometryData.chassis_data.vel_x;
+    odometryMessage.data[4] = odometryData.chassis_data.vel_y;
+    odometryMessage.data[5] = odometryData.chassis_data.vel_z;
 
 
     //Turret Data
-    odometryMessage.data[9] = odometryData.turret_data.turret_roll;
-    odometryMessage.data[10] = odometryData.turret_data.turret_yaw;
+    odometryMessage.data[6] = odometryData.turret_data.turret_roll;
+    odometryMessage.data[7] = odometryData.turret_data.turret_pitch;
+    odometryMessage.data[8] = odometryData.turret_data.turret_yaw;
 
 
 
