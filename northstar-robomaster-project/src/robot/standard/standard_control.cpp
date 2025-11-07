@@ -139,16 +139,12 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 
 PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
-PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+// PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
-PlaySongCommand playTuffStartupNoise(&buzzerSubsystem, tsnSong);
-
-// PlaySongCommand playFreedomMotif(&buzzerSubsystem, theWorldRevolving);
-
-PressCommandMapping ctrlShiftZSong(
-    drivers(),
-    {&playMegalovaniaCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
+// PressCommandMapping ctrlShiftZSong(
+//     drivers(),
+//     {&playMegalovaniaCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
 FlywheelSubsystem flywheel(
@@ -502,6 +498,11 @@ ToggleCommandMapping rPressedOrientDrive(
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
+ToggleCommandMapping qPressedNormDrive(
+    drivers(),
+    {&chassisDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
+
 ToggleCommandMapping zPressedNotCtrlWiggle(
     drivers(),
     {&chassisWiggleCommand},
@@ -636,6 +637,13 @@ void startStandardCommands(Drivers *drivers)
         0,
         modm::toRadian(-135),
         modm::toRadian(-90)));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(-135),
+        modm::toRadian(-90)));
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
@@ -657,8 +665,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
-    drivers->commandMapper.addMap(&ctrlShiftZSong);
-    // drivers->commandMapper.addMap(&lClickPressedDriveOneMeter);
+    // drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&qPressedNormDrive);
 }
 }  // namespace standard_control
 
