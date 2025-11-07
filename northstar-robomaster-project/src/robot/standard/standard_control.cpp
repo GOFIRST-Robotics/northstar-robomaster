@@ -143,7 +143,7 @@ PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
 PlaySongCommand playTuffStartupNoise(&buzzerSubsystem, tsnSong);
 
-PlaySongCommand playFreedomMotif(&buzzerSubsystem, tsnSong);
+// PlaySongCommand playFreedomMotif(&buzzerSubsystem, theWorldRevolving);
 
 PressCommandMapping ctrlShiftZSong(
     drivers(),
@@ -538,7 +538,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playFreedomMotif);
+    &playTuffStartupNoise);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -629,8 +629,13 @@ void setDefaultStandardCommands(Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(-135),
+        modm::toRadian(-90)));
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
