@@ -48,7 +48,7 @@ void ChassisBeybladeCommand::execute()
         operatorInterface->getDrivetrainVerticalTranslation(),
         operatorInterface->getDrivetrainHorizontalTranslation());
     float verticalSpeed = scale(normInput.first);
-    float horizontalSpeed = -scale(normInput.second);
+    float horizontalSpeed = scale(normInput.second);
     calcedRot = calculateBeyBladeRotationSpeed(
         chassis->calculateMaxRotationSpeed(verticalSpeed, horizontalSpeed),
         dt);

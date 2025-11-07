@@ -48,7 +48,7 @@ void ChassisDriveDistanceCommand::execute()
         velocityToTarget = dirToTarget;
     }
 
-    chassis->setVelocityFieldDrive(velocityToTarget.y, -velocityToTarget.x, 0);
+    chassis->setVelocityFieldDrive(velocityToTarget.y, velocityToTarget.x, 0);
 }
 
 void ChassisDriveDistanceCommand::end(bool interrupted)

@@ -29,7 +29,7 @@ void ChassisFieldCommand::execute()
         operatorInterface->getDrivetrainHorizontalTranslation());
     chassis->setVelocityFieldDrive(
         scale(normInput.first),
-        -scale(normInput.second),
+        scale(normInput.second),
         scale(operatorInterface->getDrivetrainRotationalTranslation()));
 }
 
