@@ -619,7 +619,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    // chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //
     // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
