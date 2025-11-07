@@ -272,6 +272,13 @@ cv::TurretCVControlCommand turretCVControlCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
+
+PressCommandMapping ePressed180(
+    drivers(),
+    {&turret180TurnCommand},
+    RemoteMapState({Remote::Key::Q}));
+
 ToggleCommandMapping xCtrlPressedCvControl(
     drivers(),
     {&turretCVControlCommand},
@@ -641,6 +648,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&ePressed180);
 }
 }  // namespace standard_control
 

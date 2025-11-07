@@ -310,36 +310,37 @@ float ControlOperatorInterface::getDrivetrainRotationalTranslation()
     // }
 }
 
-float ControlOperatorInterface::getMecanumRotationKeyBoard()
-{
-    uint32_t updateCounter = remote.getUpdateCounter();
-    uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
-    uint32_t dt = currTime - prevChassisRInputCalledTime;
-    prevChassisRInputCalledTime = currTime;
+// float ControlOperatorInterface::getMecanumRotationKeyBoard()
+// {
+//     uint32_t updateCounter = remote.getUpdateCounter();
+//     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
+//     uint32_t dt = currTime - prevChassisRInputCalledTime;
+//     prevChassisRInputCalledTime = currTime;
 
-    if (prevUpdateCounterR != updateCounter)
-    {
-        chassisRInput.update(-remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL), currTime);
-        prevUpdateCounterR = updateCounter;
-    }
+//     if (prevUpdateCounterR != updateCounter)
+//     {
+//         chassisRInput.update(-remote.getChannel(Remote::Channel::RIGHT_HORIZONTAL), currTime);
+//         prevUpdateCounterR = updateCounter;
+//     }
 
-    float keyInput = remote.keyPressed(Remote::Key::Q) - remote.keyPressed(Remote::Key::E);
+//     float keyInput = remote.keyPressed(Remote::Key::Q) - remote.keyPressed(Remote::Key::E);
 
-    const float maxChassisSpeed = 2500;
+//     const float maxChassisSpeed = 2500;
 
-    float finalR = maxChassisSpeed *
-                   limitVal(chassisRInput.getInterpolatedValue(currTime) + keyInput, -1.0f, 1.0f);
+//     float finalR = maxChassisSpeed *
+//                    limitVal(chassisRInput.getInterpolatedValue(currTime) + keyInput,
+//                    -1.0f, 1.0f);
 
-    chassisRInputRamp.setTarget(finalR);
+//     chassisRInputRamp.setTarget(finalR);
 
-    applyAccelerationToRamp(
-        chassisRInputRamp,
-        MAX_ACCELERATION_R,
-        MAX_DECELERATION_R,
-        static_cast<float>(dt) / 1E3);
+//     applyAccelerationToRamp(
+//         chassisRInputRamp,
+//         MAX_ACCELERATION_R,
+//         MAX_DECELERATION_R,
+//         static_cast<float>(dt) / 1E3);
 
-    return chassisRInputRamp.getValue();
-}
+//     return chassisRInputRamp.getValue();
+// }
 
 bool ControlOperatorInterface::isRightSwitchUp()
 {
