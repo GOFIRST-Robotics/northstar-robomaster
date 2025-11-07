@@ -27,7 +27,13 @@ ChassisBeybladeCommand::ChassisBeybladeCommand(
     addSubsystemRequirement(chassis);
 }
 
-void ChassisBeybladeCommand::initialize() { prevTime = tap::arch::clock::getTimeMilliseconds(); }
+void ChassisBeybladeCommand::initialize()
+{
+    prevTime = tap::arch::clock::getTimeMilliseconds();
+    calcSpeed = 1.0f * direction;
+}
+
+float calcedRot;
 
 void ChassisBeybladeCommand::execute()
 {
@@ -38,29 +44,31 @@ void ChassisBeybladeCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
-    chassis->setVelocityTurretDrive(
-        scale(operatorInterface->getDrivetrainVerticalTranslation()),
-        -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
-        calculateBeyBladeRotationSpeed(1, dt));
+    modm::Pair<float, float> normInput = getNormalizedInput(
+        operatorInterface->getDrivetrainVerticalTranslation(),
+        operatorInterface->getDrivetrainHorizontalTranslation());
+    float verticalSpeed = scale(normInput.first);
+    float horizontalSpeed = -scale(normInput.second);
+    calcedRot = calculateBeyBladeRotationSpeed(
+        chassis->calculateMaxRotationSpeed(verticalSpeed, horizontalSpeed),
+        dt);
+    chassis->setVelocityTurretDrive(verticalSpeed, horizontalSpeed, calcedRot);
 }
 
 void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
 
-float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float distance, uint32_t dt)
+float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uint32_t dt)
 {
     accumTime += dt;
-    if (distance < 0.1f)
-    {
-        return 0.0f;
-    }
     if (!isVariable)
     {
-        return limitVal<float>(distScaleFactor / distance, 0.0f, 1.0f) * direction * spinVel;
+        return maxSpeed * direction;
     }
     RandomNumberGenerator::enable();
+
     if (accumTime > 500)
     {
-        float calcSpeed = limitVal<float>(distScaleFactor / distance, 0.0f, 0.9f) * direction;
+        calcSpeed = limitVal<float>(1.0f, 0.0f, 0.9f) * direction;
         if (RandomNumberGenerator::isReady())
         {
             calcSpeed = limitVal<float>(
@@ -69,7 +77,7 @@ float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float distance, uin
                 1.0f);
         }
         accumTime = 0;
-        return calcSpeed * spinVel;
     }
+    return calcSpeed * maxSpeed * direction;
 }
 };  // namespace src::chassis

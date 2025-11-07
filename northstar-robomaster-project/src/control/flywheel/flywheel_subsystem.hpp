@@ -22,7 +22,8 @@ public:
         tap::motor::REVMotorId leftMotorId,
         tap::motor::REVMotorId rightMotorId,
         tap::motor::REVMotorId upMotorId,
-        tap::can::CanBus canBus);
+        tap::can::CanBus canBus,
+        tap::motor::RevMotor::PIDConfig pidConfig);
 
     void initialize() override;
 
@@ -49,11 +50,20 @@ public:
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedUp);
     }
 
-    float getCurrentLeftFlywheelMotorRPM() const { return leftWheel.getVelocity(); }
+    float getCurrentLeftFlywheelMotorRPM() const
+    {
+        return leftWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    }
 
-    float getCurrentRightFlywheelMotorRPM() const { return rightWheel.getVelocity(); }
+    float getCurrentRightFlywheelMotorRPM() const
+    {
+        return rightWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    }
 
-    float getCurrentUpFlywheelMotorRPM() const { return upWheel.getVelocity(); }
+    float getCurrentUpFlywheelMotorRPM() const
+    {
+        return upWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+    }
 
     void refresh() override;
 
@@ -72,6 +82,8 @@ protected:
     tap::Drivers *drivers;
 
 private:
+    tap::motor::RevMotor::PIDConfig pidConfig;
+
     float desiredLaunchSpeedLeft;
     float desiredLaunchSpeedRight;
     float desiredLaunchSpeedUp;

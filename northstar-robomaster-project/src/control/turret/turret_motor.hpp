@@ -1,27 +1,7 @@
-/*
- * Copyright (c) 2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
- *
- * This file is part of aruw-mcb.
- *
- * aruw-mcb is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * aruw-mcb is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 #ifndef TURRET_MOTOR_HPP_
 #define TURRET_MOTOR_HPP_
 
 #include "tap/algorithms/wrapped_float.hpp"
-#include "tap/motor/motor_interface.hpp"
 #include "tap/util_macros.hpp"
 
 #include "algorithms/turret_controller_interface.hpp"
@@ -43,19 +23,16 @@ namespace src::control::turret
 class TurretMotor
 {
 public:
-    /// Maximum output, voltage control between [-24, 24] volts scaled up to [-30,000, 30,000] units
-    static constexpr float MAX_OUT_6020 = 30'000;
+    virtual ~TurretMotor() = default;
 
     /**
      * Construct a turret motor with some particular hardware motor interface and a motor
      * configuration struct.
      */
-    TurretMotor(tap::motor::MotorInterface *motor, const TurretMotorConfig &motorConfig);
-
-    mockable inline void initialize() { motor->initialize(); }
+    virtual inline void initialize() = 0;
 
     /// Updates the measured motor angle
-    mockable void updateMotorAngle();
+    virtual void updateMotorAngle() = 0;
 
     /**
      * Set the motor's desired output when the motor is online. The output is expected to be in the
@@ -64,7 +41,7 @@ public:
      *
      * @param[in] out The desired motor output.
      */
-    mockable void setMotorOutput(float out);
+    virtual void setMotorOutput(float out) = 0;
 
     /**
      * Attaches the specified turretController to this turret motor. This does not give ownership
@@ -72,52 +49,36 @@ public:
      * is currently being run (since turret controllers are shared by commands but persist across
      * different commands).
      */
-    mockable inline void attachTurretController(
-        const algorithms::TurretControllerInterface *turretController)
-    {
-        this->turretController = turretController;
-    }
-
+    virtual inline void attachTurretController(
+        const algorithms::TurretControllerInterface *turretController) = 0;
     /**
      * Sets (and limits!) the chassis frame turret measurement.
      *
      * The setpoint is limited between the min and max config angles as specified in the
      * constructor.
      */
-    mockable void setChassisFrameSetpoint(WrappedFloat setpoint);
+    virtual void setChassisFrameSetpoint(WrappedFloat setpoint) = 0;
 
     /// @return `true` if the hardware motor is connected and powered on
-    mockable inline bool isOnline() const { return motor->isMotorOnline(); }
+    virtual inline bool isOnline() const = 0;
 
     /**
      * @return turret motor angle setpoint relative to the chassis, in radians
      */
-    mockable inline WrappedFloat getChassisFrameSetpoint() const { return chassisFrameSetpoint; }
+    virtual inline WrappedFloat getChassisFrameSetpoint() const = 0;
 
     /// @return turret motor angle measurement relative to the chassis, in radians, wrapped between
     /// [0, 2 PI)
-    mockable inline const WrappedFloat &getChassisFrameMeasuredAngle() const
-    {
-        return chassisFrameMeasuredAngle;
-    }
+    virtual inline const WrappedFloat &getChassisFrameMeasuredAngle() const = 0;
 
     /**
      * @return angular velocity of the turret, in rad/sec, positive rotation is defined by the
      * motor.
      */
-    mockable inline float getChassisFrameVelocity() const
-    {
-        return motor->getEncoder()->getVelocity();
-    }
+    virtual inline float getChassisFrameVelocity() const = 0;
 
     /// @return turret controller controlling this motor (as specified by `attachTurretController`)
-    mockable const algorithms::TurretControllerInterface *getTurretController() const
-    {
-        return turretController;
-    }
-
-    /// @return The turret motor config struct associated with this motor
-    mockable const TurretMotorConfig &getConfig() const { return config; }
+    virtual const algorithms::TurretControllerInterface *getTurretController() const = 0;
 
     /**
      * @return Valid minimum error between the chassis relative setpoint and measurement, in
@@ -129,7 +90,7 @@ public:
      * - The absolute difference between the chassis frame measurement and setpoint if the
      *   turret motor is limited to some min/max values.
      */
-    mockable float getValidChassisMeasurementError() const;
+    virtual float getValidChassisMeasurementError() const = 0;
 
     /**
      * @param[in] measurement A turret measurement in the chassis frame, an angle in radians. This
@@ -150,31 +111,13 @@ public:
      * @note Before calling this function, you **must** first set the chassis frame setpoint before
      * calling this function (i.e. call `setChassisFrameSetpoint`).
      */
-    mockable float getValidMinError(const WrappedFloat setpoint, const WrappedFloat measurement)
-        const;
+    virtual float getValidMinError(const WrappedFloat setpoint, const WrappedFloat measurement)
+        const = 0;
 
-    int16_t getMotorOutput() const { return motor->getOutputDesired(); }
+    virtual int16_t getMotorOutput() const = 0;
 
-private:
-    const TurretMotorConfig config;
-
-    /// Low-level motor object that this object interacts with
-    tap::motor::MotorInterface *motor;
-
-    /// Associated turret controller interface that is being used by a command to control this motor
-    const algorithms::TurretControllerInterface *turretController = nullptr;
-
-    /// ratio of motor rotations per rotation of controled pivot
-    float ratio;
-
-    /// Unwrapped chassis frame setpoint specified by the user and limited to `[config.minAngle,
-    /// config.maxAngle]`. Units radians.
-    WrappedFloat chassisFrameSetpoint;
-
-    /// Wrapped chassis frame measured angle between [0, 2*PI). Units radians.
-    WrappedFloat chassisFrameMeasuredAngle;
-
-    int64_t lastUpdatedEncoderValue;
+    /// @return The turret motor config struct associated with this motor
+    virtual const TurretMotorConfig &getConfig() const = 0;
 };
 }  // namespace src::control::turret
 

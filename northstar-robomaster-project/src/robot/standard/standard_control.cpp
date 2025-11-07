@@ -42,6 +42,7 @@
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -150,7 +151,19 @@ PressCommandMapping ctrlShiftZSong(
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+FlywheelSubsystem flywheel(
+    drivers(),
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    UP_MOTOR_ID,
+    CAN_BUS,
+    tap::motor::RevMotor::PIDConfig{
+        .PIDSlot = 0,
+        .kP = FLYWHEEL_PID_KP,
+        .kI = FLYWHEEL_PID_KI,
+        .kD = FLYWHEEL_PID_KD,
+        .kF = FLYWHEEL_PID_KF,
+    });
 
 // flywheel commands
 FlywheelRunCommand flywheelRunCommand(&flywheel);
@@ -274,16 +287,16 @@ ToggleCommandMapping xCtrlPressedCvControl(
     {&turretCVControlCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
 
-user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    &turret,
-    &worldFrameYawChassisImuController,
-    &worldFramePitchChassisImuController,
-    &worldFrameYawTurretCanImuController,
-    &worldFramePitchTurretCanImuController,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &turret,
+//     &worldFrameYawChassisImuController,
+//     &worldFramePitchChassisImuController,
+//     &worldFrameYawTurretCanImuController,
+//     &worldFramePitchTurretCanImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -445,7 +458,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     1,
     -1,
     M_PI,
-    true);
+    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -617,7 +630,7 @@ void setDefaultStandardCommands(Drivers *drivers)
 void startStandardCommands(Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
