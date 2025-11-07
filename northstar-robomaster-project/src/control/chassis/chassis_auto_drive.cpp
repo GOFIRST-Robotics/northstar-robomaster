@@ -40,7 +40,7 @@ void ChassisAutoDrive::updateAutoDrive()
     float desiredFacingRadians = atan2(lookaheadDerivative.y, lookaheadDerivative.x);
     float d = tap::algorithms::Angle(desiredFacingRadians)
                   .minDifference(getOdometryRotation() + (M_PI_2));
-    desiredRotation = d * 1.2;
+    desiredRotation = d * -1.2;
     desiredGlobalVelocity = (dirToTarget / distanceToTarget) * 0.5f;
 }
 

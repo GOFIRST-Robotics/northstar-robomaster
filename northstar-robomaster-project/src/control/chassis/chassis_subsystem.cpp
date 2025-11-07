@@ -83,10 +83,6 @@ float LBSpeed;
 float RFSpeed;
 float RBSpeed;
 
-float topheading;
-float bottomheading;
-float difference;
-
 inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
 
 float ChassisSubsystem::getChassisZeroTurret()
@@ -205,19 +201,19 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rampedSideways = rampControllers[1].getValue();
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);
-    double vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
-    double vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
+    double vx_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
+    double vy_local = rampedForward * cos_theta + rampedSideways * sin_theta;
     LFSpeed = mpsToRpm(
-        (vx_local - vy_local) / M_SQRT2 +
+        (vy_local + vx_local) / M_SQRT2 -
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vx_local - vy_local) / M_SQRT2 +
+        (-vy_local + vx_local) / M_SQRT2 -
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vx_local + vy_local) / M_SQRT2 +
+        (-vy_local - vx_local) / M_SQRT2 -
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vx_local + vy_local) / M_SQRT2 +
+        (vy_local - vx_local) / M_SQRT2 -
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
@@ -233,23 +229,6 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
 
-float xPosOdometry;
-float yPosOdometry;
-float xVelOdometry;
-float yVelOdometry;
-float rotationOdometry;
-float rotationOdometryDegrees;
-
-float pitchDegrees;
-float yawDegrees;
-float rollDegrees;
-
-float xVel;
-float yVel;
-float zVel;
-float xPos;
-float yPos;
-
 void ChassisSubsystem::refresh()
 {
     auto runPid = [](Pid& pid, Motor& motor, float desiredOutput) {
@@ -263,5 +242,11 @@ void ChassisSubsystem::refresh()
     {
         runPid(pidControllers[ii], motors[ii], desiredOutput[ii]);
     }
+
+    chassisOdometry->updateOdometry(
+        motors[static_cast<int>(MotorId::LF)].getEncoder()->getVelocity(),
+        motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
+        motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
+        motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
 }
 }  // namespace src::chassis

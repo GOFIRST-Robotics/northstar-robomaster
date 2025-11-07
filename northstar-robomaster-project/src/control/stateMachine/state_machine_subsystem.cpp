@@ -42,7 +42,7 @@ void StateMachineSubsystem::refresh()
 
     chassisSubsystem->setVelocityFieldDrive(
         desiredGlobalVelocity.y,
-        -desiredGlobalVelocity.x,
+        desiredGlobalVelocity.x,
         desiredRadiansPerSecond);
 }
 
