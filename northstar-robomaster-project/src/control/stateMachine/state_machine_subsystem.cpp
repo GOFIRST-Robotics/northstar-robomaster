@@ -40,7 +40,6 @@ void StateMachineSubsystem::refresh()
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
     float desiredRadiansPerSecond = chassisAutoDrive->getDesiredRotation();
 
-    // converting Left-Handed to Right-Handed coordinate system
     chassisSubsystem->setVelocityFieldDrive(
         desiredGlobalVelocity.y,
         -desiredGlobalVelocity.x,

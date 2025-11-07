@@ -6,14 +6,18 @@
 #include "modm/math/geometry/angle.hpp"
 #include "modm/math/geometry/vector.hpp"
 
+/*
+    Chassis Odometry uses a 2D coordinate system, using the ground as the XY plane
+    +X: Right
+    +Y: Forward
+    +Rotation: CCW
+*/
+
 namespace src::chassis
 {
 class ChassisOdometry
 {
     static constexpr float ONE_OVER_THREE = 1.0f / 3.0f;
-    static constexpr float THREE_SQRT_TWO_OVER_SIXTEEN = 0.26516504294f;
-    static constexpr float ONE_OVER_FOUR_SQRT_TWO = 0.17677669529f;
-    static constexpr float SQRT_TWO_OVER_FOUR = 0.35355339059f;
 
     tap::communication::sensors::imu::bmi088::Bmi088* imu;
     tap::motor::DjiMotor* turretYaw;

@@ -7,6 +7,13 @@
 
 using tap::algorithms::limitVal;
 
+/*
+    Chassis Subsystem uses a 2D coordinate system, using the ground as the XY plane
+    +X: Right
+    +Y: Forward
+    +Rotation: CCW
+*/
+
 namespace src::chassis
 {
 ChassisSubsystem::ChassisSubsystem(
@@ -97,16 +104,7 @@ float ChassisSubsystem::getChassisRotationSpeed()
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
-    // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
-    if (turretRot > M_TWOPI)
-    {
-        turretRot -= M_TWOPI;
-    }
-    else if (turretRot < 0.0f)
-    {
-        turretRot += M_TWOPI;
-    }
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 

@@ -142,6 +142,8 @@ PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
 PlaySongCommand playTuffStartupNoise(&buzzerSubsystem, tsnSong);
 
+PlaySongCommand playFreedomMotif(&buzzerSubsystem, tsnSong);
+
 PressCommandMapping ctrlShiftZSong(
     drivers(),
     {&playMegalovaniaCommand},
@@ -523,7 +525,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playTuffStartupNoise);
+    &playFreedomMotif);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
