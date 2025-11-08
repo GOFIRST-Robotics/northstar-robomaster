@@ -102,9 +102,6 @@
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 #include "control/clientDisplay/indicators/vision_indicator.hpp"
 
-// STATE MACHINE
-#include "control/stateMachine/state_machine_subsytem.hpp"
-
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -428,10 +425,6 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     &yawMotor,
     chassisOdometry);
 
-// chassis auto drive
-src::chassis::ChassisAutoDrive *chassisAutoDrive =
-    new src::chassis::ChassisAutoDrive(&chassisSubsystem, chassisOdometry);
-
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
@@ -590,10 +583,6 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-// STATE MACHINE
-src::stateMachine::StateMachineSubsystem stateMachineSubsystem =
-    src::stateMachine::StateMachineSubsystem(drivers(), &chassisSubsystem, chassisAutoDrive);
-
 void initializeSubsystems(Drivers *drivers)
 {
     dummySubsystem.initialize();
@@ -615,7 +604,6 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
@@ -637,13 +625,7 @@ void startStandardCommands(Drivers *drivers)
         0,
         modm::toRadian(-135),
         modm::toRadian(-90)));
-    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
-        0,
-        0,
-        0,
-        0,
-        modm::toRadian(-135),
-        modm::toRadian(-90)));
+
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 

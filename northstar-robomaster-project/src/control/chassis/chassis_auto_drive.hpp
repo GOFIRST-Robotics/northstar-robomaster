@@ -41,7 +41,7 @@ public:
 
     modm::Vector<float, 2> getDirectionToCurve(float t)
     {
-        return path.front().evaluate(t) - chassisOdometry->getPositionProjectedGlobal();
+        return path.front().evaluate(t) - chassisOdometry->getPositionGlobal();
     }
 
     modm::Vector<float, 2> getLookaheadDeriv(float t, float lookaheadVal)
@@ -56,8 +56,6 @@ public:
     }
 
 private:
-    modm::Vector<float, 2> currentIdealVelocity;
-
     bool tryUpdatePath()
     {
         if (path.size() == 0)

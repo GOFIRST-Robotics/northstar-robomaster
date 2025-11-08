@@ -20,7 +20,6 @@ float t = 0;
 
 void StateMachineSubsystem::refresh()
 {
-    return;
     if (drivers->remote.getChannel(5) || t > 1)
     {
         chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
@@ -32,9 +31,9 @@ void StateMachineSubsystem::refresh()
         a = true;
         chassisAutoDrive->addCurveToPath(CubicBezier(
             modm::Vector<float, 2>(0, 0),
-            modm::Vector<float, 2>(0, 3.4),
+            modm::Vector<float, 2>(-1.066, 2.21),
             modm::Vector<float, 2>(0, 1),
-            modm::Vector<float, 2>(0, 2.4)));
+            modm::Vector<float, 2>(0, 2.21)));
     }
 
     chassisAutoDrive->updateAutoDrive();

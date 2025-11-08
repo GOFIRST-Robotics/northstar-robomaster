@@ -1,6 +1,7 @@
 #ifndef CHASSIS_ODOMETRY_HPP
 #define CHASSIS_ODOMETRY_HPP
 
+#include "tap/algorithms/wrapped_float.hpp"
 #include "tap/architecture/clock.hpp"
 
 #include "modm/math/geometry/angle.hpp"
@@ -111,13 +112,14 @@ public:
         float sinR = sinf(rotation);
 
         return modm::Vector<float, 2>(
-            local.x * cosR - local.y * sinR,
-            local.x * sinR + local.y * cosR);
+            local.x * cosR + local.y * sinR,
+            -local.x * sinR + local.y * cosR);
     }
 
     float calculateRobotHeading()
     {
-        return fmodf(imu->getYaw() + turretYaw->getPositionWrapped(), 2 * M_PI);
+        return tap::algorithms::Angle(imu->getYaw() - turretYaw->getPositionWrapped())
+            .getWrappedValue();
     }
 
     modm::Vector<float, 3> flatLocalVelTo3dGlobalVel(modm::Vector<float, 2> localVel)
@@ -127,8 +129,8 @@ public:
         float imuPitch = imu->getPitch();
 
         float alpha = calculateRobotHeading();
-        float beta = cosf(-imuYaw) * imuRoll + sinf(-imuYaw) * imuPitch;
-        float gamma = -sinf(-imuYaw) * imuRoll + cosf(-imuYaw) * imuPitch;
+        float beta = cosf(-imuYaw) * imuPitch + sinf(-imuYaw) * imuRoll;
+        float gamma = -sinf(-imuYaw) * imuPitch + cosf(-imuYaw) * imuRoll;
 
         float x = localVel.x * cosf(beta) * cosf(gamma) +
                   localVel.y * (cosf(alpha) * sinf(beta) * cosf(gamma) + sinf(alpha) * sinf(gamma));
@@ -136,7 +138,7 @@ public:
                   localVel.y * (cosf(alpha) * sinf(beta) * sinf(gamma) - sinf(alpha) * cosf(gamma));
         float z = localVel.x * -sinf(beta) + localVel.y * cosf(alpha) * cosf(beta);
 
-        return modm::Vector<float, 3>(y, x, z);
+        return modm::Vector<float, 3>(x, y, z);
     }
 
     float getImuPitch() { return imu->getPitch(); }

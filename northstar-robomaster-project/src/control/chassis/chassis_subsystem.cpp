@@ -124,7 +124,7 @@ void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, flo
 
 void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, float rotational)
 {
-    float robotHeading = fmod(drivers->bmi088.getYaw() + getTurretYaw(), 2 * M_PI);
+    float robotHeading = fmod(-drivers->bmi088.getYaw() + getTurretYaw(), 2 * M_PI);
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
 }
 
@@ -201,19 +201,19 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rampedSideways = rampControllers[1].getValue();
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);
-    double vx_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
-    double vy_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+    double vx_local = -rampedForward * sin_theta - rampedSideways * cos_theta;
+    double vy_local = rampedForward * cos_theta - rampedSideways * sin_theta;
     LFSpeed = mpsToRpm(
-        (vy_local + vx_local) / M_SQRT2 -
+        (vy_local - vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vy_local + vx_local) / M_SQRT2 -
+        (-vy_local - vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vy_local - vx_local) / M_SQRT2 -
+        (-vy_local + vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vy_local - vx_local) / M_SQRT2 -
+        (vy_local + vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
@@ -228,6 +228,16 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
+
+float xPosOdometry;
+float yPosOdometry;
+float xVelOdometry;
+float yVelOdometry;
+float xVelGlobOdometry;
+float yVelGlobOdometry;
+float rotationOdometry;
+float rotationOdometryDegrees;
+float xl;
 
 void ChassisSubsystem::refresh()
 {
@@ -248,5 +258,15 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
+
+    xPosOdometry = chassisOdometry->getPositionGlobal().x;
+    yPosOdometry = chassisOdometry->getPositionGlobal().y;
+    xVelOdometry = chassisOdometry->getVelocityGlobal().x;
+    yVelOdometry = chassisOdometry->getVelocityGlobal().y;
+    xl = chassisOdometry->getVelocityLocal().x;
+    xVelGlobOdometry = chassisOdometry->getVelocityProjectedGlobal().x;
+    yVelGlobOdometry = chassisOdometry->getVelocityProjectedGlobal().y;
+    rotationOdometry = chassisOdometry->getRotation();
+    rotationOdometryDegrees = modm::toDegree(rotationOdometry);
 }
 }  // namespace src::chassis

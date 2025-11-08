@@ -29,7 +29,7 @@ void ChassisDriveCommand::execute()
         operatorInterface->getDrivetrainHorizontalTranslation());
     chassis->setVelocityTurretDrive(
         scale(normInput.first),
-        -scale(normInput.second),
+        scale(normInput.second),
         scale(operatorInterface->getDrivetrainRotationalTranslation()));
 }
 

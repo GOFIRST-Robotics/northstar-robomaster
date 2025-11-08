@@ -18,6 +18,9 @@ void ChassisAutoDrive::resetPath() { path.clear(); }
 
 void ChassisAutoDrive::addCurveToPath(CubicBezier newPoint) { path.push_back(newPoint); }
 
+float xDir;
+float yDir;
+
 void ChassisAutoDrive::updateAutoDrive()
 {
     if (!tryUpdatePath())
@@ -37,11 +40,13 @@ void ChassisAutoDrive::updateAutoDrive()
     }
 
     modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.05);
-    float desiredFacingRadians = atan2(lookaheadDerivative.y, lookaheadDerivative.x);
-    float d = tap::algorithms::Angle(desiredFacingRadians)
-                  .minDifference(getOdometryRotation() + (M_PI_2));
+    float desiredFacingRadians = atan2(lookaheadDerivative.x, lookaheadDerivative.y);
+    float d = tap::algorithms::Angle(desiredFacingRadians).minDifference(getOdometryRotation());
     desiredRotation = d * -1.2;
     desiredGlobalVelocity = (dirToTarget / distanceToTarget) * 0.5f;
+
+    xDir = desiredGlobalVelocity.x;
+    yDir = desiredGlobalVelocity.y;
 }
 
 };  // namespace src::chassis
