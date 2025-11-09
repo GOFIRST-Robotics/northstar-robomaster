@@ -153,7 +153,7 @@ tap::motor::DjiMotor yawMotor(
     drivers(),
     YAW_MOTOR_ID,
     CAN_BUS_MOTORS,
-    true,
+    false,
     "YawMotor",
     false,
     1,
