@@ -33,7 +33,7 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> dirToTarget = getDirectionToCurve(currentT);
     float distanceToTarget = dirToTarget.getLength();
 
-    if (distanceToTarget < 0.05)
+    if (distanceToTarget < 0.01)
     {
         currentT += path.front().evaluateDerivative(currentT).getLength() * 0.01f;
         return;
@@ -42,8 +42,8 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.05);
     float desiredFacingRadians = atan2(lookaheadDerivative.x, lookaheadDerivative.y);
     float d = tap::algorithms::Angle(desiredFacingRadians).minDifference(getOdometryRotation());
-    desiredRotation = d * -1.2;
-    desiredGlobalVelocity = (dirToTarget / distanceToTarget) * 0.5f;
+    desiredRotation = d * -2.0f;
+    desiredGlobalVelocity = (dirToTarget / distanceToTarget) * 2.0f;
 
     xDir = desiredGlobalVelocity.x;
     yDir = desiredGlobalVelocity.y;

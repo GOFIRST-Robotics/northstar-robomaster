@@ -81,7 +81,7 @@ public:
 
     float getChassisZeroTurret();
 
-    float getChassiPowerLimit()
+    float getChassisPowerLimit()
     {
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }

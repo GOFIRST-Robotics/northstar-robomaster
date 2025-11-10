@@ -1,3 +1,4 @@
+//#define FLY_SKY
 #include "state_machine_subsytem.hpp"
 
 namespace src::stateMachine
@@ -15,17 +16,29 @@ StateMachineSubsystem::StateMachineSubsystem(
 
 void StateMachineSubsystem::initialize() {}
 
+bool beyblade = false;
 bool a = false;
 float t = 0;
 
 void StateMachineSubsystem::refresh()
 {
-    if (drivers->remote.getChannel(5) || t > 1)
+    // return;
+#ifdef FLY_SKY
+    if (drivers->remote.getChannel(5))
+    {
+#else
+    if (drivers->remote.getSwitch(tap::communication::serial::Remote::Switch::RIGHT_SWITCH) !=
+        tap::communication::serial::Remote::SwitchState::UP)
+    {
+#endif
+
+        return;
+    }
+    if (t > 1)
     {
         chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
         return;
     }
-
     if (!a)
     {
         a = true;
@@ -34,16 +47,33 @@ void StateMachineSubsystem::refresh()
             modm::Vector<float, 2>(-1.066, 2.21),
             modm::Vector<float, 2>(0, 1),
             modm::Vector<float, 2>(0, 2.21)));
+        chassisAutoDrive->addCurveToPath(CubicBezier(
+            modm::Vector<float, 2>(-1.066, 2.21),
+            modm::Vector<float, 2>(0, 0),
+            modm::Vector<float, 2>(0, 2.21),
+            modm::Vector<float, 2>(0, 1)));
     }
 
     chassisAutoDrive->updateAutoDrive();
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
-    float desiredRadiansPerSecond = chassisAutoDrive->getDesiredRotation();
+    float desiredRadiansPerSecond = 0.0f;
+    if (beyblade)
+    {
+        desiredRadiansPerSecond = chassisSubsystem->calculateMaxRotationSpeed(
+            desiredGlobalVelocity.y,
+            desiredGlobalVelocity.x);
+    }
+    else
+    {
+        desiredRadiansPerSecond =
+            chassisAutoDrive
+                ->getDesiredRotation();  // use chassisSpeedRotationPID with heading passed in
+    }
 
     chassisSubsystem->setVelocityFieldDrive(
         desiredGlobalVelocity.y,
         desiredGlobalVelocity.x,
         desiredRadiansPerSecond);
-}
+}  // namespace src::stateMachine
 
 }  // namespace src::stateMachine

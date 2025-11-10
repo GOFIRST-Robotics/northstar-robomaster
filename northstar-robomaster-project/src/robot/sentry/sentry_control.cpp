@@ -69,6 +69,7 @@
 #include "control/governor/fired_recently_governor.hpp"
 #include "control/governor/flywheel_on_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
+#include "control/governor/imu_calibrating_governor.hpp"
 #include "control/governor/match_running_governor.hpp"
 #include "control/governor/plate_hit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
@@ -153,7 +154,7 @@ tap::motor::DjiMotor yawMotor(
     drivers(),
     YAW_MOTOR_ID,
     CAN_BUS_MOTORS,
-    false,
+    true,
     "YawMotor",
     false,
     1,
@@ -465,6 +466,19 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     }},
     &chassisSubsystem);
 
+ImuCalibratingGovernor imuCalibratingGovernor(drivers(), imuCalibrateCommand);
+
+GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
+    {&chassisSubsystem},
+    chassisOrientDriveCommand,
+    {&imuCalibratingGovernor});
+
+HoldRepeatCommandMapping rightSwitchMidOrientDriveWhenImuCalibrated(
+    drivers(),
+    {&orientDriveWhenImuCalibrated},
+    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::MID),
+    true);
+
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
 // STATE MACHINE
@@ -519,6 +533,7 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&qPressedNormDrive);
+    drivers->commandMapper.addMap(&rightSwitchMidOrientDriveWhenImuCalibrated);
 }
 }  // namespace sentry_control
 

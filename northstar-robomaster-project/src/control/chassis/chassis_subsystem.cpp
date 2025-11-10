@@ -11,7 +11,7 @@ using tap::algorithms::limitVal;
     Chassis Subsystem uses a 2D coordinate system, using the ground as the XY plane
     +X: Right
     +Y: Forward
-    +Rotation: CCW
+    +Rotation: CW
 */
 
 namespace src::chassis
@@ -104,10 +104,12 @@ float ChassisSubsystem::getChassisRotationSpeed()
 float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 {
     float maxWheelSpeed =
-        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
-    float allowedwheelSpeed =
-        (maxWheelSpeed -
-         ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) * maxWheelSpeed));
+        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
+    float allowedwheelSpeed = maxWheelSpeed - mpsToRpm(modm::Vector2f(vert, hor).getLength());
+    // float allowedwheelSpeed =
+    //     (maxWheelSpeed -
+    //      ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) *
+    //      maxWheelSpeed));
     if (allowedwheelSpeed < 0.0f)
     {
         allowedwheelSpeed = 0.0f;
@@ -124,11 +126,12 @@ void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, flo
 
 void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, float rotational)
 {
-    float robotHeading = fmod(-drivers->bmi088.getYaw() + getTurretYaw(), 2 * M_PI);
+    float robotHeading = fmod(drivers->bmi088.getYaw() + getTurretYaw(), 2 * M_PI);
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
 }
 
-float ChassisSubsystem::chassisSpeedRotationPID()
+float ChassisSubsystem::chassisSpeedRotationPID()  // make this take in the heading to follow then
+                                                   // use with auto drive
 {
     // P
     float currRotationPidP = getChassisZeroTurret() * CHASSIS_ROTATION_P;  // P
@@ -192,7 +195,7 @@ void ChassisSubsystem::driveBasedOnHeading(
     float heading)
 {
     float maxAccelSpeed =
-        getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
+        getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
     rampControllers[0].setTarget(forward);
     rampControllers[0].update(maxAccelSpeed);
     float rampedForward = rampControllers[0].getValue();
@@ -201,26 +204,26 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rampedSideways = rampControllers[1].getValue();
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);
-    double vx_local = -rampedForward * sin_theta - rampedSideways * cos_theta;
-    double vy_local = rampedForward * cos_theta - rampedSideways * sin_theta;
+    double vx_local = rampedSideways * cos_theta + rampedForward * sin_theta;
+    double vy_local = -rampedSideways * sin_theta + rampedForward * cos_theta;
     LFSpeed = mpsToRpm(
-        (vy_local - vx_local) / M_SQRT2 +
+        (vy_local + vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vy_local - vx_local) / M_SQRT2 +
+        (-vy_local + vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vy_local + vx_local) / M_SQRT2 +
+        (-vy_local - vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vy_local + vx_local) / M_SQRT2 +
+        (vy_local - vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
     int RF = static_cast<int>(MotorId::RF);
     int RB = static_cast<int>(MotorId::RB);
     float calculatedMaxRPMPower = limitVal<float>(
-        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit()),
+        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit()),
         -MAX_CHASSIS_WHEEL_SPEED,
         MAX_CHASSIS_WHEEL_SPEED);
     desiredOutput[LF] = limitVal<float>(LFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
