@@ -197,10 +197,12 @@ void ChassisSubsystem::driveBasedOnHeading(
     float maxAccelSpeed =
         getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
     rampControllers[0].setTarget(forward);
-    rampControllers[0].update(maxAccelSpeed);
+    rampControllers[0].update(
+        abs(forward) < abs(rampControllers[0].getValue()) ? CHASSIS_DECCEL_VALUE : maxAccelSpeed);
     float rampedForward = rampControllers[0].getValue();
     rampControllers[1].setTarget(sideways);
-    rampControllers[1].update(maxAccelSpeed);
+    rampControllers[1].update(
+        abs(sideways) < abs(rampControllers[1].getValue()) ? CHASSIS_DECCEL_VALUE : maxAccelSpeed);
     float rampedSideways = rampControllers[1].getValue();
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);

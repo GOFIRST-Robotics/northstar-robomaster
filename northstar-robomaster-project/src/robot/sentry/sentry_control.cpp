@@ -83,6 +83,11 @@
 // safe disconnect
 #include "control/safe_disconnect.hpp"
 
+// songs
+#include "control/buzzer/buzzer_subsystem.hpp"
+#include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/tuff_startup_noise.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -109,6 +114,10 @@ namespace sentry_control
 DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+
+// songs
+BuzzerSubsystem buzzerSubsystem(drivers());
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
 // flywheel subsystem
 FlywheelSubsystem flywheel(
@@ -464,7 +473,8 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playStartupSongCommand);
 
 ImuCalibratingGovernor imuCalibratingGovernor(drivers(), imuCalibrateCommand);
 
@@ -491,6 +501,7 @@ void initializeSubsystems(Drivers *drivers)
     agitator.initialize();
     flywheel.initialize();
     turret.initialize();
+    buzzerSubsystem.initialize();
 }
 
 void registerSentrySubsystems(Drivers *drivers)
@@ -500,6 +511,7 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
+    drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
 void setDefaultSentryCommands(Drivers *drivers)

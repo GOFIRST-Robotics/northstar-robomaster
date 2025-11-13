@@ -42,6 +42,7 @@ public:
     modm::Vector<float, 2> getEnd() { return end; }
     modm::Vector<float, 2> getStartControl() { return startControl; }
     modm::Vector<float, 2> getEndControl() { return endControl; }
+    float getLength() { return length; }
 
     modm::Vector<float, 2> evaluate(float t)
     {

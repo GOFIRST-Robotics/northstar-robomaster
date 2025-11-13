@@ -45,16 +45,19 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
     {120, 8'000},
 };
 
+// rpm per 2ms
+static constexpr float ACCEL_MULT = 0.014f;
+
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
-    {50, 0.010},
-    {60, 0.012},
-    {70, 0.014},
-    {80, 0.016},
-    {100, 0.02},
-    {120, 0.024},
+    {50, ACCEL_MULT},
+    {60, ACCEL_MULT},
+    {70, ACCEL_MULT},
+    {80, ACCEL_MULT},
+    {100, ACCEL_MULT},
+    {120, ACCEL_MULT},
 };
 
-static constexpr float CHASSIS_DECCEL_VALUE = 0.04f;
+static constexpr float CHASSIS_DECCEL_VALUE = 0.02f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
     CHASSIS_POWER_TO_MAX_SPEED_LUT,

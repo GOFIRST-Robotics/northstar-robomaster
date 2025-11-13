@@ -75,6 +75,26 @@ private:
 
         return true;
     }
+
+    modm::Vector<float, 2> clampMagnitude(modm::Vector<float, 2> orig, float min, float max)
+    {
+        float length = orig.getLength();
+
+        if (length < min)
+        {
+            return (orig / length) * min;
+        }
+        else if (length > max)
+        {
+            return (orig / length) * max;
+        }
+        else
+        {
+            return orig;
+        }
+    }
+
+    float lengthOfCurrentCurve() { return path.front().getLength(); }
 };
 
 }  // namespace src::chassis
