@@ -28,23 +28,10 @@
 #include "modm/architecture/interface/can_message.hpp"
 #include "modm/math/interpolation/linear.hpp"
 
-namespace aruwsrc::can::capbank
+#include "capacitor_constants.hpp"
+
+namespace src::can::capbank
 {
-static constexpr float CAPACITOR_BANK_OUTPUT_VOLTAGE = 24.0f;
-static constexpr float CAPACITOR_BANK_EFFICIENCY = 0.9f;
-static constexpr float CAPACITOR_BANK_MIN_VOLTAGE = 8.0f;
-
-static constexpr uint16_t CAP_BANK_CAN_ID = 0x1EC;
-
-enum MessageType
-{
-    START = 0x01,
-    STOP = 0x02,
-    STATUS = 0x04,
-    SET_CHARGE_SPEED = 0x08,
-    PING = 0x10,
-};
-
 struct TXcapMessage
 {
     uint8_t enable_module;
@@ -78,22 +65,6 @@ enum SprintMode
     HALF_SPRINT = 1,
     SPRINT = 2
 };
-
-static constexpr modm::Pair<float, float> CAP_VOLTAGE_TO_MAX_OUT_CURRENT_LUT[] = {
-    {7.0, 2.5},
-    {9.0, 4.0},
-    {11.0, 6.0},
-    {14.0, 7.0},
-    {17.0, 10.0},
-    {20.0, 12.0},
-    {23.0, 12.0},
-    {26.0, 12.0},
-    {29.0, 12.0}};
-
-static modm::interpolation::Linear<modm::Pair<float, float>> CAP_VOLTAGE_TO_MAX_OUT_CURRENT(
-    CAP_VOLTAGE_TO_MAX_OUT_CURRENT_LUT,
-    MODM_ARRAY_SIZE(CAP_VOLTAGE_TO_MAX_OUT_CURRENT_LUT));
-
 class CapacitorBank : public tap::can::CanRxListener
 {
 public:
@@ -103,58 +74,36 @@ public:
 
     mockable void initialize();
 
-    void sendMessage(TXcapMessage msg);
+    void sendTXMessage(TXcapMessage msg);
 
-    mockable void start() const;
-    mockable void stop() const;
-    mockable void ping() const;
-    mockable void setPowerLimit(uint16_t watts);
+    void start();
+    void stop();
+    void update();
+    void setPowerLimit(uint8_t watts);
+    void setEnergyBuffer(uint16_t energyBuffer);
 
 public:
-    int getAvailableEnergy() const { return this->availableEnergy; };
-    float getCurrent() const { return this->current; };
-    float getVoltage() const { return this->voltage; };
+    int getAvailableEnergy() const { return this->lastCapData.cap_energy; };
     int getPowerLimit() const { return this->powerLimit; };
-    State getState() const { return this->state; };
+    uint16_t getAllowedSprintWattage() const { return ALLOWED_SPRINT_WATTAGE; }
 
-    bool isEnabled() const
-    {
-        return this->getState() == State::SAFE || this->getState() == State::CHARGE ||
-               this->getState() == State::CHARGE_DISCHARGE ||
-               this->getState() == State::DISCHARGE || this->getState() == State::BATTERY_OFF;
-    }
+    bool isEnabled() const;
 
-    bool isDisabled() const
-    {
-        return this->getState() == State::RESET || this->getState() == State::DISABLED;
-    }
-
-    bool isOnline() const
-    {
-        return !(this->getState() == State::UNKNOWN || this->heartbeat.isExpired());
-    }
-
-    void setSprinting(SprintMode sprint) { this->sprint = sprint; };
-    bool isSprinting() const { return this->sprint != SprintMode::NO_SPRINT; };
-
-    float getMaximumOutputCurrent() const;
+    bool canSprint() const;
 
 #ifndef ENV_UNIT_TESTS
 private:
 #endif
     const float capacitance;
 
-    uint16_t powerLimit = 0;
+    TXcapMessage currentTXMessageState;
 
-    float availableEnergy = 0;
-    float current = 0;
-    float voltage = 0;
-    State state = State::UNKNOWN;
+    RXcapMessage lastCapData;
 
-    SprintMode sprint = SprintMode::NO_SPRINT;
+    uint8_t powerLimit = 0;
 
     tap::arch::MilliTimeout heartbeat;
 };
-}  // namespace aruwsrc::can::capbank
+}  // namespace src::can::capbank
 
 #endif  // CAPACITOR_BANK_HPP_

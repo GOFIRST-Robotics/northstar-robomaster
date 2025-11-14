@@ -21,7 +21,7 @@
 
 #include "tap/algorithms/math_user_utils.hpp"
 
-namespace aruwsrc::can::capbank
+namespace src::can::capbank
 {
 CapacitorBank::CapacitorBank(
     tap::Drivers* drivers,
@@ -31,35 +31,26 @@ CapacitorBank::CapacitorBank(
       capacitance(capacitance),
       powerLimit(0)
 {
+    currentTXMessageState = {
+        .enable_module = false,
+        .reset = false,
+        .pow_limit = 0,
+        .energy_buffer = 0};
+    lastCapData = {.chassis_power = 0.0f, .error = 0, .cap_energy = 0};
 }
 
 void CapacitorBank::processMessage(const modm::can::Message& message)
 {
-    RXcapMessage* nMessage;
-    nMessage->chassis_power = *reinterpret_cast<float*>(const_cast<uint8_t*>(&message.data[0]));
-    // message.data[0] << 24 | message.data[1] << 16 | message.data[2] << 8 | message.data[3]
-    nMessage->error = *reinterpret_cast<uint8_t*>(const_cast<uint8_t*>(&message.data[4]));
-    nMessage->cap_energy = *reinterpret_cast<uint8_t*>(const_cast<uint8_t*>(&message.data[5]));
-
-    if (drivers->refSerial.getRefSerialReceivingData())
-    {
-        uint16_t powerLimit = drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
-        if (powerLimit != this->powerLimit)
-        {
-            this->setPowerLimit(powerLimit);
-        }
-    }
+    std::memcpy(&lastCapData.chassis_power, &message.data[0], sizeof(float));
+    lastCapData.error = message.data[4];
+    lastCapData.cap_energy = message.data[5];
 }
 
-void CapacitorBank::sendMessage(TXcapMessage msg)
+void CapacitorBank::sendTXMessage(TXcapMessage msg)
 {
-    modm::can::Message message(CAP_BANK_CAN_ID, 8);
-    message.setExtended(false);
-    message.data[0] = msg.enable_module;
-    message.data[1] = msg.reset;
-    message.data[2] = msg.pow_limit;
-    message.data[3] = (msg.energy_buffer >> 8) & 0xFF;
-    message.data[4] = msg.energy_buffer & 0xFF;
+    const size_t data_length = sizeof(TXcapMessage);
+    modm::can::Message message(CAP_BANK_CAN_ID, data_length);
+    std::memcpy(message.data, &msg, data_length);
     this->drivers->can.sendMessage(this->canBus, message);
 }
 
@@ -69,53 +60,35 @@ void CapacitorBank::initialize()
     this->heartbeat.restart(0);
 }
 
-void CapacitorBank::start() const
+void CapacitorBank::start()
 {
-    modm::can::Message message(CAP_BANK_CAN_ID, 8);
-    message.setExtended(false);
-    message.data[0] = MessageType::START;
-    this->drivers->can.sendMessage(this->canBus, message);
+    currentTXMessageState.enable_module = true;
+    sendTXMessage(currentTXMessageState);
 }
 
-void CapacitorBank::stop() const
+void CapacitorBank::stop()
 {
-    modm::can::Message message(CAP_BANK_CAN_ID, 8);
-    message.setExtended(false);
-    message.data[0] = MessageType::STOP;
-    this->drivers->can.sendMessage(this->canBus, message);
+    currentTXMessageState.enable_module = false;
+    sendTXMessage(currentTXMessageState);
 }
 
-void CapacitorBank::ping() const
+void CapacitorBank::setPowerLimit(uint8_t watts)
 {
-    modm::can::Message message(CAP_BANK_CAN_ID, 8);
-    message.setExtended(false);
-    message.data[0] = MessageType::PING;
-    this->drivers->can.sendMessage(this->canBus, message);
+    currentTXMessageState.pow_limit = watts;
+    sendTXMessage(currentTXMessageState);
 }
 
-void CapacitorBank::setPowerLimit(uint16_t watts)
+void CapacitorBank::setEnergyBuffer(uint16_t energyBuffer)
 {
-    modm::can::Message message(CAP_BANK_CAN_ID, 8);
-    message.setExtended(false);
-    message.data[0] = MessageType::SET_CHARGE_SPEED;
-    message.data[2] = watts;
-    message.data[3] = watts >> 8;  // Should always be zero or we are drawing 250+ watts.
-    this->drivers->can.sendMessage(this->canBus, message);
+    currentTXMessageState.energy_buffer = energyBuffer;
+    sendTXMessage(currentTXMessageState);
 }
 
-const float HALF_SPRINT_POWER_BOOST = 0.5f;
-float CapacitorBank::getMaximumOutputCurrent() const
+bool CapacitorBank::isEnabled() const { return currentTXMessageState.enable_module; }
+
+bool CapacitorBank::canSprint() const
 {
-    if (this->sprint == SprintMode::HALF_SPRINT)
-    {
-        return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit /
-               CAPACITOR_BANK_OUTPUT_VOLTAGE * (1.0f + HALF_SPRINT_POWER_BOOST);
-    }
-
-    float capacitorVoltage = this->getVoltage();
-    float maxOutput = CAP_VOLTAGE_TO_MAX_OUT_CURRENT.interpolate(capacitorVoltage);
-
-    return maxOutput;
+    return getAvailableEnergy() >= CAPACITOR_SPRINT_THRESHOLD_PERCENT;
 }
 
-}  // namespace aruwsrc::can::capbank
+}  // namespace src::can::capbank
