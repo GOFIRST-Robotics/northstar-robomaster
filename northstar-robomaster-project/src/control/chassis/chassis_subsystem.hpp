@@ -124,7 +124,7 @@ private:
 
     std::array<Pid, static_cast<uint8_t>(MotorId::NUM_MOTORS)> pidControllers;
 
-    std::array<tap::algorithms::Ramp, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rampControllers;
+    std::array<tap::algorithms::Ramp, static_cast<uint8_t>(2)> rampControllers;
 
     inline float getTurretYaw();
 
