@@ -7,6 +7,7 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
+#include "communication/can/supercapacitor/capacitor_bank.hpp"
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 #include "control/chassis/rate_limiters/slew_rate_limiter.hpp"
@@ -59,7 +60,8 @@ public:
         tap::Drivers* drivers,
         const ChassisConfig& config,
         src::can::TurretMCBCanComm* turretMCBCanComm,
-        tap::motor::DjiMotor* yawMotor);
+        tap::motor::DjiMotor* yawMotor,
+        src::can::capbank::CapacitorBank* superCap);
 
     void initialize() override;
 
@@ -114,6 +116,8 @@ private:
 
     tap::motor::DjiMotor* yawMotor;
 
+    src::can::capbank::CapacitorBank* superCap;
+
     float beyBladeRotationSpeed = 0.0f;
 
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
@@ -123,6 +127,8 @@ private:
     std::array<tap::algorithms::Ramp, static_cast<uint8_t>(MotorId::NUM_MOTORS)> rampControllers;
 
     inline float getTurretYaw();
+
+    bool isSprinting;
 
 protected:
     std::array<Motor, static_cast<uint8_t>(MotorId::NUM_MOTORS)> motors;

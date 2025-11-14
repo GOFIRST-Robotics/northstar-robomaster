@@ -16,7 +16,8 @@ ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
     const ChassisConfig& config,
     src::can::TurretMCBCanComm* turretMcbCanComm,
-    tap::motor::DjiMotor* yawMotor)
+    tap::motor::DjiMotor* yawMotor,
+    src::can::capbank::CapacitorBank* superCap)
     : Subsystem(drivers),
       desiredOutput{},
       pidControllers{
@@ -58,7 +59,8 @@ ChassisSubsystem::ChassisSubsystem(
           Motor(drivers, config.rightBackId, config.canBus, false, "RB", false, CHASSIS_GEAR_RATIO),
       },
       turretMcbCanComm(turretMcbCanComm),
-      yawMotor(yawMotor)
+      yawMotor(yawMotor),
+      superCap(superCap)
 {
 }
 
@@ -166,27 +168,13 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
             CHASSIS_POWER_TO_SPEED_INTERPOLATOR.interpolate(chassisPowerLimit);
     }
 
+    if (isSprinting && superCap->canSprint())
+    {
+        lastComputedMaxWheelSpeed.second = CHASSIS_POWER_TO_SPEED_INTERPOLATOR.interpolate(
+            chassisPowerLimit + superCap->getAllowedSprintWattage());
+    }
+
     return lastComputedMaxWheelSpeed.second;
-}
-
-float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit)
-{
-    if (!refSerialOnline)
-    {
-        chassisPowerLimit = 80;
-    }
-
-    // only re-interpolate when needed (since this function is called a lot and the chassis
-    // power limit rarely changes, this helps cut down on unnecessary array
-    // searching/interpolation)
-    if (lastComputedMaxAccelSpeed.first != (int)chassisPowerLimit)
-    {
-        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
-        lastComputedMaxAccelSpeed.second =
-            CHASSIS_POWER_TO_ACCEL_INTERPOLATOR.interpolate(chassisPowerLimit);
-    }
-
-    return lastComputedMaxAccelSpeed.second;
 }
 
 void ChassisSubsystem::driveBasedOnHeading(

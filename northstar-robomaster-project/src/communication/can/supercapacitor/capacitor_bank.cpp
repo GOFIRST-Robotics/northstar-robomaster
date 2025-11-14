@@ -44,6 +44,11 @@ void CapacitorBank::processMessage(const modm::can::Message& message)
     std::memcpy(&lastCapData.chassis_power, &message.data[0], sizeof(float));
     lastCapData.error = message.data[4];
     lastCapData.cap_energy = message.data[5];
+
+    if (drivers->refSerial.getRefSerialReceivingData())
+    {
+        setPowerLimit(drivers->refSerial.getRobotData().chassis.powerConsumptionLimit);
+    }
 }
 
 void CapacitorBank::sendTXMessage(TXcapMessage msg)
@@ -88,6 +93,10 @@ bool CapacitorBank::isEnabled() const { return currentTXMessageState.enable_modu
 
 bool CapacitorBank::canSprint() const
 {
+    if (!isEnabled())
+    {
+        return false;
+    }
     return getAvailableEnergy() >= CAPACITOR_SPRINT_THRESHOLD_PERCENT;
 }
 
