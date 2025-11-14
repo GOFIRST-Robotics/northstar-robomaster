@@ -73,9 +73,22 @@ public:
 
     float chassisSpeedRotationPID();
 
+    float calculateMaxRotationSpeed(float vert, float hor);
+
     float getChassisRotationSpeed();
 
     float getChassisZeroTurret();
+
+    float getChassiPowerLimit()
+    {
+        return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
+    }
+
+    float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
+
+    float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
+
+    float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
     void refresh() override;
 
@@ -94,7 +107,7 @@ public:
 private:
     inline float mpsToRpm(float mps)
     {
-        return mps / (M_PI * WHEEL_DIAMETER_M) * 60.0f / CHASSIS_GEAR_RATIO;
+        return mps / (M_PI * src::chassis::WHEEL_DIAMETER_M) * 60.0f / CHASSIS_GEAR_RATIO;
     }
 
     src::can::TurretMCBCanComm* turretMcbCanComm;

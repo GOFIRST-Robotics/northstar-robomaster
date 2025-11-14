@@ -31,6 +31,8 @@ static constexpr float CHASSIS_GEAR_RATIO = (187.0f / 3591.0f);
 static const float DIST_TO_CENTER = .34f;  // from wheel to center
 static const float WHEEL_DIAMETER_M = 0.120f;
 static const float RAMP_UP_RPM_INCREMENT_MPS = 0.01f;
+
+static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
 }  // namespace src::chassis
 
 #endif

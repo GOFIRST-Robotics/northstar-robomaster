@@ -423,7 +423,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     1,
     -1,
     M_PI,
-    true);
+    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -519,7 +519,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playMegalovaniaCommand);
+    &playTwinkleCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
