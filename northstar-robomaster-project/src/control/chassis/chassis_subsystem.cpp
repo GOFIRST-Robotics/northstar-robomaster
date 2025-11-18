@@ -177,6 +177,32 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxWheelSpeed.second;
 }
 
+float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit)
+{
+    if (!refSerialOnline)
+    {
+        chassisPowerLimit = 80;
+    }
+
+    // only re-interpolate when needed (since this function is called a lot and the chassis
+    // power limit rarely changes, this helps cut down on unnecessary array
+    // searching/interpolation)
+    if (lastComputedMaxAccelSpeed.first != (int)chassisPowerLimit)
+    {
+        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
+        lastComputedMaxAccelSpeed.second =
+            CHASSIS_POWER_TO_ACCEL_INTERPOLATOR.interpolate(chassisPowerLimit);
+    }
+
+    if (superCap->isSprinting() && superCap->canSprint())
+    {
+        lastComputedMaxAccelSpeed.second = CHASSIS_POWER_TO_ACCEL_INTERPOLATOR.interpolate(
+            chassisPowerLimit + superCap->getAllowedSprintWattage());
+    }
+
+    return lastComputedMaxAccelSpeed.second;
+}
+
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
