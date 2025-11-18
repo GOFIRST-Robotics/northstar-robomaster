@@ -154,25 +154,17 @@ float ControlOperatorInterface::getDrivetrainHorizontalTranslation()
 {
     float output = 0.0f;
 
-    if (remote.keyPressed(Remote::Key::A) && !remote.keyPressed(Remote::Key::SHIFT))
+    if (remote.keyPressed(Remote::Key::A))
     {
-        output += -0.3f;
+        output += -1.0f;
     }
-    else if (remote.keyPressed(Remote::Key::A) && remote.keyPressed(Remote::Key::SHIFT))
+    else if (remote.keyPressed(Remote::Key::D))
     {
-        output += -0.6f;
+        output += 1.0f;
     }
-    else if (remote.keyPressed(Remote::Key::D) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        output += 0.3f;
-    }
-    else if (remote.keyPressed(Remote::Key::D) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        output += 0.6f;
-    }
-    output += remote.getChannel(Remote::Channel::LEFT_HORIZONTAL) * 0.6;
+    output += remote.getChannel(Remote::Channel::LEFT_HORIZONTAL);
 
-    output = limitVal<float>(output, -0.6f, 0.6f);
+    output = limitVal<float>(output, -1.0f, 1.0f);
 
     return output;
 }
@@ -211,28 +203,22 @@ float ControlOperatorInterface::getDrivetrainVerticalTranslation()
 {
     float output = 0.0f;
 
-    if (remote.keyPressed(Remote::Key::W) && !remote.keyPressed(Remote::Key::SHIFT))
+    if (remote.keyPressed(Remote::Key::W))
     {
-        output += 0.4f;
+        output += 1.0f;
     }
-    else if (remote.keyPressed(Remote::Key::W) && remote.keyPressed(Remote::Key::SHIFT))
+    else if (remote.keyPressed(Remote::Key::S))
     {
-        output += 0.6f;
+        output += -1.0f;
     }
-    else if (remote.keyPressed(Remote::Key::S) && !remote.keyPressed(Remote::Key::SHIFT))
-    {
-        output += -0.4f;
-    }
-    else if (remote.keyPressed(Remote::Key::S) && remote.keyPressed(Remote::Key::SHIFT))
-    {
-        output += -0.6f;
-    }
-    output += remote.getChannel(Remote::Channel::LEFT_VERTICAL) * 0.6;
+    output += remote.getChannel(Remote::Channel::LEFT_VERTICAL);
 
-    output = limitVal<float>(output, -0.6f, 0.6f);
+    output = limitVal<float>(output, -1.0f, 1.0f);
 
     return output;
 }
+
+bool ControlOperatorInterface::isSprinting() { return remote.keyPressed(Remote::Key::SHIFT); }
 
 float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard()
 {

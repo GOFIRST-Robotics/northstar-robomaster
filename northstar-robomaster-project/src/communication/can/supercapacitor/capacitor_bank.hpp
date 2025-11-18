@@ -27,6 +27,7 @@
 
 #include "modm/architecture/interface/can_message.hpp"
 #include "modm/math/interpolation/linear.hpp"
+#include "robot/control_operator_interface.hpp"
 
 #include "capacitor_constants.hpp"
 
@@ -68,7 +69,11 @@ enum SprintMode
 class CapacitorBank : public tap::can::CanRxListener
 {
 public:
-    CapacitorBank(tap::Drivers* drivers, tap::can::CanBus canBus, const float capacitance);
+    CapacitorBank(
+        tap::Drivers* drivers,
+        tap::can::CanBus canBus,
+        const float capacitance,
+        src::control::ControlOperatorInterface* operatorInterface);
 
     void processMessage(const modm::can::Message& message) override;
 
@@ -91,6 +96,8 @@ public:
 
     bool canSprint() const;
 
+    bool isSprinting();
+
 #ifndef ENV_UNIT_TESTS
 private:
 #endif
@@ -103,6 +110,8 @@ private:
     uint8_t powerLimit = 0;
 
     tap::arch::MilliTimeout heartbeat;
+
+    src::control::ControlOperatorInterface* operatorInterface;
 };
 }  // namespace src::can::capbank
 

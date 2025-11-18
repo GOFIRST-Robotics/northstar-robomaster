@@ -26,10 +26,12 @@ namespace src::can::capbank
 CapacitorBank::CapacitorBank(
     tap::Drivers* drivers,
     tap::can::CanBus canBus,
-    const float capacitance)
+    const float capacitance,
+    src::control::ControlOperatorInterface* operatorInterface)
     : tap::can::CanRxListener(drivers, CAP_BANK_CAN_ID, canBus),
       capacitance(capacitance),
-      powerLimit(0)
+      powerLimit(0),
+      operatorInterface(operatorInterface)
 {
     currentTXMessageState = {
         .enable_module = false,
@@ -100,4 +102,5 @@ bool CapacitorBank::canSprint() const
     return getAvailableEnergy() >= CAPACITOR_SPRINT_THRESHOLD_PERCENT;
 }
 
+bool CapacitorBank::isSprinting() { return operatorInterface->isSprinting(); }
 }  // namespace src::can::capbank

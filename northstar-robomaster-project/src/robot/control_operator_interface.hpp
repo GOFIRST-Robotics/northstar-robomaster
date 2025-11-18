@@ -107,6 +107,8 @@ public:
 
     void checkToggleBeyBlade();
 
+    bool isSprinting();
+
     /**
      * Scales `value` when ctrl/shift are pressed and returns the scaled value.
      */

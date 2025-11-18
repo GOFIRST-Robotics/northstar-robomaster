@@ -168,7 +168,7 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
             CHASSIS_POWER_TO_SPEED_INTERPOLATOR.interpolate(chassisPowerLimit);
     }
 
-    if (isSprinting && superCap->canSprint())
+    if (superCap->isSprinting() && superCap->canSprint())
     {
         lastComputedMaxWheelSpeed.second = CHASSIS_POWER_TO_SPEED_INTERPOLATOR.interpolate(
             chassisPowerLimit + superCap->getAllowedSprintWattage());
