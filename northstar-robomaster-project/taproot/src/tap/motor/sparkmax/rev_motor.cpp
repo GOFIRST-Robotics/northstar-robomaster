@@ -61,10 +61,9 @@ RevMotor::RevMotor(
       motorInverted(isInverted),
       internalEncoder(isInverted, gearRatio),
       encoder(
-          {externalEncoder != nullptr ? externalEncoder
-                                      : const_cast<RevMotorEncoder*>(&this->getInternalEncoder()),
-           externalEncoder != nullptr ? const_cast<RevMotorEncoder*>(&this->getInternalEncoder())
-                                      : nullptr})
+          externalEncoder != nullptr ? externalEncoder
+                                     : const_cast<RevMotorEncoder*>(&this->getInternalEncoder()))
+
 {
     // motorDisconnectTimeout.stop();
 }

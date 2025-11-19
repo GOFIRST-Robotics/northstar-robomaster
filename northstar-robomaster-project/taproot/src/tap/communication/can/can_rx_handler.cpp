@@ -102,25 +102,30 @@ void CanRxHandler::pollCanData()
 {
     modm::can::Message rxMessage;
 
-
     // handle incoming CAN 1 messages
     if (drivers->can.getMessage(CanBus::CAN_BUS1, &rxMessage))
     {
-        //small hack to switch between the two motor stores without having to change a large chunk of code
-        if(rxMessage.isExtended()){
+        // small hack to switch between the two motor stores without having to change a large chunk
+        // of code
+        if (rxMessage.isExtended())
+        {
             processReceivedCanData(rxMessage, messageHandlerStoreRevCan1);
-        } else {
+        }
+        else
+        {
             processReceivedCanData(rxMessage, messageHandlerStoreDjiCan1);
         }
-        
     }
 
     // handle incoming CAN 2 messages
     if (drivers->can.getMessage(CanBus::CAN_BUS2, &rxMessage))
     {
-        if(rxMessage.isExtended()){
+        if (rxMessage.isExtended())
+        {
             processReceivedCanData(rxMessage, messageHandlerStoreRevCan2);
-        } else {
+        }
+        else
+        {
             processReceivedCanData(rxMessage, messageHandlerStoreDjiCan2);
         }
     }
@@ -133,7 +138,8 @@ void CanRxHandler::processReceivedCanData(
     uint16_t bin = binIndexForCanId(rxMessage.getIdentifier());
 
     CanRxListener* listener = messageHandlerStore[bin];
-    while (listener != nullptr && listener->canIdentifier != rxMessage.identifier)
+    while (listener != nullptr &&
+           listener->canIdentifier != (rxMessage.isExtended() ? bin : rxMessage.identifier))
     {
         listener = listener->next;
     }
