@@ -133,12 +133,12 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 
 PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
-PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+// PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
-PressCommandMapping ctrlShiftZSong(
-    drivers(),
-    {&playMegalovaniaCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
+// PressCommandMapping ctrlShiftZSong(
+//     drivers(),
+//     {&playMegalovaniaCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
 FlywheelSubsystem flywheel(
@@ -491,6 +491,11 @@ ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     {&chassisBeyBladeFastCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
+ToggleCommandMapping qPressedNormDrive(
+    drivers(),
+    {&chassisDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
+
 ToggleCommandMapping rPressedOrientDrive(
     drivers(),
     {&chassisOrientDriveCommand},
@@ -635,12 +640,13 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
     drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
+    drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
-    drivers->commandMapper.addMap(&ctrlShiftZSong);
+    // drivers->commandMapper.addMap(&ctrlShiftZSong);
 }
 }  // namespace standard_control
 
