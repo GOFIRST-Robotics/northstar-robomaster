@@ -24,7 +24,7 @@
 #include "tap/control/governor/command_governor_interface.hpp"
 
 #include "control/agitator/velocity_agitator_subsystem.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/flywheel_interface.hpp"
 
 namespace src::control::governor
 {
@@ -41,35 +41,22 @@ public:
      * @param[in] flywheel Reference to the friction wheel subsystem being used in the
      * governor's behavior.
      */
-    FlywheelOnGovernor(src::control::flywheel::FlywheelSubsystem &flywheel) : flywheel(flywheel) {}
+    FlywheelOnGovernor(src::control::flywheel::FlywheelInterface &flywheel) : flywheel(flywheel) {}
 
     bool isReady() final
     {
-        return
-            // left
-            (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedLeft(), .0f, 1) &&
-             abs(flywheel.getCurrentLeftFlywheelMotorRPM()) >=
-                 flywheel.getDesiredFlywheelSpeedLeft() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             abs(flywheel.getCurrentLeftFlywheelMotorRPM()) <=
-                 flywheel.getDesiredFlywheelSpeedLeft() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
-            // right
-            (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedRight(), .0f, 1) &&
-             abs(flywheel.getCurrentRightFlywheelMotorRPM()) >=
-                 flywheel.getDesiredFlywheelSpeedRight() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             abs(flywheel.getCurrentRightFlywheelMotorRPM()) <=
-                 flywheel.getDesiredFlywheelSpeedRight() * MAXIMUM_SPEED_THRESHOLD_FRACTION) &&
-            // up
-            (!tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeedUp(), .0f, 1) &&
-             abs(flywheel.getCurrentUpFlywheelMotorRPM()) >=
-                 flywheel.getDesiredFlywheelSpeedUp() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
-             abs(flywheel.getCurrentUpFlywheelMotorRPM()) <=
-                 flywheel.getDesiredFlywheelSpeedUp() * MAXIMUM_SPEED_THRESHOLD_FRACTION);
+        return (
+            !tap::algorithms::compareFloatClose(flywheel.getDesiredFlywheelSpeed(), .0f, 1) &&
+            abs(flywheel.getCurrentFlywheelAverageMotorRPM()) >=
+                flywheel.getDesiredFlywheelSpeed() * MINIMUM_SPEED_THRESHOLD_FRACTION &&
+            abs(flywheel.getCurrentFlywheelAverageMotorRPM()) <=
+                flywheel.getDesiredFlywheelSpeed() * MAXIMUM_SPEED_THRESHOLD_FRACTION);
     }
 
     bool isFinished() final { return !isReady(); }
 
 private:
-    src::control::flywheel::FlywheelSubsystem &flywheel;
+    src::control::flywheel::FlywheelInterface &flywheel;
 
     static constexpr float MINIMUM_SPEED_THRESHOLD_FRACTION = 0.7;
     static constexpr float MAXIMUM_SPEED_THRESHOLD_FRACTION = 1.4;

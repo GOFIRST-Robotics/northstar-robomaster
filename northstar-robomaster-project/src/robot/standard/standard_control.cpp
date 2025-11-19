@@ -53,8 +53,8 @@
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // hopper
 #include "control/hopper/hopper_subsystem.hpp"
@@ -141,7 +141,7 @@ PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 //     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(
+RevThreeFlywheelSubsystem flywheel(
     drivers(),
     LEFT_MOTOR_ID,
     RIGHT_MOTOR_ID,
@@ -156,7 +156,7 @@ FlywheelSubsystem flywheel(
     });
 
 // flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f, 90.0f);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(

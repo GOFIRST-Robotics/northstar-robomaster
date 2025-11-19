@@ -1,11 +1,9 @@
-#ifdef TARGET_HERO
-
 #ifndef FLYWHEEL_RUN_COMMAND
 #define FLYWHEEL_RUN_COMMAND
 
 #include "tap/control/command.hpp"
 
-#include "robot/hero/hero_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_subsystem.hpp"
 
 namespace src
 {
@@ -19,12 +17,12 @@ class ControlOperatorInterface;
 
 namespace src::control::flywheel
 {
-class HeroFlywheelRunCommand : public tap::control::Command
+class ThreeFlywheelRunCommand : public tap::control::Command
 {
 public:
-    HeroFlywheelRunCommand(HeroFlywheelSubsystem *flywheel);
+    ThreeFlywheelRunCommand(ThreeFlywheelSubsystem *flywheel, float launchSpeed, float spin);
 
-    const char *getName() const override { return "Hero Flywheel Run Command"; }
+    const char *getName() const override { return "Flywheel Run Command"; }
 
     void initialize() override;
 
@@ -35,9 +33,10 @@ public:
     bool isFinished() const { return false; }
 
 private:
-    HeroFlywheelSubsystem *flywheel;
+    ThreeFlywheelSubsystem *flywheel;
+
+    float launchSpeed;
+    float spin;
 };
 }  // namespace src::control::flywheel
 #endif  // FLYWHEEL_RUN_COMMAND
-
-#endif  // TARGET_HERO

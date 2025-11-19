@@ -26,6 +26,8 @@ static constexpr float FLYWHEEL_PID_KF = 0.00009f;
 static constexpr float FLYWHEEL_PID_K_MIN_OUT = -1.0f;
 static constexpr float FLYWHEEL_PID_K_MAX_OUT = 1.0f;
 
+static constexpr float MAX_DESIRED_LAUNCH_SPEED_RPM = 8000;
+
 // TODO make these correct
 enum Spin : u_int8_t
 {

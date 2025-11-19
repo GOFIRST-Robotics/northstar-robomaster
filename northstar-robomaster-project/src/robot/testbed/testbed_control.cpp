@@ -123,7 +123,7 @@ Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers
 FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel);
 
 // flywheel mappings
 ToggleCommandMapping fPressed(

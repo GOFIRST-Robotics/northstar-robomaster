@@ -52,8 +52,8 @@
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // imu
 #include "robot/sentry/sentry_imu_calibrate_command.hpp"
@@ -98,7 +98,7 @@ DummySubsystem dummySubsystem(drivers());
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
 // flywheel
-FlywheelSubsystem flywheelBottom(
+RevThreeFlywheelSubsystem flywheelBottom(
     drivers(),
     LEFT_MOTOR_ID,
     RIGHT_MOTOR_ID,
@@ -112,14 +112,14 @@ FlywheelSubsystem flywheelBottom(
         .kF = FLYWHEEL_PID_KF,
     });
 
-FlywheelRunCommand flywheelRunCommandBottom(&flywheelBottom);
+ThreeFlywheelRunCommand flywheelRunCommandBottom(&flywheelBottom);
 
 ToggleCommandMapping fNotCtrlPressed(
     drivers(),
     {&flywheelRunCommandBottom},
     RemoteMapState({Remote::Key::F}, {Remote::Key::CTRL}));
 
-FlywheelSubsystem flywheelTop(
+RevThreeFlywheelSubsystem flywheelTop(
     drivers(),
     LEFT_MOTOR_ID,
     RIGHT_MOTOR_ID,
@@ -133,7 +133,7 @@ FlywheelSubsystem flywheelTop(
         .kF = FLYWHEEL_PID_KF,
     });
 
-FlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
+ThreeFlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
 
 ToggleCommandMapping fCtrlPressed(
     drivers(),

@@ -25,6 +25,8 @@ static constexpr float FLYWHEEL_PID_KD = 0.0f;
 static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM = 0.0f;
 static constexpr float FLYWHEEL_PID_MAX_OUTPUT = 25'000.0f;
 
+static constexpr float MAX_DESIRED_LAUNCH_SPEED_RPM = 8000;
+
 enum Spin : u_int8_t
 {
     SPIN_90 = 0,
@@ -34,23 +36,20 @@ enum Spin : u_int8_t
     SPIN_COUNT
 };
 
-static std::array<std::array<modm::Pair<float, float>, 5>, SPIN_COUNT>
+static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
     SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
         {{{{0.0f, 0.0f},  // SPIN_90
            {5.0f, 2'600.0f},
            {10.0f, 5'300.0f},
-           {15.0f, 8'000.0f},
-           {20.0l, 10'600.0f}}},
+           {15.0f, 8'000.0f}}},
          {{{0.0f, 0.0f},  // SPIN_100
            {5.0f, 2'600.0f},
            {10.0f, 5'300.0f},
-           {15.0f, 8'000.0f},
-           {20.0l, 10'600.0f}}},
+           {15.0f, 8'000.0f}}},
          {{{0.0f, 0.0f},  // SPIN_110
            {5.0f, 2'600.0f},
            {10.0f, 5'300.0f},
-           {15.0f, 8'000.0f},
-           {20.0l, 10'600.0f}}}}};
+           {15.0f, 8'000.0f}}}}};
 
 inline std::optional<Spin> toSpinPreset(int value)
 {

@@ -1,6 +1,4 @@
-#ifndef TARGET_HERO
-
-#include "flywheel_subsystem.hpp"
+#include "rev_three_flywheel_subsystem.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 
@@ -12,15 +10,14 @@ using namespace src::flywheel;
 
 namespace src::control::flywheel
 {
-FlywheelSubsystem::FlywheelSubsystem(
+RevThreeFlywheelSubsystem::RevThreeFlywheelSubsystem(
     tap::Drivers *drivers,
     tap::motor::REVMotorId leftMotorId,
     tap::motor::REVMotorId rightMotorId,
     tap::motor::REVMotorId upMotorId,
     tap::can::CanBus canBus,
     RevMotor::PIDConfig pidConfig)
-    : tap::control::Subsystem(drivers),
-      spinToRPMMap(SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
+    : ThreeFlywheelSubsystem(drivers, SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
       leftWheel(
           drivers,
           leftMotorId,
@@ -46,7 +43,7 @@ FlywheelSubsystem::FlywheelSubsystem(
 {
 }
 
-void FlywheelSubsystem::initialize()
+void RevThreeFlywheelSubsystem::initialize()
 {
     leftWheel.initialize();
     rightWheel.initialize();
@@ -57,7 +54,7 @@ void FlywheelSubsystem::initialize()
     upWheel.setMotorPID(pidConfig);
 }
 
-void FlywheelSubsystem::setDesiredSpin(u_int16_t spin)
+void RevThreeFlywheelSubsystem::setDesiredSpin(u_int16_t spin)
 {
     if (auto spinSet = toSpinPreset(spin))
     {
@@ -70,25 +67,29 @@ void FlywheelSubsystem::setDesiredSpin(u_int16_t spin)
  * using the set spin sets a desired rpm for the flywheels with the up wheel scaled by the spin
  * @param[in] speed in meters per second
  */
-void FlywheelSubsystem::setDesiredLaunchSpeed(float speed)
+void RevThreeFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
 {
     desiredLaunchSpeedLeft = speed;
     desiredLaunchSpeedRight = speed;
     desiredLaunchSpeedUp = speed * (desiredSpinValue / 100.0f);
 
-    desiredRpmRampLeft.setTarget(
-        limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
+    desiredRpmRampLeft.setTarget(limitVal(
+        launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft),
+        0.0f,
+        MAX_DESIRED_LAUNCH_SPEED_RPM));
 
     desiredRpmRampRight.setTarget(limitVal(
         launchSpeedToFlywheelRpm(desiredLaunchSpeedRight),
         0.0f,
-        MAX_DESIRED_LAUNCH_SPEED));
+        MAX_DESIRED_LAUNCH_SPEED_RPM));
 
-    desiredRpmRampUp.setTarget(
-        limitVal(launchSpeedToFlywheelRpm(desiredLaunchSpeedUp), 0.0f, MAX_DESIRED_LAUNCH_SPEED));
+    desiredRpmRampUp.setTarget(limitVal(
+        launchSpeedToFlywheelRpm(desiredLaunchSpeedUp),
+        0.0f,
+        MAX_DESIRED_LAUNCH_SPEED_RPM));
 }
 
-float FlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
+float RevThreeFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 {
     modm::interpolation::Linear<modm::Pair<float, float>> MPSToRPMInterpolator = {
         spinToRPMMap.at(desiredSpin).data(),
@@ -103,7 +104,7 @@ float debugLeftD = 0;
 float debugRightD = 0;
 float debugUpD = 0;
 
-void FlywheelSubsystem::refresh()
+void RevThreeFlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
     if (currTime == prevTime)
@@ -129,5 +130,3 @@ void FlywheelSubsystem::refresh()
     debugUpD = desiredRpmRampUp.getValue();
 }
 }  // namespace src::control::flywheel
-
-#endif  // TARGET_HERO
