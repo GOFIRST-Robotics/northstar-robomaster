@@ -1,9 +1,9 @@
-#ifndef THREE_FLYWHEEL_RUN_COMMAND
-#define THREE_FLYWHEEL_RUN_COMMAND
+#ifndef TWO_FLYWHEEL_RUN_COMMAND
+#define TWO_FLYWHEEL_RUN_COMMAND
 
 #include "tap/control/command.hpp"
 
-#include "control/flywheel/three_flywheel_subsystem.hpp"
+#include "control/flywheel/two_flywheel_subsystem.hpp"
 
 namespace src
 {
@@ -17,13 +17,10 @@ class ControlOperatorInterface;
 
 namespace src::control::flywheel
 {
-class ThreeFlywheelRunCommand : public tap::control::Command
+class TwoFlywheelRunCommand : public tap::control::Command
 {
 public:
-    ThreeFlywheelRunCommand(
-        ThreeFlywheelSubsystem *flywheel,
-        float launchSpeed = 20.0f,
-        float spin = 100.0f);
+    TwoFlywheelRunCommand(TwoFlywheelSubsystem *flywheel, float launchSpeed);
 
     const char *getName() const override { return "Flywheel Run Command"; }
 
@@ -36,10 +33,9 @@ public:
     bool isFinished() const { return false; }
 
 private:
-    ThreeFlywheelSubsystem *flywheel;
+    TwoFlywheelSubsystem *flywheel;
 
     float launchSpeed;
-    float spin;
 };
 }  // namespace src::control::flywheel
 #endif  // FLYWHEEL_RUN_COMMAND

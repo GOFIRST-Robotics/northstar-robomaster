@@ -12,7 +12,7 @@
 #elif TURRET
 #include "robot/standard/standard_chassis_constants.hpp"
 #elif TARGET_TEST_BED
-#include "robot/hero/hero_chassis_constants.hpp"
+#include "robot/standard/standard_chassis_constants.hpp"
 #else
 #include "robot/standard/standard_chassis_constants.hpp"
 #endif

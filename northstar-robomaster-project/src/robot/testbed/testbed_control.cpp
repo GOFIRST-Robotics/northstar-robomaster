@@ -27,9 +27,13 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // flywheel
+#include "control/flywheel/dji_three_flywheel_subsystem.hpp"
+#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/rev_two_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
+#include "control/flywheel/two_flywheel_run_command.hpp"
 
 // chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
@@ -96,12 +100,13 @@ using namespace tap::control::governor;
 using namespace tap::communication::serial;
 
 // what to test
-// #define FLYWHEEL_TEST
+// #define REV_THREE_FLYWHEEL_TEST
+#define DJI_TWO_FLYWHEEL_TEST
 // #define REV_TEST
 // #define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
 // #define SENTRY_CONSTANTS
-#define NEO_TURRET_TEST
+// #define NEO_TURRET_TEST
 
 // #define CHASSIS_TEST
 // #define HERO_CHASSIS_CONSTANTS
@@ -119,18 +124,32 @@ Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers
 
 #endif
 
-#ifdef FLYWHEEL_TEST
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+#ifdef DJI_TWO_FLYWHEEL_TEST
+DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID_DJI, RIGHT_MOTOR_ID_DJI, CAN_BUS);
 
 // flywheel commands
-ThreeFlywheelRunCommand flywheelRunCommand(&flywheel);
+TwoFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f);
 
 // flywheel mappings
 ToggleCommandMapping fPressed(
     drivers(),
     {&flywheelRunCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
-#endif  // FLYWHEEL_TEST
+
+#endif
+
+#ifdef REV_THREE_FLYWHEEL_TEST
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+
+// flywheel commands
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f, 90.0f);
+
+// flywheel mappings
+ToggleCommandMapping fPressed(
+    drivers(),
+    {&flywheelRunCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+#endif  // REV_THREE_FLYWHEEL_TEST
 
 #ifdef AGITATOR_TEST
 // agitator subsystem
@@ -626,7 +645,10 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #ifdef AGITATOR_TEST
     agitator.initialize();
 #endif
-#ifdef FLYWHEEL_TEST
+#ifdef DJI_TWO_FLYWHEEL_TEST
+    flywheel.initialize();
+#endif
+#ifdef REV_THREE_FLYWHEEL_TEST
     flywheel.initialize();
 #endif
 #ifdef SENTRY_TURRET_TEST
@@ -653,7 +675,10 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #ifdef AGITATOR_TEST
     drivers->commandScheduler.registerSubsystem(&agitator);
 #endif
-#ifdef FLYWHEEL_TEST
+#ifdef DJI_TWO_FLYWHEEL_TEST
+    drivers->commandScheduler.registerSubsystem(&flywheel);
+#endif
+#ifdef REV_THREE_FLYWHEEL_TEST
     drivers->commandScheduler.registerSubsystem(&flywheel);
 #endif
 #ifdef SENTRY_TURRET_TEST
@@ -705,7 +730,10 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
     drivers->commandMapper.addMap(&ePressedFullAuto);
 
 #endif
-#ifdef FLYWHEEL_TEST
+#ifdef DJI_TWO_FLYWHEEL_TEST
+    drivers->commandMapper.addMap(&fPressed);
+#endif
+#ifdef REV_THREE_FLYWHEEL_TEST
     drivers->commandMapper.addMap(&fPressed);
 #endif
 #ifdef STANDARD_TURRET_TEST

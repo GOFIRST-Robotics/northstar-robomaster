@@ -18,23 +18,23 @@ DJIThreeFlywheelSubsystem::DJIThreeFlywheelSubsystem(
     tap::can::CanBus canBus)
     : ThreeFlywheelSubsystem(drivers, SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
       velocityPidLeftWheel(
-          FLYWHEEL_PID_KP,
-          FLYWHEEL_PID_KI,
-          FLYWHEEL_PID_KD,
-          FLYWHEEL_PID_MAX_ERROR_SUM,
-          FLYWHEEL_PID_MAX_OUTPUT),
+          FLYWHEEL_PID_KP_DJI,
+          FLYWHEEL_PID_KI_DJI,
+          FLYWHEEL_PID_KD_DJI,
+          FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
+          FLYWHEEL_PID_MAX_OUTPUT_DJI),
       velocityPidRightWheel(
-          FLYWHEEL_PID_KP,
-          FLYWHEEL_PID_KI,
-          FLYWHEEL_PID_KD,
-          FLYWHEEL_PID_MAX_ERROR_SUM,
-          FLYWHEEL_PID_MAX_OUTPUT),
+          FLYWHEEL_PID_KP_DJI,
+          FLYWHEEL_PID_KI_DJI,
+          FLYWHEEL_PID_KD_DJI,
+          FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
+          FLYWHEEL_PID_MAX_OUTPUT_DJI),
       velocityPidDownWheel(
-          FLYWHEEL_PID_KP,
-          FLYWHEEL_PID_KI,
-          FLYWHEEL_PID_KD,
-          FLYWHEEL_PID_MAX_ERROR_SUM,
-          FLYWHEEL_PID_MAX_OUTPUT),
+          FLYWHEEL_PID_KP_DJI,
+          FLYWHEEL_PID_KI_DJI,
+          FLYWHEEL_PID_KD_DJI,
+          FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
+          FLYWHEEL_PID_MAX_OUTPUT_DJI),
       leftWheel(drivers, leftMotorId, canBus, true, "Left Flywheel"),
       rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
       downWheel(drivers, downMotorId, canBus, true, "Down Flywheel"),
@@ -83,12 +83,12 @@ float DJIThreeFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) con
         spinToRPMMap.at(desiredSpin).size()};
     return MPSToRPMInterpolator.interpolate(launchSpeed);
 }
-float debugWheelLeft = 0;
-float debugWheelRight = 0;
-float debugWheelDown = 0;
-float debugDesiredLeft = 0;
-float debugDesiredRight = 0;
-float debugDesiredDown = 0;
+float debugWheelLeft2 = 0;
+float debugWheelRight2 = 0;
+float debugWheelDown2 = 0;
+float debugDesiredLeft2 = 0;
+float debugDesiredRight2 = 0;
+float debugDesiredDown2 = 0;
 void DJIThreeFlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -106,11 +106,11 @@ void DJIThreeFlywheelSubsystem::refresh()
     rightWheel.setDesiredOutput(static_cast<int32_t>(velocityPidRightWheel.getValue()));
     velocityPidDownWheel.update(desiredRpmRampDown.getValue() - getWheelRPM(&downWheel));
     downWheel.setDesiredOutput(static_cast<int32_t>(velocityPidDownWheel.getValue()));
-    debugDesiredLeft = desiredRpmRampLeft.getValue();
-    debugDesiredRight = desiredRpmRampRight.getValue();
-    debugDesiredDown = desiredRpmRampDown.getValue();
-    debugWheelLeft = getWheelRPM(&leftWheel);
-    debugWheelRight = getWheelRPM(&rightWheel);
-    debugWheelDown = getWheelRPM(&downWheel);
+    debugDesiredLeft2 = desiredRpmRampLeft.getValue();
+    debugDesiredRight2 = desiredRpmRampRight.getValue();
+    debugDesiredDown2 = desiredRpmRampDown.getValue();
+    debugWheelLeft2 = getWheelRPM(&leftWheel);
+    debugWheelRight2 = getWheelRPM(&rightWheel);
+    debugWheelDown2 = getWheelRPM(&downWheel);
 }
 }  // namespace src::control::flywheel

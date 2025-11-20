@@ -141,19 +141,7 @@ PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 //     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-RevThreeFlywheelSubsystem flywheel(
-    drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
-    CAN_BUS,
-    tap::motor::RevMotor::PIDConfig{
-        .PIDSlot = 0,
-        .kP = FLYWHEEL_PID_KP,
-        .kI = FLYWHEEL_PID_KI,
-        .kD = FLYWHEEL_PID_KD,
-        .kF = FLYWHEEL_PID_KF,
-    });
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
 ThreeFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f, 90.0f);
