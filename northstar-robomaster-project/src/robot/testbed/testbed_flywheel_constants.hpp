@@ -18,7 +18,7 @@ static constexpr tap::motor::REVMotorId UP_MOTOR_ID = tap::motor::REV_MOTOR2;
 static constexpr tap::motor::MotorId LEFT_MOTOR_ID_DJI = tap::motor::MOTOR1;
 static constexpr tap::motor::MotorId RIGHT_MOTOR_ID_DJI = tap::motor::MOTOR2;
 
-static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
+static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS1;
 // rev constants
 static constexpr float FLYWHEEL_PID_KP_REV = 0.0f;
 static constexpr float FLYWHEEL_PID_KI_REV = 0.0f;
@@ -28,7 +28,7 @@ static constexpr float FLYWHEEL_PID_K_MIN_OUT_REV = -1.0f;
 static constexpr float FLYWHEEL_PID_K_MAX_OUT_REV = 1.0f;
 
 // dji constants
-static constexpr float FLYWHEEL_PID_KP_DJI = 0.0f;
+static constexpr float FLYWHEEL_PID_KP_DJI = 15.0f;
 static constexpr float FLYWHEEL_PID_KI_DJI = 0.0f;
 static constexpr float FLYWHEEL_PID_KD_DJI = 0.0f;
 static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM_DJI = 0.0f;

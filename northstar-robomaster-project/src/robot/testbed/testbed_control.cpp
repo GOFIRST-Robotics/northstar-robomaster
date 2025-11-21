@@ -34,6 +34,7 @@
 #include "control/flywheel/rev_two_flywheel_subsystem.hpp"
 #include "control/flywheel/three_flywheel_run_command.hpp"
 #include "control/flywheel/two_flywheel_run_command.hpp"
+#include "control/flywheel/two_flywheel_run_rpm_command.hpp"
 
 // chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
@@ -128,13 +129,13 @@ Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers
 DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID_DJI, RIGHT_MOTOR_ID_DJI, CAN_BUS);
 
 // flywheel commands
-TwoFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f);
+TwoFlywheelRunRPMCommand flywheelRunCommand(&flywheel, 3000.0f);
 
 // flywheel mappings
-ToggleCommandMapping fPressed(
+ToggleCommandMapping leftSwitchUpFlywheelRun(
     drivers(),
     {&flywheelRunCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
 
 #endif
 
@@ -731,7 +732,7 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 
 #endif
 #ifdef DJI_TWO_FLYWHEEL_TEST
-    drivers->commandMapper.addMap(&fPressed);
+    drivers->commandMapper.addMap(&leftSwitchUpFlywheelRun);
 #endif
 #ifdef REV_THREE_FLYWHEEL_TEST
     drivers->commandMapper.addMap(&fPressed);

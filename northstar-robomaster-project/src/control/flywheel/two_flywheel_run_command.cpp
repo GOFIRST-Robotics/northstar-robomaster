@@ -1,5 +1,3 @@
-#ifndef TARGET_HERO
-
 #include "two_flywheel_run_command.hpp"
 
 namespace src::control::flywheel
@@ -19,5 +17,3 @@ void TwoFlywheelRunCommand::initialize() { flywheel->setDesiredLaunchSpeed(launc
 void TwoFlywheelRunCommand::end(bool interrupted) { flywheel->setDesiredLaunchSpeed(0); }
 
 }  // namespace src::control::flywheel
-
-#endif  // TARGET_HERO

@@ -10,12 +10,15 @@ public:
 
     ~FlywheelInterface() = default;
 
+    // MPS
     virtual void setDesiredLaunchSpeed(float speed) = 0;
-
+    // MPS
     virtual float getDesiredLaunchSpeed() const = 0;
-
+    // RPM
+    virtual void setDesiredFlywheelSpeed(float rpm) = 0;
+    // RPM
     virtual float getDesiredFlywheelSpeed() const = 0;
-
+    // RPM
     virtual float getCurrentFlywheelAverageMotorRPM() const = 0;
 
 protected:

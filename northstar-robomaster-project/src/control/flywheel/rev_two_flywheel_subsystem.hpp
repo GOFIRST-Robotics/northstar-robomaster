@@ -27,6 +27,8 @@ public:
 
     void setDesiredLaunchSpeed(float speed) override;
 
+    void setDesiredFlywheelSpeed(float rpm) override;
+
     float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
     float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
 

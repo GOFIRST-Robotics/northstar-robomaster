@@ -27,6 +27,7 @@ void RevMotorEncoder::processMessage(const modm::can::Message& message)
     if (period == 0x2051840)
     {
         std::memcpy(&shaftRPM, message.data, sizeof(float));
+        shaftRPM = inverted ? -shaftRPM : shaftRPM;
     }
     else if (period == 0x2051880)
     {

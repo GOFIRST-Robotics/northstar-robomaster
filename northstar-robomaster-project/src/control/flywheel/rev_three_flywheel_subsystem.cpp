@@ -97,6 +97,13 @@ void RevThreeFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
         MAX_DESIRED_LAUNCH_SPEED_RPM));
 }
 
+void RevThreeFlywheelSubsystem::setDesiredFlywheelSpeed(float rpm)
+{
+    desiredRpmRampLeft.setTarget(launchSpeedToFlywheelRpm(rpm));
+    desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(rpm));
+    desiredRpmRampUp.setTarget(launchSpeedToFlywheelRpm(rpm * (desiredSpinValue / 100.0f)));
+}
+
 float RevThreeFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 {
     modm::interpolation::Linear<modm::Pair<float, float>> MPSToRPMInterpolator = {

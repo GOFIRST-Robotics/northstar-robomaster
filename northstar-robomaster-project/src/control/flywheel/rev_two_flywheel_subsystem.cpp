@@ -76,6 +76,12 @@ void RevTwoFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
         MAX_DESIRED_LAUNCH_SPEED_RPM));
 }
 
+void RevTwoFlywheelSubsystem::setDesiredFlywheelSpeed(float rpm)
+{
+    desiredRpmRampLeft.setTarget(rpm);
+    desiredRpmRampRight.setTarget(rpm);
+}
+
 float RevTwoFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 {
     return launchSpeedLinearInterpolator.interpolate(launchSpeed);

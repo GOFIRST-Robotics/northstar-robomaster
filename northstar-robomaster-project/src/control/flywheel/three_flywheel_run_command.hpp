@@ -5,16 +5,6 @@
 
 #include "control/flywheel/three_flywheel_subsystem.hpp"
 
-namespace src
-{
-class Drivers;
-
-namespace control
-{
-class ControlOperatorInterface;
-}
-}  // namespace src
-
 namespace src::control::flywheel
 {
 class ThreeFlywheelRunCommand : public tap::control::Command

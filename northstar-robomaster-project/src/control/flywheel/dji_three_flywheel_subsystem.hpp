@@ -26,35 +26,37 @@ public:
 
     void initialize() override;
 
-    mockable void setDesiredSpin(u_int16_t spin) override;
+    void setDesiredSpin(u_int16_t spin) override;
 
-    mockable float getDesiredSpin() const override { return desiredSpin; }
+    float getDesiredSpin() const override { return desiredSpin; }
 
-    mockable void setDesiredLaunchSpeed(float speed) override;
+    void setDesiredLaunchSpeed(float speed) override;
 
-    mockable float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
-    mockable float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
-    mockable float getDesiredLaunchSpeedDown() const { return desiredLaunchSpeedDown; }
+    void setDesiredFlywheelSpeed(float rpm) override;
 
-    mockable float getDesiredLaunchSpeed() const override
+    float getDesiredLaunchSpeedLeft() const { return desiredLaunchSpeedLeft; }
+    float getDesiredLaunchSpeedRight() const { return desiredLaunchSpeedRight; }
+    float getDesiredLaunchSpeedDown() const { return desiredLaunchSpeedDown; }
+
+    float getDesiredLaunchSpeed() const override
     {
         return (desiredLaunchSpeedLeft + desiredLaunchSpeedRight + desiredLaunchSpeedDown) / 3.0f;
     }
 
-    mockable float getDesiredFlywheelSpeedLeft() const
+    float getDesiredFlywheelSpeedLeft() const
     {
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft);
     }
-    mockable float getDesiredFlywheelSpeedRight() const
+    float getDesiredFlywheelSpeedRight() const
     {
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedRight);
     }
-    mockable float getDesiredFlywheelSpeedDown() const
+    float getDesiredFlywheelSpeedDown() const
     {
         return launchSpeedToFlywheelRpm(desiredLaunchSpeedDown);
     }
 
-    mockable float getDesiredFlywheelSpeed() const override
+    float getDesiredFlywheelSpeed() const override
     {
         return (getDesiredFlywheelSpeedLeft() + getDesiredFlywheelSpeedRight() +
                 getDesiredFlywheelSpeedDown()) /

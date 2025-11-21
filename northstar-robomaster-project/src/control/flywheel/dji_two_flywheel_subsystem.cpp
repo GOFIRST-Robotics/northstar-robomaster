@@ -29,7 +29,7 @@ DJITwoFlywheelSubsystem::DJITwoFlywheelSubsystem(
           FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
           FLYWHEEL_PID_MAX_OUTPUT_DJI),
       leftWheel(drivers, leftMotorId, canBus, true, "Left Flywheel"),
-      rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
+      rightWheel(drivers, rightMotorId, canBus, false, "Right Flywheel"),
       desiredLaunchSpeedLeft(0),
       desiredLaunchSpeedRight(0),
       desiredRpmRampLeft(0),
@@ -53,16 +53,20 @@ void DJITwoFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
     desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedRight));
 }
 
+void DJITwoFlywheelSubsystem::setDesiredFlywheelSpeed(float rpm)
+{
+    desiredRpmRampLeft.setTarget(rpm);
+    desiredRpmRampRight.setTarget(rpm);
+}
+
 float DJITwoFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 {
     return launchSpeedLinearInterpolator.interpolate(launchSpeed);
 }
 float debugWheelLeft = 0;
 float debugWheelRight = 0;
-float debugWheelDown = 0;
 float debugDesiredLeft = 0;
 float debugDesiredRight = 0;
-float debugDesiredDown = 0;
 void DJITwoFlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();

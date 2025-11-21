@@ -76,6 +76,13 @@ void DJIThreeFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
     desiredRpmRampDown.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedDown));
 }
 
+void DJIThreeFlywheelSubsystem::setDesiredFlywheelSpeed(float rpm)
+{
+    desiredRpmRampLeft.setTarget(launchSpeedToFlywheelRpm(rpm));
+    desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(rpm));
+    desiredRpmRampDown.setTarget(launchSpeedToFlywheelRpm(rpm * (desiredSpinValue / 100.0f)));
+}
+
 float DJIThreeFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 {
     modm::interpolation::Linear<modm::Pair<float, float>> MPSToRPMInterpolator = {
