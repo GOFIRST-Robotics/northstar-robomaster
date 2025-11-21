@@ -85,11 +85,38 @@ public:
         TURRET_DATA = 1,
         ROBOT_ID = 2,
         ALIVE = 3,
-        ODOMETRY = 4
+        ODOMETRY = 4,
+        REF_DATA = 5
     };
 
     
+    struct RefData{
 
+        uint8_t game_status;
+        uint8_t game_result;
+        float all_robot_hp[6];
+
+        uint8_t site_event_data;
+        uint8_t warning_data;
+        uint8_t dart_info;
+
+        uint8_t robot_status;
+        uint16_t power_and_heat;
+        float robot_position[2];
+        uint8_t robot_buff_status;
+        uint8_t receive_damage;
+        uint8_t projectile_launch;
+        uint16_t bullets_remain;
+        uint8_t rfid_status;
+        uint8_t dart_station_info[4];
+        float ground_robot_position[2];
+        uint8_t radar_progress;
+        uint8_t sentry_info;
+        uint8_t radar_info;
+        //custom_data;
+
+        
+    };
     
 
     struct TurretOdometryData
