@@ -15,6 +15,9 @@
 
 #include "drivers_singleton.hpp"
 
+// supercapacitor
+#include "communication/can/supercapacitor/capacitor_bank.hpp"
+
 // chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
@@ -97,6 +100,7 @@ using namespace src::control::governor;
 using namespace tap::control::governor;
 using namespace src::control::client_display;
 using namespace tap::communication::serial;
+using namespace src::can::capbank;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -286,6 +290,13 @@ user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+// supercapacitor
+CapacitorBank capacitorBank(
+    drivers(),
+    CanBus::CAN_BUS2,
+    SUPER_CAPACITOR_CAPACITANCE,
+    &drivers()->controlOperatorInterface);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -302,7 +313,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &yawMotor,
+    &capacitorBank);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,

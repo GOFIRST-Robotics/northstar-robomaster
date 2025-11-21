@@ -15,7 +15,10 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// supercapacitor
+#include "communication/can/supercapacitor/capacitor_bank.hpp"
+
+// chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_drive_distance_command.hpp"
@@ -88,6 +91,7 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
+using namespace src::can::capbank;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -559,6 +563,13 @@ ToggleCommandMapping gCtrlPressed(
     {&setFireRateCommand10RPSTop},
     RemoteMapState(RemoteMapState({Remote::Key::G, Remote::Key::CTRL})));
 
+// super capacitor
+CapacitorBank capacitorBank(
+    drivers(),
+    CanBus::CAN_BUS2,
+    SUPER_CAPACITOR_CAPACITANCE,
+    &drivers()->controlOperatorInterface);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -575,7 +586,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotorBottom);
+    &yawMotorBottom,
+    &capacitorBank);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,

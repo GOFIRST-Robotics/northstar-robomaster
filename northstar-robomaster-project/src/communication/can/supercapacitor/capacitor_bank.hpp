@@ -83,7 +83,6 @@ public:
 
     void start();
     void stop();
-    void update();
     void setPowerLimit(uint8_t watts);
     void setEnergyBuffer(uint16_t energyBuffer);
 
