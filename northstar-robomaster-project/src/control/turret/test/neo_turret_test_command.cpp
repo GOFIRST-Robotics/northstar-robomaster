@@ -93,7 +93,7 @@ bool NeoTurretTestCommand::isFinished() const
 void NeoTurretTestCommand::end(bool)
 {
     endTime = tap::arch::clock::getTimeMilliseconds();
-    totalTime = endTime - startTime;
+    totalTime = (endTime - startTime) / 1000.0f;
 }
 
 }  // namespace src::control::turret::test
