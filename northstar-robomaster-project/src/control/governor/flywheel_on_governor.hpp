@@ -58,8 +58,8 @@ public:
 private:
     src::control::flywheel::FlywheelInterface &flywheel;
 
-    static constexpr float MINIMUM_SPEED_THRESHOLD_FRACTION = 0.7;
-    static constexpr float MAXIMUM_SPEED_THRESHOLD_FRACTION = 1.4;
+    static constexpr float MINIMUM_SPEED_THRESHOLD_FRACTION = 0.9;
+    static constexpr float MAXIMUM_SPEED_THRESHOLD_FRACTION = 1.05;
 };
 }  // namespace src::control::governor
 

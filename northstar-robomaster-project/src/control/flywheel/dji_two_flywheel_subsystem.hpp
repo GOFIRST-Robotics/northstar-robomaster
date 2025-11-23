@@ -37,14 +37,8 @@ public:
         return (desiredLaunchSpeedLeft + desiredLaunchSpeedRight) / 2.0f;
     }
 
-    float getDesiredFlywheelSpeedLeft() const
-    {
-        return launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft);
-    }
-    float getDesiredFlywheelSpeedRight() const
-    {
-        return launchSpeedToFlywheelRpm(desiredLaunchSpeedRight);
-    }
+    float getDesiredFlywheelSpeedLeft() const { return desiredRpmRampLeft.getTarget(); }
+    float getDesiredFlywheelSpeedRight() const { return desiredRpmRampRight.getTarget(); }
 
     float getDesiredFlywheelSpeed() const override
     {

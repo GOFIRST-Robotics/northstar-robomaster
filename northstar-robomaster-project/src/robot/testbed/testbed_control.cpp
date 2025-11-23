@@ -104,7 +104,7 @@ using namespace tap::communication::serial;
 // #define REV_THREE_FLYWHEEL_TEST
 #define DJI_TWO_FLYWHEEL_TEST
 // #define REV_TEST
-// #define AGITATOR_TEST
+#define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
 // #define SENTRY_CONSTANTS
 // #define NEO_TURRET_TEST
@@ -129,7 +129,7 @@ Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers
 DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID_DJI, RIGHT_MOTOR_ID_DJI, CAN_BUS);
 
 // flywheel commands
-TwoFlywheelRunRPMCommand flywheelRunCommand(&flywheel, 3000.0f);
+TwoFlywheelRunRPMCommand flywheelRunCommand(&flywheel, 6500.0f);
 
 // flywheel mappings
 ToggleCommandMapping leftSwitchUpFlywheelRun(
@@ -178,38 +178,50 @@ SetFireRateCommand setFireRateCommandFullAuto(
     manualFireRateReselectionManager,
     40,
     &rotateAgitator);
+SetFireRateCommand setFireRateCommand1RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    1,
+    &rotateAgitator);
+SetFireRateCommand setFireRateCommand20RPS(
+    &dummySubsystem,
+    manualFireRateReselectionManager,
+    20,
+    &rotateAgitator);
 SetFireRateCommand setFireRateCommand10RPS(
     &dummySubsystem,
     manualFireRateReselectionManager,
     10,
     &rotateAgitator);
-SetFireRateCommand setFireRateCommand30RPS(
-    &dummySubsystem,
-    manualFireRateReselectionManager,
-    30,
-    &rotateAgitator);
 
 ToggleCommandMapping qPressed10RPS(
     drivers(),
-    {&setFireRateCommand10RPS},
+    {&setFireRateCommand1RPS},
     RemoteMapState(RemoteMapState({Remote::Key::Q})));
 
-ToggleCommandMapping wPressed30RPS(
+ToggleCommandMapping wPressed10RPS(
     drivers(),
-    {&setFireRateCommand30RPS},
-    RemoteMapState(RemoteMapState({Remote::Key::Q})));
+    {&setFireRateCommand10RPS},
+    RemoteMapState(RemoteMapState({Remote::Key::W})));
 
-ToggleCommandMapping ePressedFullAuto(
+ToggleCommandMapping ePressed20RPS(
+    drivers(),
+    {&setFireRateCommand20RPS},
+    RemoteMapState(RemoteMapState({Remote::Key::E})));
+
+ToggleCommandMapping rPressedFullAuto(
     drivers(),
     {&setFireRateCommandFullAuto},
-    RemoteMapState(RemoteMapState({Remote::Key::W})));
+    RemoteMapState(RemoteMapState({Remote::Key::R})));
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
-GovernorLimitedCommand<1> rotateAndUnjamAgitatorLimited(
+FlywheelOnGovernor flywheelOnGovenor(flywheel);
+
+GovernorLimitedCommand<2> rotateAndUnjamAgitatorLimited(
     {&agitator},
     rotateAndUnjamAgitator,
-    {&fireRateLimitGovernor});
+    {&fireRateLimitGovernor, &flywheelOnGovenor});
 
 HoldRepeatCommandMapping leftMousePressedShoot(
     drivers(),
@@ -727,8 +739,8 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
     drivers->commandMapper.addMap(&leftMousePressedShoot);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&qPressed10RPS);
-    drivers->commandMapper.addMap(&wPressed30RPS);
-    drivers->commandMapper.addMap(&ePressedFullAuto);
+    drivers->commandMapper.addMap(&ePressed20RPS);
+    drivers->commandMapper.addMap(&rPressedFullAuto);
 
 #endif
 #ifdef DJI_TWO_FLYWHEEL_TEST
