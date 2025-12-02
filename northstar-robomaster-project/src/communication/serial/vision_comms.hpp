@@ -5,15 +5,15 @@
 #include "tap/communication/serial/ref_serial_data.hpp"
 #include "tap/drivers.hpp"
 
-#include "control/turret/constants/turret_constants.hpp"
 #include "control/chassis/chassis_odometry.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
+#include "control/turret/constants/turret_constants.hpp"
+#include "northstar-robomaster-project/taproot/src/tap/communication/serial/ref_serial_data.hpp"
 
 namespace src::serial
 {
 class VisionComms : public tap::communication::serial::DJISerial
 {
-    
 public:
     static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
 
@@ -50,7 +50,11 @@ public:
         {3, {.15f, .15f}},  // don't know id 3 is correct
     };
 
-    VisionComms(tap::Drivers* drivers, src::chassis::ChassisOdometry* chassisOdometry, src::chassis::ChassisSubsystem chassisSubsystem, tap::motor::DjiMotor* yawMotor);
+    VisionComms(
+        tap::Drivers* drivers,
+        src::chassis::ChassisOdometry* chassisOdometry,
+        src::chassis::ChassisSubsystem chassisSubsystem,
+        tap::motor::DjiMotor* yawMotor);
     DISALLOW_COPY_AND_ASSIGN(VisionComms);
     mockable ~VisionComms();
 
@@ -89,35 +93,68 @@ public:
         REF_DATA = 5
     };
 
-    
-    struct RefData{
+    struct RefData
+    {
+        // tap::communication::serial::RefSerialData::Rx::GameData game_data;
+        // tap::communication::serial::RefSerialData::Rx::RobotData robot_data;
 
-        uint8_t game_status;
-        uint8_t game_result;
-        float all_robot_hp[6];
+        // Robot Data
+        tap::communication::serial::RefSerialData::RobotId robotId;
+        uint8_t robotLevel;
+        uint16_t previousHp;
 
-        uint8_t site_event_data;
-        uint8_t warning_data;
-        uint8_t dart_info;
+        uint16_t currentHp;
+        uint16_t maxHp;
+        tap::communication::serial::RefSerialData::Rx::RobotPower_t robotPower;
+        tap::communication::serial::RefSerialData::Rx::ArmorId damagedArmorId;
+        tap::communication::serial::RefSerialData::Rx::DamageType damageType;
+        float receivedDps;
+        tap::communication::serial::RefSerialData::Rx::ChassisData chassis;
+        tap::communication::serial::RefSerialData::Rx::TurretData turret;
+        tap::communication::serial::RefSerialData::Rx::RobotHpData allRobotHp;
+        uint16_t remainingCoins;
+        tap::communication::serial::RefSerialData::Rx::RobotBuffStatus robotBuffStatus;
+        tap::communication::serial::RefSerialData::Rx::RFIDActivationStatus_t rfidStatus;
 
-        uint8_t robot_status;
-        uint16_t power_and_heat;
-        float robot_position[2];
-        uint8_t robot_buff_status;
-        uint8_t receive_damage;
-        uint8_t projectile_launch;
-        uint16_t bullets_remain;
-        uint8_t rfid_status;
-        uint8_t dart_station_info[4];
-        float ground_robot_position[2];
-        uint8_t radar_progress;
-        uint8_t sentry_info;
-        uint8_t radar_info;
-        //custom_data;
+        // Game Data
 
-        
+        tap::communication::serial::RefSerialData::Rx::GameType gameType;
+        tap::communication::serial::RefSerialData::Rx::GameStage gameStage;
+        uint16_t stageTimeRemaining;
+        uint64_t unixTime;
+        tap::communication::serial::RefSerialData::Rx::GameWinner gameWinner;
+        tap::communication::serial::RefSerialData::Rx::EventData eventData;
+        tap::communication::serial::RefSerialData::Rx::SupplierAction supplier;
+        tap::communication::serial::RefSerialData::Rx::DartInfo dartInfo;
+        tap::communication::serial::RefSerialData::Rx::AirSupportData airSupportData;
+        tap::communication::serial::RefSerialData::Rx::DartStationInfo dartStation;
+        tap::communication::serial::RefSerialData::Rx::GroundRobotPositions positions;
+        tap::communication::serial::RefSerialData::Rx::RadarMarkProgress radarProgress;
+        tap::communication::serial::RefSerialData::Rx::SentryInfo sentry;
+        tap::communication::serial::RefSerialData::Rx::RadarInfo radar;
+
+        // uint8_t game_result;
+        // float all_robot_hp[6];
+
+        // uint8_t site_event_data;
+        // uint8_t warning_data;
+        // uint8_t dart_info;
+
+        // uint8_t robot_status;
+        // uint16_t power_and_heat;
+        // float robot_position[2];
+        // uint8_t robot_buff_status;
+        // uint8_t receive_damage;
+        // uint8_t projectile_launch;
+        // uint16_t bullets_remain;
+        // uint8_t rfid_status;
+        // uint8_t dart_station_info[4];
+        // float ground_robot_position[2];
+        // uint8_t radar_progress;
+        // uint8_t sentry_info;
+        // uint8_t radar_info;
+        // custom_data;
     };
-    
 
     struct TurretOdometryData
     {
@@ -125,7 +162,7 @@ public:
         float turret_yaw;
         float turret_roll;
 
-    }modm_packed;
+    } modm_packed;
 
     struct ChassisOdometryData
     {
@@ -137,14 +174,14 @@ public:
         float vel_y;
         float vel_z;
 
-    }modm_packed;
+    } modm_packed;
 
     struct OdometryData
     {
         TurretOdometryData turret_data;
         ChassisOdometryData chassis_data;
 
-    }modm_packed;
+    } modm_packed;
 
 private:
     static constexpr int16_t TIME_OFFLINE_CV_AIM_DATA_MS = 1'000;
@@ -159,10 +196,11 @@ private:
 
     mockable void sendRobotOdometry();
 
+    mockable void sendRefData();
+
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
 
     bool decodeToOdometeryData(const ReceivedSerialMessage& message);
-
 };
 }  // namespace src::serial
 

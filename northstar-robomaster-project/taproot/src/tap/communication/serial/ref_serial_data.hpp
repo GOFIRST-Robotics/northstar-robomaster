@@ -460,8 +460,7 @@ public:
             AirSupportData airSupportData;   ///< Information about the air support
             DartStationInfo dartStation;     ///< Information about the dart launching station.
             GroundRobotPositions positions;  ///< Information about the position of ground robots.
-            RadarMarkProgress
-                radarProgress;  ///< Information about the mark progress for the radar station.
+            RadarMarkProgress radarProgress;  ///< Information about the mark progress for the radar station.
             SentryInfo sentry;  ///< Information about the sentry.
             RadarInfo radar;    ///< Information about the radar station.
         };

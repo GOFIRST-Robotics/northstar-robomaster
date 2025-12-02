@@ -2,7 +2,11 @@
 
 namespace src::serial
 {
-VisionComms::VisionComms(tap::Drivers* drivers,src::chassis::ChassisOdometry* chassisOdometry,src::chassis::ChassisSubsystem, tap::motor::DjiMotor* pitchMotor)
+VisionComms::VisionComms(
+    tap::Drivers* drivers,
+    src::chassis::ChassisOdometry* chassisOdometry,
+    src::chassis::ChassisSubsystem,
+    tap::motor::DjiMotor* pitchMotor)
     : DJISerial(drivers, VISION_COMMS_RX_UART_PORT),
       lastAimData(),
       chassisOdometry(chassisOdometry),
@@ -47,8 +51,10 @@ void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMe
             decodeToOdometeryData(completeMessage);
             return;
         }
-        case 5:
+
+        case MessageType::REF_DATA:
         {
+            // shouldn't receive this from the CV, only send it
             return;
         }
 
@@ -115,23 +121,19 @@ bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)
         return false;  // Not enough data for another turret aim data
     }
 
-    //Position data
+    // Position data
     memcpy(&receivedPosition.x, &message.data[curreIndex], sizeof(float));
     curreIndex += sizeof(float);
 
     memcpy(&receivedPosition.y, &message.data[curreIndex], sizeof(float));
     curreIndex += sizeof(float);
 
-    //rotation Data
+    // rotation Data
     memcpy(&receivedRotation, &message.data[curreIndex], sizeof(float));
     curreIndex += sizeof(float);
 
-    
     // send the values received back into odometry
-    chassisOdometry->setOdometryPosAndRot(receivedPosition,receivedRotation);
-
-    
-
+    chassisOdometry->setOdometryPosAndRot(receivedPosition, receivedRotation);
 }
 
 void VisionComms::sendRobotIdMessage()
@@ -146,40 +148,32 @@ void VisionComms::sendRobotIdMessage()
         sizeof(robotTypeMessage));
 }
 
-
 void VisionComms::sendRobotOdometry()
 {
-
     DJISerial::SerialMessage<sizeof(OdometryData)> odometryMessage;
     OdometryData odometryData = OdometryData();
-    
 
     modm::Vector2f global_pos = chassisOdometry->getPositionGlobal();
     modm::Vector2f global_vel = chassisOdometry->getVelocityGlobal();
 
-    //Chassis data
-    odometryData.chassis_data.pos_x = global_pos.x;//meters
-    odometryData.chassis_data.pos_y = global_pos.y;//meters
-    odometryData.chassis_data.pos_z = 0; //TODO: this assumes the robot is on level ground. Odometry should support z for varied height fields
+    // Chassis data
+    odometryData.chassis_data.pos_x = global_pos.x;  // meters
+    odometryData.chassis_data.pos_y = global_pos.y;  // meters
+    odometryData.chassis_data.pos_z = 0;  // TODO: this assumes the robot is on level ground.
+                                          // Odometry should support z for varied height fields
 
+    odometryData.chassis_data.vel_x = global_vel.x;  // meters/second
+    odometryData.chassis_data.vel_y = global_vel.y;  // meters/second
+    odometryData.chassis_data.vel_z = 0;             // TODO: see z on position (it doesn't exist)
 
-    odometryData.chassis_data.vel_x = global_vel.x;//meters/second
-    odometryData.chassis_data.vel_y = global_vel.y;//meters/second
-    odometryData.chassis_data.vel_z = 0;//TODO: see z on position (it doesn't exist)
-
-
-    //Turret Data
-    odometryData.turret_data.turret_pitch = pitchMotor->getPositionWrapped();//radians
-    odometryData.turret_data.turret_yaw = drivers->bmi088.getYaw();//radians
-    odometryData.turret_data.turret_roll = drivers->bmi088.getRoll();//radians
-
-
+    // Turret Data
+    odometryData.turret_data.turret_pitch = pitchMotor->getPositionWrapped();  // radians
+    odometryData.turret_data.turret_yaw = drivers->bmi088.getYaw();            // radians
+    odometryData.turret_data.turret_roll = drivers->bmi088.getRoll();          // radians
 
     odometryMessage.messageType = MessageType::ODOMETRY;
-    
-    
 
-    //Chassis data
+    // Chassis data
     odometryMessage.data[0] = odometryData.chassis_data.pos_x;
     odometryMessage.data[1] = odometryData.chassis_data.pos_y;
     odometryMessage.data[2] = odometryData.chassis_data.pos_z;
@@ -188,20 +182,35 @@ void VisionComms::sendRobotOdometry()
     odometryMessage.data[4] = odometryData.chassis_data.vel_y;
     odometryMessage.data[5] = odometryData.chassis_data.vel_z;
 
-
-    //Turret Data
+    // Turret Data
     odometryMessage.data[6] = odometryData.turret_data.turret_roll;
     odometryMessage.data[7] = odometryData.turret_data.turret_pitch;
     odometryMessage.data[8] = odometryData.turret_data.turret_yaw;
-
-
-
 
     odometryMessage.setCRC16();
     drivers->uart.write(
         VISION_COMMS_TX_UART_PORT,
         reinterpret_cast<uint8_t*>(&odometryMessage),
         sizeof(odometryMessage));
+}
+
+void VisionComms::sendRefData()
+{
+    DJISerial::SerialMessage<sizeof(RefData)> refDataMessage;
+
+
+
+    refDataMessage.messageType = MessageType::REF_DATA;
+
+    // save into the message
+    refDataMessage.data[0] = drivers->refSerial.getGameData().airSupportData;
+
+
+    refDataMessage.setCRC16();
+    drivers->uart.write(
+        VISION_COMMS_TX_UART_PORT,
+        reinterpret_cast<uint8_t*>(&refDataMessage),
+        sizeof(refDataMessage));
 }
 
 bool VisionComms::isCvOnline() const { return !cvOfflineTimeout.isExpired(); }
