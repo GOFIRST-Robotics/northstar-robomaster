@@ -83,35 +83,17 @@ class CanRxListener;
 class CanRxHandler
 {
 public:
-    static constexpr uint16_t MIN_DJI_CAN_ID = 0x1E4;
-    static constexpr uint16_t NUM_DJI_CAN_IDS = 64;
-    static constexpr uint16_t MAX_DJI_CAN_ID = MIN_DJI_CAN_ID + NUM_DJI_CAN_IDS;
-
-
-    static constexpr uint16_t MIN_REV_CAN_ID = 0;
-    static constexpr uint16_t NUM_REV_CAN_IDS = 64;
-    static constexpr uint16_t MAX_REV_CAN_ID = MIN_REV_CAN_ID + NUM_REV_CAN_IDS;
+    /**
+     * The number of "hash" bins to store listeners in. `8` is choosen as most users will only have
+     * DJI Motors on their can bus, reducing any unnecessary overhead storing empty bins. The bus
+     * also become saturated near this limit, so the performance hit of a linked list traversal is
+     * minimal.
+     */
+    static constexpr uint8_t CAN_BINS = 8;
 
     CanRxHandler(Drivers* drivers);
     mockable ~CanRxHandler() = default;
     DISALLOW_COPY_AND_ASSIGN(CanRxHandler)
-
-    /**
-     * Given a CAN identifier, returns the "normalized" id between [0, NUM_DJI_CAN_IDS), or a
-     * value >= NUM_DJI_CAN_IDS if the canId is outside the range specified.
-     */
-    static inline uint16_t lookupTableIndexForCanId(uint16_t canId)
-    {
-        if (canId >= MIN_DJI_CAN_ID && canId <= MAX_DJI_CAN_ID)
-        {
-            return canId - MIN_DJI_CAN_ID;
-        } else if (canId >= MIN_REV_CAN_ID && canId < MAX_REV_CAN_ID)
-        {
-            return canId - MIN_REV_CAN_ID;
-        } else {
-            return 0;
-        }
-    }
 
     /**
      * @return true if canId lies in either the DJI or REV CAN ID ranges.
@@ -123,14 +105,18 @@ public:
 
     static bool isDjiCanId(uint16_t canId)
     {
-        return (canId >= MIN_DJI_CAN_ID && canId <  MAX_DJI_CAN_ID);
+        return (canId >= 0X201 && canId <=  0x208);
     }
     static bool isRevCanId(uint16_t canId)
     {
-        return (canId >= MIN_REV_CAN_ID && canId <  MAX_REV_CAN_ID);
+        return (canId >= 0x001 && canId <=  0x008);
     }
 
-    
+
+    /**
+     * Given a CAN identifier, returns the bin index between [0, NUM_CAN_IDS) for the identifier.
+     */
+    static inline uint16_t binIndexForCanId(uint16_t canId) { return canId % CAN_BINS; }
 
     /**
      * Call this function to add a CanRxListener to the list of CanRxListener's
@@ -177,15 +163,15 @@ protected:
      * Stores pointers to the `CanRxListeners` for CAN 1, referenced when
      * a new message is received.
      */
-    CanRxListener* messageHandlerStoreDjiCan1[NUM_DJI_CAN_IDS];
-    CanRxListener* messageHandlerStoreRevCan1[NUM_REV_CAN_IDS];
+    CanRxListener* messageHandlerStoreDjiCan1[CAN_BINS];
+    CanRxListener* messageHandlerStoreRevCan1[CAN_BINS];
 
     /**
      * Stores pointers to the `CanRxListeners` for CAN 2, referenced when
      * a new message is received.
      */
-    CanRxListener* messageHandlerStoreDjiCan2[NUM_DJI_CAN_IDS];
-    CanRxListener* messageHandlerStoreRevCan2[NUM_REV_CAN_IDS];
+    CanRxListener* messageHandlerStoreDjiCan2[CAN_BINS];
+    CanRxListener* messageHandlerStoreRevCan2[CAN_BINS];
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 public:

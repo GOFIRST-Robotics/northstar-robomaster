@@ -19,18 +19,21 @@ RevMotorTester::RevMotorTester(tap::Drivers* drivers)
           drivers,
           tap::motor::REVMotorId::REV_MOTOR1,
           tap::can::CanBus::CAN_BUS2,
+          tap::motor::RevMotor::ControlMode::VOLTAGE,
           false,
           "REV Motor 1"),
       motor2(
           drivers,
           tap::motor::REVMotorId::REV_MOTOR2,
           tap::can::CanBus::CAN_BUS2,
+          tap::motor::RevMotor::ControlMode::VOLTAGE,
           true,
           "REV Motor 2"),
       motor3(
           drivers,
           tap::motor::REVMotorId::REV_MOTOR5,
           tap::can::CanBus::CAN_BUS2,
+          tap::motor::RevMotor::ControlMode::VOLTAGE,
           false,
           "REV Motor 3")
 {
@@ -40,7 +43,6 @@ RevMotorTester::RevMotorTester(tap::Drivers* drivers)
 void RevMotorTester::initialize()
 {
     motor1.initialize();
-    motor1.setControlMode(tap::motor::RevMotor::ControlMode::VOLTAGE);
     motor1.setControlValue(0.0f);  // Initialize control value to 0.0f
 
     // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist

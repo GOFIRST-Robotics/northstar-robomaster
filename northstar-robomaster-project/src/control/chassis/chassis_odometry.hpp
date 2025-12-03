@@ -1,20 +1,27 @@
 #ifndef CHASSIS_ODOMETRY_HPP
 #define CHASSIS_ODOMETRY_HPP
 
+#include "tap/algorithms/wrapped_float.hpp"
 #include "tap/architecture/clock.hpp"
 
 #include "modm/math/geometry/angle.hpp"
 #include "modm/math/geometry/vector.hpp"
 
+/*
+    Chassis Odometry uses a 2D coordinate system, using the ground as the XY plane
+    +X: Right
+    +Y: Forward
+    +Rotation: CCW
+*/
 
 namespace src::chassis
 {
 class ChassisOdometry
 {
     static constexpr float ONE_OVER_THREE = 1.0f / 3.0f;
-    static constexpr float THREE_SQRT_TWO_OVER_SIXTEEN = 0.26516504294f;
-    static constexpr float ONE_OVER_FOUR_SQRT_TWO = 0.17677669529f;
-    static constexpr float SQRT_TWO_OVER_FOUR = 0.35355339059f;
+
+    tap::communication::sensors::imu::bmi088::Bmi088* imu;
+    tap::motor::DjiMotor* turretYaw;
 
     // rad/sec to m/sec
     float RPS_TO_MPS;
@@ -23,6 +30,9 @@ class ChassisOdometry
     modm::Vector<float, 2> positionGlobal;
     modm::Vector<float, 2> velocityGlobal;
     modm::Vector<float, 2> velocityLocal;
+    modm::Vector<float, 3> velocity3dGlobal;
+    modm::Vector<float, 2> positionProjectedGlobal;
+    modm::Vector<float, 2> velocityProjectedGlobal;
 
     // radians
     float rotation;
@@ -30,8 +40,14 @@ class ChassisOdometry
     uint32_t previousTimeMicroSeconds = 0;
 
 public:
-    ChassisOdometry(float distanceToCenter, float wheelDiameter)
-        : RPS_TO_MPS(wheelDiameter / 2.0),
+    ChassisOdometry(
+        tap::communication::sensors::imu::bmi088::Bmi088* imu,
+        tap::motor::DjiMotor* turretYaw,
+        float distanceToCenter,
+        float wheelDiameter)
+        : imu(imu),
+          turretYaw(turretYaw),
+          RPS_TO_MPS(wheelDiameter / 2.0),
           DIST_TO_CENT(distanceToCenter)
     {
         zeroOdometry();
@@ -40,6 +56,9 @@ public:
     modm::Vector<float, 2> getPositionGlobal() { return positionGlobal; }
     modm::Vector<float, 2> getVelocityGlobal() { return velocityGlobal; }
     modm::Vector<float, 2> getVelocityLocal() { return velocityLocal; }
+    modm::Vector<float, 2> getPositionProjectedGlobal() { return positionProjectedGlobal; }
+    modm::Vector<float, 2> getVelocityProjectedGlobal() { return velocityProjectedGlobal; }
+    modm::Vector<float, 3> getVelocity3dGlobal() { return velocity3dGlobal; }
     float getRotation() { return rotation; }
 
     void zeroOdometry()
@@ -80,22 +99,60 @@ public:
         velocityLocal.x = localVelX;
         velocityLocal.y = localVelY;
 
-        double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
-        rotation -= radiansPerSec * deltaTimeSeconds;
+        velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
+
+        // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
+        // rotation -= radiansPerSec * deltaTimeSeconds;
+        rotation = calculateRobotHeading();
 
         velocityGlobal = convertLocalToGlobal(velocityLocal);
         positionGlobal += velocityGlobal * deltaTimeSeconds;
+
+        velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
+        positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
     }
 
-    modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2> &local)
+    modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2>& local)
     {
-        float cosR = cos(rotation);
-        float sinR = sin(rotation);
+        float cosR = cosf(rotation);
+        float sinR = sinf(rotation);
 
         return modm::Vector<float, 2>(
-            local.x * cosR - local.y * sinR,
-            local.x * sinR + local.y * cosR);
+            local.x * cosR + local.y * sinR,
+            -local.x * sinR + local.y * cosR);
     }
+
+    float calculateRobotHeading()
+    {
+        return tap::algorithms::Angle(imu->getYaw() - turretYaw->getPositionWrapped())
+            .getWrappedValue();
+    }
+
+    modm::Vector<float, 3> flatLocalVelTo3dGlobalVel(modm::Vector<float, 2> localVel)
+    {
+        float imuYaw = imu->getYaw();
+        float imuRoll = imu->getRoll();
+        float imuPitch = imu->getPitch();
+
+        float alpha = calculateRobotHeading();
+        float beta = cosf(-imuYaw) * imuPitch + sinf(-imuYaw) * imuRoll;
+        float gamma = -sinf(-imuYaw) * imuPitch + cosf(-imuYaw) * imuRoll;
+
+        float x = localVel.x * cosf(beta) * cosf(gamma) +
+                  localVel.y * (cosf(alpha) * sinf(beta) * cosf(gamma) + sinf(alpha) * sinf(gamma));
+        float y = localVel.x * cosf(beta) * sinf(gamma) +
+                  localVel.y * (cosf(alpha) * sinf(beta) * sinf(gamma) - sinf(alpha) * cosf(gamma));
+        float z = localVel.x * -sinf(beta) + localVel.y * cosf(alpha) * cosf(beta);
+
+        return modm::Vector<float, 3>(x, y, z);
+    }
+
+    float getImuPitch() { return imu->getPitch(); }
+    float getImuYaw() { return imu->getYaw(); }
+    float getImuRoll() { return imu->getRoll(); }
+
+    // floor length = 2.15m
+    // ramp length = 2.80m
 };
 
 }  // namespace src::chassis

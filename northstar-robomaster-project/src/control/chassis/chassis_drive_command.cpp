@@ -24,9 +24,12 @@ void ChassisDriveCommand::execute()
     auto scale = [](float raw) -> float {
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
+    modm::Pair<float, float> normInput = getNormalizedInput(
+        operatorInterface->getDrivetrainVerticalTranslation(),
+        operatorInterface->getDrivetrainHorizontalTranslation());
     chassis->setVelocityTurretDrive(
-        scale(operatorInterface->getDrivetrainVerticalTranslation()),
-        -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
+        scale(normInput.first),
+        scale(normInput.second),
         scale(operatorInterface->getDrivetrainRotationalTranslation()));
 }
 

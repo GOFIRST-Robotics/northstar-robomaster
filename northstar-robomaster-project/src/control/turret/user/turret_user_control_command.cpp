@@ -61,6 +61,8 @@ void TurretUserControlCommand::initialize()
     prevTime = tap::arch::clock::getTimeMilliseconds();
 }
 
+float debugyawMotorPos = 0;
+
 void TurretUserControlCommand::execute()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
@@ -76,6 +78,7 @@ void TurretUserControlCommand::execute()
         yawController->getSetpoint() +
         userYawInputScalar * controlOperatorInterface.getTurretYawInput(turretID);
     yawController->runController(dt, yawSetpoint);
+    debugyawMotorPos = turretSubsystem->yawMotor.getChassisFrameMeasuredAngle().getUnwrappedValue();
 }
 
 bool TurretUserControlCommand::isFinished() const

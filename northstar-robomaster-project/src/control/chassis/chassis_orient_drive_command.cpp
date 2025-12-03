@@ -38,9 +38,12 @@ void ChassisOrientDriveCommand::execute()
     rotationalValue =
         tap::algorithms::lowPassFilter(rotationalValue, rotationFromPID, rotationalAlpha);
 
+    modm::Pair<float, float> normInput = getNormalizedInput(
+        operatorInterface->getDrivetrainVerticalTranslation(),
+        operatorInterface->getDrivetrainHorizontalTranslation());
     chassis->setVelocityTurretDrive(
-        scale(operatorInterface->getDrivetrainVerticalTranslation()),
-        -scale(operatorInterface->getDrivetrainHorizontalTranslation()),
+        scale(normInput.first),
+        scale(normInput.second),
         scale(rotationalValue));
 }
 

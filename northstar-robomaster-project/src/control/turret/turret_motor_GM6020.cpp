@@ -1,23 +1,4 @@
-/*
- * Copyright (c) 2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
- *
- * This file is part of aruw-mcb.
- *
- * aruw-mcb is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * aruw-mcb is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-#include "turret_motor.hpp"
+#include "turret_motor_GM6020.hpp"
 
 #include <cassert>
 
@@ -29,7 +10,9 @@ using namespace tap::algorithms;
 
 namespace src::control::turret
 {
-TurretMotor::TurretMotor(tap::motor::MotorInterface *motor, const TurretMotorConfig &motorConfig)
+TurretMotorGM6020::TurretMotorGM6020(
+    tap::motor::MotorInterface *motor,
+    const TurretMotorConfig &motorConfig)
     : config(motorConfig),
       motor(motor),
       ratio(config.ratio),
@@ -40,7 +23,7 @@ TurretMotor::TurretMotor(tap::motor::MotorInterface *motor, const TurretMotorCon
     assert(motor != nullptr);
 }
 
-void TurretMotor::updateMotorAngle()
+void TurretMotorGM6020::updateMotorAngle()
 {
     if (isOnline())
     {
@@ -55,7 +38,7 @@ void TurretMotor::updateMotorAngle()
     }
 }
 
-void TurretMotor::setMotorOutput(float out)
+void TurretMotorGM6020::setMotorOutput(float out)
 {
     out = limitVal(out, -MAX_OUT_6020, MAX_OUT_6020);
 
@@ -69,7 +52,7 @@ void TurretMotor::setMotorOutput(float out)
     }
 }
 
-void TurretMotor::setChassisFrameSetpoint(WrappedFloat setpoint)
+void TurretMotorGM6020::setChassisFrameSetpoint(WrappedFloat setpoint)
 {
     chassisFrameSetpoint = setpoint;
 
@@ -84,13 +67,14 @@ void TurretMotor::setChassisFrameSetpoint(WrappedFloat setpoint)
     }
 }
 
-float TurretMotor::getValidChassisMeasurementError() const
+float TurretMotorGM6020::getValidChassisMeasurementError() const
 {
     return getValidMinError(chassisFrameSetpoint, chassisFrameMeasuredAngle);
 }
 
-float TurretMotor::getValidMinError(const WrappedFloat setpoint, const WrappedFloat measurement)
-    const
+float TurretMotorGM6020::getValidMinError(
+    const WrappedFloat setpoint,
+    const WrappedFloat measurement) const
 {
     if (config.limitMotorAngles)
     {

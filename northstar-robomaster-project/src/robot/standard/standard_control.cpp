@@ -42,6 +42,7 @@
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -101,9 +102,6 @@
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 #include "control/clientDisplay/indicators/vision_indicator.hpp"
 
-// STATE MACHINE
-#include "control/stateMachine/state_machine_subsytem.hpp"
-
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -138,17 +136,27 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 
 PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
-PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+// PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
-PlaySongCommand playTuffStartupNoise(&buzzerSubsystem, tsnSong);
-
-PressCommandMapping ctrlShiftZSong(
-    drivers(),
-    {&playMegalovaniaCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
+// PressCommandMapping ctrlShiftZSong(
+//     drivers(),
+//     {&playMegalovaniaCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+FlywheelSubsystem flywheel(
+    drivers(),
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    UP_MOTOR_ID,
+    CAN_BUS,
+    tap::motor::RevMotor::PIDConfig{
+        .PIDSlot = 0,
+        .kP = FLYWHEEL_PID_KP,
+        .kI = FLYWHEEL_PID_KI,
+        .kD = FLYWHEEL_PID_KD,
+        .kF = FLYWHEEL_PID_KF,
+    });
 
 // flywheel commands
 FlywheelRunCommand flywheelRunCommand(&flywheel);
@@ -272,16 +280,16 @@ ToggleCommandMapping xCtrlPressedCvControl(
     {&turretCVControlCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
 
-user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    &turret,
-    &worldFrameYawChassisImuController,
-    &worldFramePitchChassisImuController,
-    &worldFrameYawTurretCanImuController,
-    &worldFramePitchTurretCanImuController,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &turret,
+//     &worldFrameYawChassisImuController,
+//     &worldFramePitchChassisImuController,
+//     &worldFrameYawTurretCanImuController,
+//     &worldFramePitchTurretCanImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -392,8 +400,11 @@ ToggleCommandMapping gPressed(
 //     false);
 
 // chassis odometry
-src::chassis::ChassisOdometry *chassisOdometry =
-    new src::chassis::ChassisOdometry(src::chassis::DIST_TO_CENTER, src::chassis::WHEEL_DIAMETER_M);
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
@@ -413,10 +424,6 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     &drivers()->turretMCBCanCommBus2,
     &yawMotor,
     chassisOdometry);
-
-// chassis auto drive
-src::chassis::ChassisAutoDrive *chassisAutoDrive =
-    new src::chassis::ChassisAutoDrive(&chassisSubsystem, chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -440,7 +447,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     1,
     -1,
     M_PI,
-    true);
+    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -483,6 +490,11 @@ ToggleCommandMapping rPressedOrientDrive(
     drivers(),
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
+
+ToggleCommandMapping qPressedNormDrive(
+    drivers(),
+    {&chassisDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
 
 ToggleCommandMapping zPressedNotCtrlWiggle(
     drivers(),
@@ -571,10 +583,6 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-// STATE MACHINE
-src::stateMachine::StateMachineSubsystem stateMachineSubsystem =
-    src::stateMachine::StateMachineSubsystem(drivers(), &chassisSubsystem, chassisAutoDrive);
-
 void initializeSubsystems(Drivers *drivers)
 {
     dummySubsystem.initialize();
@@ -596,12 +604,12 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //
+    // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -610,8 +618,14 @@ void setDefaultStandardCommands(Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(-135),
+        modm::toRadian(-90)));
+
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
@@ -633,8 +647,8 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
-    drivers->commandMapper.addMap(&ctrlShiftZSong);
-    // drivers->commandMapper.addMap(&lClickPressedDriveOneMeter);
+    // drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&qPressedNormDrive);
 }
 }  // namespace standard_control
 

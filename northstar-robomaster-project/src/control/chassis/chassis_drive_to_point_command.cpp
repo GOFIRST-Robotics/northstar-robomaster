@@ -46,7 +46,7 @@ void ChassisDriveToPointCommand::execute()
         velocityToTarget = dirToTarget.normalized();
     }
 
-    chassis->setVelocityFieldDrive(velocityToTarget.y, -velocityToTarget.x, 0);
+    chassis->setVelocityFieldDrive(velocityToTarget.y, velocityToTarget.x, 0);
 }
 
 void ChassisDriveToPointCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }

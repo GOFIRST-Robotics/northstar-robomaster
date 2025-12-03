@@ -19,27 +19,30 @@ RevMotorTesterSingleMotor::RevMotorTesterSingleMotor(tap::Drivers* drivers)
           drivers,
           REVMotorId::REV_MOTOR1,
           tap::can::CanBus::CAN_BUS1,
+          tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
           false,
-          "SingleRevMotor")
+          "SingleRevMotor",
+          18.0f / 120.0f),
+      pid(0.0f, 0.0f, 0.0f, 0.8f, 1.0f)
 {
 }
 
-void RevMotorTesterSingleMotor::initialize()
-{
-    singularMotor.initialize();
-    singularMotor.setParameter(Parameter::kP_0, 0.00f);
-    singularMotor.setParameter(Parameter::kI_0, 0.00f);
-    singularMotor.setParameter(Parameter::kD_0, 0.00f);
-    singularMotor.setParameter(Parameter::kF_0, 0.00009f);
-    singularMotor.setParameter(Parameter::kOutputMin_0, -1.0f);
-    singularMotor.setParameter(Parameter::kOutputMax_0, 1.0f);
-    singularMotor.setControlMode(tap::motor::RevMotor::ControlMode::VELOCITY);
-}
+void RevMotorTesterSingleMotor::initialize() { singularMotor.initialize(); }
 
+float debugVelo;
+float debugPos;
+float debugCurrent;
+float debugPidValue;
 void RevMotorTesterSingleMotor::refresh()
 {
-    // singularMotor.setControlValue(
+    // float targetCurrent =
     //     drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL) *
-    //     2000);
+    //     2;
+    // pid.update(targetCurrent - singularMotor.getCurrent());
+    // debugPidValue = pid.getValue();
+    // singularMotor.setControlValue(debugPidValue);
+    // debugVelo = singularMotor.getEncoder()->getVelocity() * 60 / M_TWOPI;
+    // debugPos = singularMotor.getEncoder()->getPosition().getUnwrappedValue();
+    // debugCurrent = singularMotor.getCurrent();
 }
 }  // namespace Communications::Rev

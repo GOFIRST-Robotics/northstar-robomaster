@@ -2,7 +2,9 @@
 #define SENTRY_TURRET_SUBSYSTEM_HPP_
 
 #include "control/turret/robot_turret_subsystem.hpp"
+#include "control/turret/turret_motor_GM6020.hpp"
 #include "control/turret/turret_subsystem.hpp"
+
 
 namespace src::control::turret
 {
@@ -63,13 +65,13 @@ public:
     }
 
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotor pitchMotorBottom;
+    TurretMotorGM6020 pitchMotorBottom;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretMotor yawMotorBottom;
+    TurretMotorGM6020 yawMotorBottom;
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotor pitchMotorTop;
+    TurretMotorGM6020 pitchMotorTop;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretMotor yawMotorTop;
+    TurretMotorGM6020 yawMotorTop;
 
     bool offsets = false;
 

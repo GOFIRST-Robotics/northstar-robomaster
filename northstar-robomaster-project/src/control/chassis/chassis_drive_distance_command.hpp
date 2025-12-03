@@ -2,6 +2,7 @@
 
 #include "tap/control/command.hpp"
 
+#include "control/chassis/constants/chassis_constants.hpp"
 #include "modm/math/filter/pid.hpp"
 
 #include "chassis_subsystem.hpp"
