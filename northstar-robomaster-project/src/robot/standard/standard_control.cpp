@@ -531,8 +531,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem,
-    &playTuffStartupNoise);
+    &chassisSubsystem);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 

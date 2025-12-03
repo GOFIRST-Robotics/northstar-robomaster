@@ -69,9 +69,10 @@ public:
         rotation = 0;
     }
 
-    void setOdometryPosAndRot(modm::Vector2f pos,float rot)
+    void setOdometry(modm::Vector2f pos, modm::Vector2f velo, float rot)
     {
         positionGlobal = pos;
+        velocityGlobal = velo;
         rotation = rot;
     }
 

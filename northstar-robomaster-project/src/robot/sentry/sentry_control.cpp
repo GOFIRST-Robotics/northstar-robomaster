@@ -522,6 +522,10 @@ void setDefaultSentryCommands(Drivers *drivers)
 
 void startSentryCommands(Drivers *drivers)
 {
+    drivers->visionComms.attachAutoDrive(chassisAutoDrive);
+    drivers->visionComms.attachOdometry(chassisOdometry);
+    drivers->visionComms.attachPitchMotor(&pitchMotor);
+
     drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
         0,
         0,

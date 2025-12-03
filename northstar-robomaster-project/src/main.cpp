@@ -126,6 +126,10 @@ int main()
         {
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
         }
+#if defined(TARGET_SENTRY)
+        PROFILE(drivers->profiler, drivers->visionComms.sendMessage, ());
+#endif
+
 #endif
         modm::delay_us(10);
     }

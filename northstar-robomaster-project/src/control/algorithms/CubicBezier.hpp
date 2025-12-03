@@ -11,17 +11,28 @@
 class CubicBezier
 {
 public:
+    struct CurveData
+    {
+        modm::Vector<float, 2> start;
+        modm::Vector<float, 2> end;
+        modm::Vector<float, 2> startControl;
+        modm::Vector<float, 2> endControl;
+        float length;
+    } modm_packed;
+
+    CubicBezier(CurveData curveData) : curveData(curveData) {}
+
     CubicBezier(
         modm::Vector<float, 2> start,
         modm::Vector<float, 2> end,
         modm::Vector<float, 2> startControl,
         modm::Vector<float, 2> endControl)
-        : start(start),
-          end(end),
-          startControl(startControl),
-          endControl(endControl)
     {
-        length = estimateLength();
+        curveData.start = start;
+        curveData.end = end;
+        curveData.startControl = startControl;
+        curveData.endControl = endControl;
+        curveData.length = estimateLength();
     }
 
     CubicBezier(
@@ -30,46 +41,47 @@ public:
         modm::Vector<float, 2> startControl,
         modm::Vector<float, 2> endControl,
         float length)
-        : start(start),
-          end(end),
-          startControl(startControl),
-          endControl(endControl),
-          length(length)
     {
+        curveData.start = start;
+        curveData.end = end;
+        curveData.startControl = startControl;
+        curveData.endControl = endControl;
+        curveData.length = length;
     }
 
-    modm::Vector<float, 2> getStart() { return start; }
-    modm::Vector<float, 2> getEnd() { return end; }
-    modm::Vector<float, 2> getStartControl() { return startControl; }
-    modm::Vector<float, 2> getEndControl() { return endControl; }
-    float getLength() { return length; }
+    modm::Vector<float, 2> getStart() { return curveData.start; }
+    modm::Vector<float, 2> getEnd() { return curveData.end; }
+    modm::Vector<float, 2> getStartControl() { return curveData.startControl; }
+    modm::Vector<float, 2> getEndControl() { return curveData.endControl; }
+    float getLength() { return curveData.length; }
 
     modm::Vector<float, 2> evaluate(float t)
     {
         float oneMinusT = 1 - t;
-        return (oneMinusT * oneMinusT * oneMinusT) * start +
-               (3.0f * (oneMinusT * oneMinusT) * t) * startControl +
-               (3.0f * oneMinusT * (t * t)) * endControl + (t * t * t) * end;
+        return (oneMinusT * oneMinusT * oneMinusT) * curveData.start +
+               (3.0f * (oneMinusT * oneMinusT) * t) * curveData.startControl +
+               (3.0f * oneMinusT * (t * t)) * curveData.endControl + (t * t * t) * curveData.end;
     }
 
     modm::Vector<float, 2> evaluateDerivative(float t)
     {
         float oneMinusT = 1 - t;
-        return (3.0f * (oneMinusT * oneMinusT)) * (startControl - start) +
-               (6.0f * oneMinusT * t) * (endControl - startControl) +
-               (3.0f * (t * t)) * (end - endControl);
+        return (3.0f * (oneMinusT * oneMinusT)) * (curveData.startControl - curveData.start) +
+               (6.0f * oneMinusT * t) * (curveData.endControl - curveData.startControl) +
+               (3.0f * (t * t)) * (curveData.end - curveData.endControl);
     }
 
     modm::Vector<float, 2> evaluateSecondDerivative(float t)
     {
-        return (6 * (1 - t)) * (endControl - 2.0f * startControl + start) +
-               (6 * t) * (end - 2 * endControl + startControl);
+        return (6 * (1 - t)) *
+                   (curveData.endControl - 2.0f * curveData.startControl + curveData.start) +
+               (6 * t) * (curveData.end - 2 * curveData.endControl + curveData.startControl);
     }
 
     float estimateLength()
     {
         float length = 0.0f;
-        modm::Vector<float, 2> prevPoint = start;
+        modm::Vector<float, 2> prevPoint = curveData.start;
 
         for (int i = 0; i < 16; i++)
         {
@@ -82,12 +94,7 @@ public:
     }
 
 private:
-    modm::Vector<float, 2> start;
-    modm::Vector<float, 2> end;
-    modm::Vector<float, 2> startControl;
-    modm::Vector<float, 2> endControl;
-
-    float length;
+    CurveData curveData;
 };
 
 #endif

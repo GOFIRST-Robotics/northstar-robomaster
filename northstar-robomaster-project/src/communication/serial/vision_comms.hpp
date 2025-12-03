@@ -5,10 +5,10 @@
 #include "tap/communication/serial/ref_serial_data.hpp"
 #include "tap/drivers.hpp"
 
+#include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_odometry.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/turret/constants/turret_constants.hpp"
-#include "northstar-robomaster-project/taproot/src/tap/communication/serial/ref_serial_data.hpp"
 
 namespace src::serial
 {
@@ -22,75 +22,14 @@ public:
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_RX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
 
-    src::chassis::ChassisOdometry* chassisOdometry;
-
-    src::chassis::ChassisSubsystem* chassisSubsystem;
-
-    tap::motor::DjiMotor* pitchMotor;
-
-    struct TurretAimData
-    {
-        float yaw;
-        float pitch;
-        float distance;
-        tap::communication::serial::RefSerialData::RobotId robotId;
-        float maxErrorYaw;
-        float maxErrorPitch;
-    };
-
-    struct PlateDims
-    {
-        float width;
-        float height;
-    };
-
-    std::unordered_map<int, PlateDims> plateLookup{
-        {1, {.2f, .15f}},   // hero plate dimentions in mm
-        {7, {.15f, .15f}},  // sentry plate dimentions in mm
-        {3, {.15f, .15f}},  // don't know id 3 is correct
-    };
-
-    VisionComms(
-        tap::Drivers* drivers,
-        src::chassis::ChassisOdometry* chassisOdometry,
-        src::chassis::ChassisSubsystem chassisSubsystem,
-        tap::motor::DjiMotor* yawMotor);
-    DISALLOW_COPY_AND_ASSIGN(VisionComms);
-    mockable ~VisionComms();
-
-    mockable void initializeCV();
-
-    void messageReceiveCallback(const ReceivedSerialMessage& completeMessage) override;
-
-    mockable bool isCvOnline() const;
-
-    mockable inline const TurretAimData& getLastAimData(uint8_t turretID) const
-    {
-        return lastAimData[turretID];
-    }
-
-    mockable inline bool isAimDataUpdated(uint8_t turretID) const
-    {
-        return aimDataUpdated[turretID];
-    }
-
-    mockable inline bool getSomeTurretHasTarget() const
-    {
-        // bool hasTarget = false;
-        // for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
-        // {
-        //     hasTarget |= lastAimData[i].updated;
-        // }
-        return false;
-    }
-
     enum MessageType : uint16_t
     {
         TURRET_DATA = 1,
         ROBOT_ID = 2,
         ALIVE = 3,
         ODOMETRY = 4,
-        REF_DATA = 5
+        AUTO_PATH = 5,
+        REF_DATA = 6
     };
 
     struct RefData
@@ -178,10 +117,84 @@ public:
 
     struct OdometryData
     {
-        TurretOdometryData turret_data;
         ChassisOdometryData chassis_data;
-
+        TurretOdometryData turret_data;
     } modm_packed;
+
+    src::chassis::ChassisOdometry* chassisOdometry;
+
+    src::chassis::ChassisAutoDrive* chassisAutoDrive;
+
+    tap::motor::DjiMotor* pitchMotor;
+
+    struct TurretAimData
+    {
+        float yaw;
+        float pitch;
+        float distance;
+        tap::communication::serial::RefSerialData::RobotId robotId;
+        float maxErrorYaw;
+        float maxErrorPitch;
+    };
+
+    struct PlateDims
+    {
+        float width;
+        float height;
+    };
+
+    std::unordered_map<int, PlateDims> plateLookup{
+        {1, {.2f, .15f}},   // hero plate dimentions in mm
+        {7, {.15f, .15f}},  // sentry plate dimentions in mm
+        {3, {.15f, .15f}},  // don't know id 3 is correct
+    };
+
+    VisionComms(tap::Drivers* drivers);
+    DISALLOW_COPY_AND_ASSIGN(VisionComms);
+    mockable ~VisionComms();
+
+    mockable void initializeCV();
+
+    void messageReceiveCallback(const ReceivedSerialMessage& completeMessage) override;
+
+    mockable bool isCvOnline() const;
+
+    mockable inline const TurretAimData& getLastAimData(uint8_t turretID = 1) const
+    {
+        return lastAimData[turretID];
+    }
+
+    mockable inline bool isAimDataUpdated(uint8_t turretID = 1) const
+    {
+        return aimDataUpdated[turretID];
+    }
+
+    mockable inline bool getSomeTurretHasTarget(uint8_t turretID = 1) const
+    {
+        return isAimDataUpdated();
+    }
+
+    mockable inline void attachOdometry(src::chassis::ChassisOdometry* chassisOdometry)
+    {
+        this->chassisOdometry = chassisOdometry;
+    }
+
+    mockable inline void attachAutoDrive(src::chassis::ChassisAutoDrive* chassisAutoDrive)
+    {
+        this->chassisAutoDrive = chassisAutoDrive;
+    }
+
+    mockable inline void attachPitchMotor(tap::motor::DjiMotor* pitchMotor)
+    {
+        this->pitchMotor = pitchMotor;
+    }
+
+    /** Time in ms between sending the odometry message. */
+    static constexpr uint32_t TIME_BTWN_SENDING_ODOMETRY_MSG = 33;
+
+    tap::arch::PeriodicMilliTimer sendOdometryMsgTimeout{TIME_BTWN_SENDING_ODOMETRY_MSG};
+
+    mockable void sendMessage();
 
 private:
     static constexpr int16_t TIME_OFFLINE_CV_AIM_DATA_MS = 1'000;
@@ -201,6 +214,8 @@ private:
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
 
     bool decodeToOdometeryData(const ReceivedSerialMessage& message);
+
+    bool decodeToAutoPathData(const ReceivedSerialMessage& message);
 };
 }  // namespace src::serial
 
