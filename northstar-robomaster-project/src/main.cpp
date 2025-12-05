@@ -145,6 +145,7 @@ static void initializeIo(Drivers *drivers)
     drivers->errorController.init();
     // drivers->terminalSerial.initialize();
     drivers->bmi088.initialize(500, .001, 0);
+    drivers->visionComms.initializeUartDelays();
 
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();
