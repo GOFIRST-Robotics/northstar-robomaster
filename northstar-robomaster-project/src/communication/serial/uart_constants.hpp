@@ -1,5 +1,5 @@
-#ifndef UART_CONSTANTS_HPP
-#define UART_CONSTANTS_HPP
+#ifndef UART_CONSTANTS_HPP_
+#define UART_CONSTANTS_HPP_
 
 #ifdef TARGET_STANDARD
 #include "robot/standard/standard_uart_constants.hpp"

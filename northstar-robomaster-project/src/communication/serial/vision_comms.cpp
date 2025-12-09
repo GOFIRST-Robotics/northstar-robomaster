@@ -1,7 +1,5 @@
 #include "vision_comms.hpp"
 
-#include "uart_constants.hpp"
-
 namespace src::serial
 {
 VisionComms::VisionComms(tap::Drivers* drivers)
