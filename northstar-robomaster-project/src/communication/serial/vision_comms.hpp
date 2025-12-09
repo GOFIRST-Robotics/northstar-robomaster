@@ -26,12 +26,14 @@ public:
 
     enum MessageType : uint16_t
     {
-        TURRET_DATA = 1,
+        TURRET_AIM_DATA = 1,
         ROBOT_ID = 2,
         ALIVE = 3,
         ODOMETRY = 4,
         AUTO_PATH = 5,
-        REF_DATA = 6
+        // REF_DATA = 6
+        HEALTH = 6,
+        REF_TURRET_DATA
     };
 
     struct RefData
@@ -208,7 +210,9 @@ private:
 
     mockable void sendRobotOdometry();
 
-    mockable void sendRefData();
+    mockable void sendHealthData();
+
+    mockable void sendTurretRefData();
 
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
 
