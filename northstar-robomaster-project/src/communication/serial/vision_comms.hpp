@@ -10,6 +10,8 @@
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 
+#include "uart_constants.hpp"
+
 namespace src::serial
 {
 class VisionComms : public tap::communication::serial::DJISerial
@@ -190,27 +192,6 @@ public:
     {
         this->pitchMotor = pitchMotor;
     }
-
-
-    static constexpr uint32_t TIME_BEFORE_UART_START = 1000;//initial delay of 1 second to allow time for things to start up
-    tap::arch::MilliTimeout messageOffsetInitializationTimeout{1};
-
-    /** Time in ms between sending the odometry message. */
-    static constexpr uint32_t TIME_BTWN_SENDING_ODOMETRY_MSG = 0.025E3;
-    static constexpr uint32_t TIME_BEFORE_SENDING_ODOMETRY_MSG = 0.5E3 + TIME_BEFORE_UART_START;
-    tap::arch::PeriodicMilliTimer sendOdometryMsgTimeout{TIME_BTWN_SENDING_ODOMETRY_MSG};
-
-    /** Time in ms between sending the ref system data message. */
-    static constexpr uint32_t TIME_BTWN_SENDING_REF_MSG = 0.5E3;
-    static constexpr uint32_t TIME_BEFORE_SENDING_REF_MSG = 0.125E3 + TIME_BEFORE_UART_START;
-    tap::arch::PeriodicMilliTimer sendRefMsgTimeout{TIME_BTWN_SENDING_REF_MSG};
-
-    /** Time in ms between sending the Robot ID message. */
-    static constexpr uint32_t TIME_BTWN_SENDING_ROBOT_ID_MSG = 10.25E3;
-    static constexpr uint32_t TIME_BEFORE_SENDING_ROBOT_ID_MSG = 0.125E3 + TIME_BEFORE_UART_START;
-    tap::arch::PeriodicMilliTimer sendRobotIDMsgTimeout{TIME_BTWN_SENDING_ROBOT_ID_MSG};
-
-
 
     mockable void sendMessage();
 

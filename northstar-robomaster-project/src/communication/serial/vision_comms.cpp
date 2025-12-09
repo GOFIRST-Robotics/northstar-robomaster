@@ -1,5 +1,7 @@
 #include "vision_comms.hpp"
 
+#include "uart_constants.hpp"
+
 namespace src::serial
 {
 VisionComms::VisionComms(tap::Drivers* drivers)
@@ -19,12 +21,11 @@ void VisionComms::initializeCV()
     drivers->uart.init<VISION_COMMS_TX_UART_PORT, VISION_COMMS_BAUD_RATE>();
 }
 
-void VisionComms::initializeUartDelays(){
+void VisionComms::initializeUartDelays()
+{
     sendRefMsgTimeout.stop();
     sendRobotIDMsgTimeout.stop();
     sendOdometryMsgTimeout.stop();
-
-
 }
 
 void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMessage)
@@ -149,32 +150,41 @@ bool VisionComms::decodeToAutoPathData(const ReceivedSerialMessage& message)
     return true;
 }
 
-void VisionComms::sendMessage() { //TODO: make these depend on which robot type is selected to make sure that we only send what we need
-    if(messageOffsetInitializationTimeout.isExpired()){
-        sendRobotOdometry(); 
+void VisionComms::sendMessage()
+{  // TODO: make these depend on which robot type is selected to make sure that we only send what we
+   // need
+    if (messageOffsetInitializationTimeout.isExpired())
+    {
+        sendRobotOdometry();
         sendRobotIdMessage();
         sendRefData();
     }
-    else{
-        if( sendOdometryMsgTimeout.isStopped() && messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_ODOMETRY_MSG){
+    else
+    {
+        if (sendOdometryMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_ODOMETRY_MSG)
+        {
             sendOdometryMsgTimeout.restart();
         }
 
-        if(sendRefMsgTimeout.isStopped() && messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_REF_MSG){
+        if (sendRefMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_REF_MSG)
+        {
             sendRefMsgTimeout.restart();
         }
 
-        if(sendRobotIDMsgTimeout.isStopped() && messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_ROBOT_ID_MSG){
+        if (sendRobotIDMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_ROBOT_ID_MSG)
+        {
             sendRobotIDMsgTimeout.restart();
         }
-        
     }
-
 }
 
 void VisionComms::sendRobotIdMessage()
 {
-    if(sendRobotIDMsgTimeout.execute()){
+    if (sendRobotIDMsgTimeout.execute())
+    {
         DJISerial::SerialMessage<1> robotTypeMessage;
         robotTypeMessage.messageType = MessageType::ROBOT_ID;
         robotTypeMessage.data[0] = static_cast<uint8_t>(drivers->refSerial.getRobotData().robotId);
@@ -184,7 +194,6 @@ void VisionComms::sendRobotIdMessage()
             reinterpret_cast<uint8_t*>(&robotTypeMessage),
             sizeof(robotTypeMessage));
     }
-
 }
 
 void VisionComms::sendRobotOdometry()
@@ -228,7 +237,8 @@ void VisionComms::sendRobotOdometry()
 
 void VisionComms::sendRefData()
 {
-    if(sendRefMsgTimeout.execute()){
+    if (sendRefMsgTimeout.execute())
+    {
         DJISerial::SerialMessage<sizeof(RefData)> refDataMessage;
 
         refDataMessage.messageType = MessageType::REF_DATA;
@@ -242,7 +252,6 @@ void VisionComms::sendRefData()
             reinterpret_cast<uint8_t*>(&refDataMessage),
             sizeof(refDataMessage));
     }
-    
 }
 
 // Should do something like this (from ARUW)
