@@ -80,13 +80,13 @@ private:
     {
         float length = orig.getLength();
 
-        if (length < min)
-        {
-            return (orig / length) * min;
-        }
-        else if (length > max)
+        if (length > max)
         {
             return (orig / length) * max;
+        }
+        else if (length < min)
+        {
+            return (orig / length) * min;
         }
         else
         {
@@ -95,6 +95,32 @@ private:
     }
 
     float lengthOfCurrentCurve() { return path.front().getLength(); }
+
+    float approximateDistanceToEndOfCurve()
+    {
+        float length = path.front().getLength();
+        return length - (length * currentT);
+    }
+
+    float approximateTClosestToPoint(modm::Vector<float, 2> pos)
+    {
+        float t = 0.0f;
+        float d = FLT_MAX;
+
+        while (t < 1)
+        {
+            float currentDistToTarget = (pos - path.front().evaluate(t)).getLength();
+            if (currentDistToTarget > d)
+            {
+                return t;
+            }
+
+            d = currentDistToTarget;
+            t += 0.001f;
+        }
+
+        return 1;
+    }
 };
 
 }  // namespace src::chassis

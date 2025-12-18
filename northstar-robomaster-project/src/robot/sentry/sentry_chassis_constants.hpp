@@ -57,7 +57,7 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
     {120, ACCEL_MULT},
 };
 
-static constexpr float CHASSIS_DECCEL_VALUE = 0.02f;
+static constexpr float CHASSIS_DECCEL_VALUE = 0.08f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
     CHASSIS_POWER_TO_MAX_SPEED_LUT,
