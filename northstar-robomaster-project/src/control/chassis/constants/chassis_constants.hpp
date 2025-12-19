@@ -26,4 +26,17 @@ static constexpr tap::motor::MotorId RIGHT_FRONT_MOTOR_ID = tap::motor::MOTOR1;
 static constexpr tap::motor::MotorId RIGHT_BACK_MOTOR_ID = tap::motor::MOTOR4;
 }  // namespace src::chassis
 
+static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
+{
+    float dist = sqrt((vert * vert) + (hor * hor));
+    if (dist > 1.0f)
+    {
+        return modm::Pair<float, float>(vert / dist, hor / dist);
+    }
+    else
+    {
+        return modm::Pair<float, float>(vert, hor);
+    }
+}
+
 #endif  // CHASSIS_CONSTANTS_HPP_

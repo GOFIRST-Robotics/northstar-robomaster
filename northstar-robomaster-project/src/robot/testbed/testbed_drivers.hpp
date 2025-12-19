@@ -9,6 +9,7 @@
 // #include "src/mock/turret_mcb_can_comm_mock.hpp"
 
 #else
+#include "tap/communication/sensors/encoder/pwm_encoder.hpp"
 #include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
 #include "tap/motor/sparkmax/rev_motor_tx_handler.hpp"
 
@@ -43,6 +44,7 @@ public:
     control::ControlOperatorInterface controlOperatorInterface;
     serial::VisionComms visionComms;
     can::TurretMCBCanComm turretMCBCanCommBus2;
+    tap::encoder::PwmEncoder encoder{false, 1.0f};
 #endif
 };  // class src::testbedDrivers
 }  // namespace src::testbed

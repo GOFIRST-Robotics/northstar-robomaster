@@ -107,6 +107,9 @@ int main()
         if (sendMotorTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
+
+            PROFILE(drivers->profiler, drivers->encoder.update, ());
+
             // PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
 #ifdef TURRET
@@ -141,6 +144,7 @@ static void initializeIo(Drivers *drivers)
     drivers->errorController.init();
     // drivers->terminalSerial.initialize();
     drivers->bmi088.initialize(500, .001, 0);
+    drivers->encoder.initialize();
 
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();
@@ -167,6 +171,7 @@ float debugRollV = 0.0f;
 bool conneccc = false;
 float debugLastAimDataYaw = 0.0f;
 float debugLastAimDataPitch = 0.0f;
+float dddddgfregr = 0;
 
 bool cal = false;
 bool calibrated = false;
@@ -206,5 +211,6 @@ static void updateIo(Drivers *drivers)
     debugRollV = drivers->bmi088.getGx();
     debugRoll = modm::toDegree(drivers->bmi088.getRoll());
     conneccc = drivers->remote.isConnected();
+    dddddgfregr = drivers->encoder.getPosition().getUnwrappedValue();
 #endif
 }
