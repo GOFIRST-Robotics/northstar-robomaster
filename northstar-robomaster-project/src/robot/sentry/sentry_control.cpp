@@ -546,6 +546,7 @@ void startSentryCommands(Drivers *drivers)
         modm::toRadian(-135),
         modm::toRadian(-90)));
 }
+// from RM upside down left hand rule 180 around roll
 
 void registerSentryIoMappings(Drivers *drivers)
 {
