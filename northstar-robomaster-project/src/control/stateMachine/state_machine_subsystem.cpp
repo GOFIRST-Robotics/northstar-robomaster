@@ -17,7 +17,6 @@ StateMachineSubsystem::StateMachineSubsystem(
 void StateMachineSubsystem::initialize() {}
 
 bool beyblade = false;
-bool a = false;
 float t = 0;
 
 void StateMachineSubsystem::refresh()
@@ -38,25 +37,6 @@ void StateMachineSubsystem::refresh()
     {
         chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
         return;
-    }
-    if (!a)
-    {
-        a = true;
-        // chassisAutoDrive->addCurveToPath(CubicBezier(
-        //     modm::Vector<float, 2>(0, 0),
-        //     modm::Vector<float, 2>(1, 1),
-        //     modm::Vector<float, 2>(-1, 1),
-        //     modm::Vector<float, 2>(2, 0)));
-        chassisAutoDrive->addCurveToPath(CubicBezier(
-            modm::Vector<float, 2>(0, 0),
-            modm::Vector<float, 2>(1, 1),
-            modm::Vector<float, 2>(.5, .5),
-            modm::Vector<float, 2>(.5, .5)));
-        chassisAutoDrive->addCurveToPath(CubicBezier(
-            modm::Vector<float, 2>(1, 1),
-            modm::Vector<float, 2>(0.9, 0.9),
-            modm::Vector<float, 2>(0.95, 0.95),
-            modm::Vector<float, 2>(0.95, 0.95)));
     }
 
     chassisAutoDrive->updateAutoDrive();

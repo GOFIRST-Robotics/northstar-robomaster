@@ -27,6 +27,7 @@
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
+#include "control/chassis/odometry_reset_command.hpp"
 
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
@@ -388,6 +389,11 @@ src::chassis::ChassisSubsystem chassisSubsystem(
 src::chassis::ChassisAutoDrive *chassisAutoDrive =
     new src::chassis::ChassisAutoDrive(&chassisSubsystem, chassisOdometry);
 
+src::chassis::OdometryResetCommand odometryResetCommand(
+    &chassisSubsystem,
+    &drivers()->controlOperatorInterface,
+    chassisOdometry);
+
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
@@ -432,6 +438,12 @@ FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
 // chassis Mappings
+
+PressCommandMapping leftSwitchDownResetOdometry(
+    drivers(),
+    {&odometryResetCommand},
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
+
 PressCommandMapping lClickPressedDriveOneMeter(
     drivers(),
     {&driveToOneMeterForward},
@@ -550,6 +562,8 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&rightSwitchMidOrientDriveWhenImuCalibrated);
+
+    drivers->commandMapper.addMap(&leftSwitchDownResetOdometry);
 }
 }  // namespace sentry_control
 

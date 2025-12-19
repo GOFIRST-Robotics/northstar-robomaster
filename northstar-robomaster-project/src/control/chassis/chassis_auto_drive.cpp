@@ -45,9 +45,10 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> dirToTarget = getDirectionToCurve(currentT);
     float distanceToTarget = dirToTarget.getLength();
 
-    if (distanceToTarget < 0.01)
+    if (distanceToTarget < 0.0025)
     {
-        currentT += path.front().evaluateDerivative(currentT).getLength() * 0.01f;
+        // currentT += path.front().evaluateDerivative(currentT).getLength() * 0.005f;
+        currentT += 0.008f;
         return;
     }
 
@@ -75,7 +76,7 @@ void ChassisAutoDrive::updateAutoDrive()
          lengthOfCurrentCurve()) *
             1.5f * slowdownMult,
         0.4f,
-        1.5f);
+        0.5f);
 
     xDir = desiredGlobalVelocity.x;
     yDir = desiredGlobalVelocity.y;
