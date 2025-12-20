@@ -7,16 +7,6 @@
 
 #include "chassis_subsystem.hpp"
 
-namespace src
-{
-class Drivers;
-
-namespace control
-{
-class ControlOperatorInterface;
-}
-}  // namespace src
-
 namespace src::chassis
 {
 class ChassisSubsystem;
@@ -24,12 +14,8 @@ class ChassisSubsystem;
 class OdometryResetCommand : public tap::control::Command
 {
 public:
-    OdometryResetCommand(
-        ChassisSubsystem *chassis,
-        src::control::ControlOperatorInterface *operatorInterface,
-        ChassisOdometry *odometry)
+    OdometryResetCommand(ChassisSubsystem *chassis, src::chassis::ChassisOdometry *odometry)
         : chassis(chassis),
-          operatorInterface(operatorInterface),
           odometry(odometry)
     {
         addSubsystemRequirement(chassis);
@@ -47,7 +33,6 @@ public:
 
 private:
     src::chassis::ChassisSubsystem *chassis;
-    src::control::ControlOperatorInterface *operatorInterface;
     src::chassis::ChassisOdometry *odometry;
 };
 }  // namespace src::chassis

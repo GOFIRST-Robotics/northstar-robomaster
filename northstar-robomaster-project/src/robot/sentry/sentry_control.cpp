@@ -389,10 +389,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
 src::chassis::ChassisAutoDrive *chassisAutoDrive =
     new src::chassis::ChassisAutoDrive(&chassisSubsystem, chassisOdometry);
 
-src::chassis::OdometryResetCommand odometryResetCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    chassisOdometry);
+src::chassis::OdometryResetCommand odometryResetCommand(&chassisSubsystem, chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -438,12 +435,6 @@ FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
 // chassis Mappings
-
-PressCommandMapping leftSwitchDownResetOdometry(
-    drivers(),
-    {&odometryResetCommand},
-    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
-
 PressCommandMapping lClickPressedDriveOneMeter(
     drivers(),
     {&driveToOneMeterForward},
@@ -489,6 +480,11 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     &playStartupSongCommand);
 
 ImuCalibratingGovernor imuCalibratingGovernor(drivers(), imuCalibrateCommand);
+
+PressCommandMapping leftSwitchDownResetOdometry(
+    drivers(),
+    {&odometryResetCommand, &imuCalibrateCommand},
+    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
     {&chassisSubsystem},

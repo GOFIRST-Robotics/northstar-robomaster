@@ -36,7 +36,6 @@ class ChassisOdometry
 
     // radians
     float rotation;
-    float rotationOffset = 0;
 
     uint32_t previousTimeMicroSeconds = 0;
 
@@ -67,7 +66,6 @@ public:
         positionGlobal = modm::Vector<float, 2>(0, 0);
         velocityGlobal = modm::Vector<float, 2>(0, 0);
         velocityLocal = modm::Vector<float, 2>(0, 0);
-        rotationOffset = calculateRobotHeading();
     }
 
     void setOdometry(modm::Vector2f pos, modm::Vector2f velo, float rot)
@@ -105,7 +103,7 @@ public:
 
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
-        rotation = calculateRobotHeading() - rotationOffset;
+        rotation = calculateRobotHeading();
 
         velocityGlobal = convertLocalToGlobal(velocityLocal);
         positionGlobal += velocityGlobal * deltaTimeSeconds;

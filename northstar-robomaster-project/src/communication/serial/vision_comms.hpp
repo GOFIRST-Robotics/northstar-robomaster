@@ -97,9 +97,13 @@ public:
 
     struct TurretOdometryData
     {
-        float turret_pitch;
-        float turret_yaw;
-        float turret_roll;
+        float pitch;
+        float yaw;
+        float roll;
+
+        float pitch_vel;
+        float yaw_vel;
+        float roll_vel;
 
     } modm_packed;
 
