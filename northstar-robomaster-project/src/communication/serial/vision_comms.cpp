@@ -123,7 +123,7 @@ bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)
     chassisOdometry->setOdometry(
         {cleanData.chassis_data.pos_x, cleanData.chassis_data.pos_y},
         {cleanData.chassis_data.vel_x, cleanData.chassis_data.vel_y},
-        cleanData.turret_data.turret_yaw);
+        cleanData.turret_data.yaw);
 
     return true;
 }
@@ -230,9 +230,13 @@ void VisionComms::sendRobotOdometry()
         data->chassis_data.vel_z = 0;             // TODO: see z on position (it doesn't exist)
 
         // Turret Data
-        data->turret_data.turret_pitch = pitchMotor->getPositionWrapped();  // radians
-        data->turret_data.turret_yaw = drivers->bmi088.getYaw();            // radians
-        data->turret_data.turret_roll = drivers->bmi088.getRoll();          // radians
+        data->turret_data.pitch = pitchMotor->getPositionWrapped();  // radians
+        data->turret_data.yaw = drivers->bmi088.getYaw();            // radians
+        data->turret_data.roll = drivers->bmi088.getRoll();          // radians
+
+        data->turret_data.pitch_vel = pitchMotor->getShaftRPM() / 60 * M_TWOPI;
+        data->turret_data.yaw_vel = drivers->bmi088.getGz();
+        data->turret_data.roll_vel = drivers->bmi088.getGx();
 
         odometryMessage.setCRC16();
         drivers->uart.write(

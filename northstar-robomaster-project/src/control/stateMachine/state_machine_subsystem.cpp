@@ -17,7 +17,6 @@ StateMachineSubsystem::StateMachineSubsystem(
 void StateMachineSubsystem::initialize() {}
 
 bool beyblade = false;
-bool a = false;
 float t = 0;
 
 void StateMachineSubsystem::refresh()
@@ -39,27 +38,6 @@ void StateMachineSubsystem::refresh()
         chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
         return;
     }
-    if (!a)
-    {
-        a = true;
-        chassisAutoDrive->addCurveToPath(CubicBezier(
-            modm::Vector<float, 2>(0, 0),
-            modm::Vector<float, 2>(-0.4, 4.15),
-            modm::Vector<float, 2>(-0.4, 1),
-            modm::Vector<float, 2>(-0.4, 3.15)));
-
-        chassisAutoDrive->addCurveToPath(CubicBezier(
-            modm::Vector<float, 2>(-0.4, 4.15),
-            modm::Vector<float, 2>(-2.18, 4.15),
-            modm::Vector<float, 2>(-0.4, 2.7),
-            modm::Vector<float, 2>(-2.18, 2.7)));
-
-        chassisAutoDrive->addCurveToPath(CubicBezier(
-            modm::Vector<float, 2>(-2.18, 4.15),
-            modm::Vector<float, 2>(-0.4, 4.15),
-            modm::Vector<float, 2>(-2.18, 2.7),
-            modm::Vector<float, 2>(-0.4, 2.7)));
-    }
 
     chassisAutoDrive->updateAutoDrive();
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
@@ -80,7 +58,7 @@ void StateMachineSubsystem::refresh()
     chassisSubsystem->setVelocityFieldDrive(
         desiredGlobalVelocity.y,
         desiredGlobalVelocity.x,
-        desiredRadiansPerSecond);
+        0.5f);  // desiredRadiansPerSecond
 }  // namespace src::stateMachine
 
 }  // namespace src::stateMachine

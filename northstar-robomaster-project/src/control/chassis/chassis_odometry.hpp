@@ -66,7 +66,6 @@ public:
         positionGlobal = modm::Vector<float, 2>(0, 0);
         velocityGlobal = modm::Vector<float, 2>(0, 0);
         velocityLocal = modm::Vector<float, 2>(0, 0);
-        rotation = 0;
     }
 
     void setOdometry(modm::Vector2f pos, modm::Vector2f velo, float rot)
@@ -100,7 +99,7 @@ public:
         velocityLocal.x = localVelX;
         velocityLocal.y = localVelY;
 
-        velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
+        // velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
 
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
