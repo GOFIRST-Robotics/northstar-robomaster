@@ -33,6 +33,7 @@ CapacitorBank::CapacitorBank(
       powerLimit(0),
       operatorInterface(operatorInterface)
 {
+    attachSelfToRxHandler();
     currentTXMessageState = {
         .enable_module = false,
         .reset = false,
