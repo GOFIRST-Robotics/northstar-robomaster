@@ -17,20 +17,20 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NEO_TURRET_TEST_COMMAND_HPP_
-#define NEO_TURRET_TEST_COMMAND_HPP_
+#ifndef TURRET_TEST_COMMAND_HPP_
+#define TURRET_TEST_COMMAND_HPP_
 
 #include "tap/control/command.hpp"
 
 #include "../turret_subsystem.hpp"
-#include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
 namespace tap
 {
 class Drivers;
 }
 
-namespace src::control::turret::test::neo
+namespace src::control::turret::test
 {
 /**
  * A command that performs a "u-turn" operation of the turret. Commands
@@ -42,7 +42,7 @@ namespace src::control::turret::test::neo
  *      re-scheduling it over and over will result in unexpected behavior (the
  *      turret will appear to not do anything).
  */
-class NeoTurretTestCommand : public tap::control::Command
+class TurretTestCommand : public tap::control::Command
 {
 public:
     /**
@@ -50,8 +50,8 @@ public:
      * @param[in] targetOffsetToTurn Offset angle, in radians, that the turret setpoint
      *      will be updated to when this command is run.
      */
-    NeoTurretTestCommand(
-        RevTurretSubsystem *turretSubsystem,
+    TurretTestCommand(
+        TurretSubsystem *turretSubsystem,
         float yawMoveAmount,
         float pitchMoveAmount,
         float allowedError = 0.5f);
@@ -69,7 +69,7 @@ public:
     void end(bool) override;
 
 private:
-    RevTurretSubsystem *turretSubsystem;
+    TurretSubsystem *turretSubsystem;
     float yawMoveAmount;
     float pitchMoveAmount;
     uint32_t startTime;
@@ -78,6 +78,6 @@ private:
     WrappedFloat startPitchAngle = WrappedFloat(0, 0, M_TWOPI);
     float allowedError;
 };
-}  // namespace src::control::turret::test::neo
+}  // namespace src::control::turret::test
 
 #endif  // TURRET_QUICK_TURN_COMMAND_HPP_

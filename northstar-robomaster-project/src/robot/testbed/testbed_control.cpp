@@ -18,52 +18,11 @@
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
-// agitator
-#include "control/agitator/constant_velocity_agitator_command.hpp"
-#include "control/agitator/constants/agitator_constants.hpp"
-#include "control/agitator/manual_fire_rate_reselection_manager.hpp"
-#include "control/agitator/set_fire_rate_command.hpp"
-#include "control/agitator/unjam_spoke_agitator_command.hpp"
-#include "control/agitator/velocity_agitator_subsystem.hpp"
-
-// flywheel
-#include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
-
-// chassis
-#include "control/chassis/chassis_beyblade_command.hpp"
-#include "control/chassis/chassis_drive_command.hpp"
-#include "control/chassis/chassis_orient_drive_command.hpp"
-#include "control/chassis/chassis_subsystem.hpp"
-#include "control/chassis/chassis_wiggle_command.hpp"
-#include "control/chassis/constants/chassis_constants.hpp"
+// Def file
 
 // safe disconnect
 #include "communication/RevMotorTesterSingleMotor.hpp"
 #include "control/safe_disconnect.hpp"
-
-// turret
-#include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
-#include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
-#include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
-#include "control/turret/constants/turret_constants.hpp"
-#include "control/turret/user/turret_user_world_relative_command.hpp"
-
-// standard turret
-#include "control/turret/CV/turret_cv_control_command.hpp"
-#include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
-#include "control/turret/user/turret_quick_turn_command.hpp"
-#include "control/turret/user/turret_user_control_command.hpp"
-#include "robot/standard/standard_turret_subsystem.hpp"
-
-// sentry turret
-#include "robot/sentry/sentry_turret_subsystem.hpp"
-#include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
-
-// NEO turret
-#include "control/turret/rev_turret_subsystem.hpp"
-#include "control/turret/user/neo_turret_user_control_command.hpp"
 
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
@@ -84,7 +43,6 @@ using namespace tap::control::setpoint;
 using namespace tap::control;
 using namespace src::testbed;
 using namespace tap::motor;
-// using namespace src::control::turret;
 using namespace src::control;
 using namespace src::flywheel;
 using namespace src::control::flywheel;
@@ -114,12 +72,12 @@ DummySubsystem dummySubsystem(drivers());
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
-#ifdef REV_TEST
+#ifdef USING_REV
 Communications::Rev::RevMotorTesterSingleMotor revMotorTesterSingleMotor(drivers());
 
 #endif
 
-#ifdef FLYWHEEL_TEST
+#ifdef USING_FLYWHEEL
 FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
@@ -132,7 +90,7 @@ ToggleCommandMapping fPressed(
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
 #endif  // FLYWHEEL_TEST
 
-#ifdef AGITATOR_TEST
+#ifdef USING_AGITATOR
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
     drivers(),
@@ -205,7 +163,7 @@ HoldRepeatCommandMapping leftSwitchDownPressedShoot(
 
 #endif  // AGITATOR_TEST
 
-#ifdef NEO_TURRET_TEST
+#if defined(USING_TURRET) && defined(USING_REV)
 
 tap::motor::DjiMotor pitchMotor(
     drivers(),
@@ -539,7 +497,7 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
 
 #endif
 
-#ifdef CHASSIS_TEST
+#ifdef USING_CHASSIS
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
@@ -641,7 +599,7 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #ifdef REV_TEST
     revMotorTesterSingleMotor.initialize();
 #endif
-#ifdef NEO_TURRET_TEST
+#if defined(USING_TURRET) && defined(USING_REV)
     revTurret.initialize();
 #endif
 }
@@ -668,7 +626,7 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #ifdef REV_TEST
     drivers->commandScheduler.registerSubsystem(&revMotorTesterSingleMotor);
 #endif
-#ifdef NEO_TURRET_TEST
+#if defined(USING_TURRET) && defined(USING_REV)
     drivers->commandScheduler.registerSubsystem(&revTurret);
 #endif
 }
@@ -684,7 +642,7 @@ void setDefaultTestCommands(src::testbed::Drivers *drivers)
 #ifdef CHASSIS_TEST
     chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);
 #endif
-#ifdef NEO_TURRET_TEST
+#if defined(USING_TURRET) && defined(USING_REV)
     revTurret.setDefaultCommand(&turretUserControlCommand);
 #endif
 }

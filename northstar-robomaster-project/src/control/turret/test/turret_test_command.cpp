@@ -17,17 +17,17 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "neo_turret_test_command.hpp"
+#include "turret_test_command.hpp"
 
 #include "tap/algorithms/wrapped_float.hpp"
 #include "tap/drivers.hpp"
 
 using tap::algorithms::WrappedFloat;
 
-namespace src::control::turret::test::neo
+namespace src::control::turret::test
 {
-NeoTurretTestCommand::NeoTurretTestCommand(
-    RevTurretSubsystem *turretSubsystem,
+TurretTestCommand::TurretTestCommand(
+    TurretSubsystem *turretSubsystem,
     float yawMoveAmount,
     float pitchMoveAmount,
     float allowedError)
@@ -39,11 +39,11 @@ NeoTurretTestCommand::NeoTurretTestCommand(
     addSubsystemRequirement(turretSubsystem);
 }
 
-bool NeoTurretTestCommand::isReady() { return turretSubsystem->yawMotor.isOnline(); }
+bool TurretTestCommand::isReady() { return turretSubsystem->yawMotor.isOnline(); }
 
 float totalTime = 0;
 
-void NeoTurretTestCommand::initialize()
+void TurretTestCommand::initialize()
 {
     startYawAngle = turretSubsystem->yawMotor.getChassisFrameMeasuredAngle();
 
@@ -67,7 +67,7 @@ void NeoTurretTestCommand::initialize()
 float yawAngle;
 float pitchAngle;
 
-void NeoTurretTestCommand::execute()
+void TurretTestCommand::execute()
 {
     yawAngle =
         abs(turretSubsystem->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue() -
@@ -77,23 +77,25 @@ void NeoTurretTestCommand::execute()
             startPitchAngle.getWrappedValue());
 }
 
-bool NeoTurretTestCommand::isFinished() const
+bool TurretTestCommand::isFinished() const
 {
+    WrappedFloat yawSetpoint = turretSubsystem->yawMotor.getChassisFrameSetpoint();
     bool yawMovementDone =
-        abs(turretSubsystem->yawMotor.getChassisFrameSetpoint().getWrappedValue() -
-            turretSubsystem->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue()) <=
+        yawSetpoint.minDifference(turretSubsystem->yawMotor.getChassisFrameMeasuredAngle()) <=
         allowedError;
+
+    WrappedFloat pitchSetpoint = turretSubsystem->pitchMotor.getChassisFrameSetpoint();
     bool pitchMovementDone =
-        abs(turretSubsystem->pitchMotor.getChassisFrameSetpoint().getWrappedValue() -
-            turretSubsystem->pitchMotor.getChassisFrameMeasuredAngle().getWrappedValue()) <=
+        pitchSetpoint.minDifference(turretSubsystem->pitchMotor.getChassisFrameMeasuredAngle()) <=
         allowedError;
+
     return yawMovementDone && pitchMovementDone;
 }
 
-void NeoTurretTestCommand::end(bool)
+void TurretTestCommand::end(bool)
 {
     endTime = tap::arch::clock::getTimeMilliseconds();
     totalTime = (endTime - startTime) / 1000.0f;
 }
 
-}  // namespace src::control::turret::test::neo
+}  // namespace src::control::turret::test

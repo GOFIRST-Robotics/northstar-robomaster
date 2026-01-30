@@ -41,6 +41,7 @@
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/test/turret_test_command.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -274,6 +275,12 @@ cv::TurretCVControlCommand turretCVControlCommand(
 
 user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
 
+test::TurretTestCommand turretTestCommand(
+    &turret,
+    modm::toRadian(90),
+    modm::toRadian(0),
+    modm::toRadian(1));
+
 PressCommandMapping ePressed180(
     drivers(),
     {&turret180TurnCommand},
@@ -283,6 +290,11 @@ ToggleCommandMapping xCtrlPressedCvControl(
     drivers(),
     {&turretCVControlCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
+
+PressCommandMapping turretTestCommandMapping(
+    drivers(),
+    {&turretTestCommand},
+    RemoteMapState({Remote::Key::C}));
 
 // user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
 //     drivers(),
@@ -649,6 +661,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     drivers->commandMapper.addMap(&ctrlShiftZSong);
     drivers->commandMapper.addMap(&ePressed180);
+    drivers->commandMapper.addMap(&turretTestCommandMapping);
 }
 }  // namespace standard_control
 
