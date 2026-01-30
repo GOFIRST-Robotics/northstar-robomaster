@@ -7,6 +7,10 @@
 #define USING_FLYWHEEL
 #define USING_REV
 
+#include "drivers_singleton.hpp"
+
+src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
+
 #ifdef USING_CHASSIS
 
 #include "control/chassis/chassis_beyblade_command.hpp"
@@ -15,6 +19,7 @@
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
+#include "control/turret/constants/turret_constants.hpp"
 
 #endif
 

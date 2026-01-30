@@ -11,9 +11,6 @@
 #include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "control/cycle_state_command_mapping.hpp"
 #include "control/dummy_subsystem.hpp"
-#include "robot/testbed/testbed_drivers.hpp"
-
-#include "drivers_singleton.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -37,8 +34,6 @@
 
 #include "ref_system_constants.hpp"
 
-src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
-
 using namespace tap::control::setpoint;
 using namespace tap::control;
 using namespace src::testbed;
@@ -49,7 +44,6 @@ using namespace src::control::flywheel;
 using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::turret;
-using namespace src::control::governor;
 using namespace tap::control::governor;
 using namespace tap::communication::serial;
 
@@ -498,84 +492,7 @@ user::SentryTurretUserControlCommand turretWRChassisImuCommand(
 #endif
 
 #ifdef USING_CHASSIS
-FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
-PlateHitGovernor plateHitGovernor(drivers(), 5000);
-
-// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-//     {&chassisSubsystem},
-//     chassisBeyBladeSlowCommand,
-//     chassisBeyBladeFastCommand,
-//     {&firedRecentlyGovernor, &plateHitGovernor},
-//     true);
-
-// chassis Mappings
-ToggleCommandMapping bPressed(
-    drivers(),
-    {&beyBladeSlowOutOfCombat},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
-
-// imu::ImuCalibrateCommand imuCalibrateCommand(
-//     drivers(),
-//     {{
-//         &turret,
-//         &chassisFrameYawTurretController,
-//         &chassisFramePitchTurretController,
-//         true,
-//     }},
-//     &chassisSubsystem);
-
-ToggleCommandMapping ctrlCPressed(
-    drivers(),
-    {&imuCalibrateCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::C})));
-
-src::chassis::ChassisSubsystem chassisSubsystem(
-    drivers(),
-    src::chassis::ChassisConfig{
-        .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
-        .leftBackId = src::chassis::LEFT_BACK_MOTOR_ID,
-        .rightBackId = src::chassis::RIGHT_BACK_MOTOR_ID,
-        .rightFrontId = src::chassis::RIGHT_FRONT_MOTOR_ID,
-        .canBus = CanBus::CAN_BUS1,
-        .wheelVelocityPidConfig = modm::Pid<float>::Parameter(
-            src::chassis::VELOCITY_PID_KP,
-            src::chassis::VELOCITY_PID_KI,
-            src::chassis::VELOCITY_PID_KD,
-            src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
-    },
-    &drivers()->turretMCBCanCommBus2,
-    &yawMotorBottom);
-
-src::chassis::ChassisDriveCommand chassisDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
-src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    1,
-    true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_TWOPI,
-    true);
-
-// chassis Mappings
-ToggleCommandMapping bPressed(
-    drivers(),
-    {&chassisBeyBladeFastCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 #endif
 
 void initializeSubsystems(src::testbed::Drivers *drivers)
