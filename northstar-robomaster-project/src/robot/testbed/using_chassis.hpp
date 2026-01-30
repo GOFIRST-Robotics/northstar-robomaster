@@ -13,6 +13,7 @@
 using namespace src::control::governor;
 using namespace tap::control;
 using namespace src::control::turret;
+using namespace src::chassis;
 
 #ifdef USING_CHASSIS
 
@@ -43,17 +44,17 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     }},
 //     &chassisSubsystem);
 
-tap::motor::DjiMotor yawMotorBottom(
+tap::motor::DjiMotor yawMotor(
     drivers(),
-    YAW_MOTOR_BOTTOM_ID,
+    YAW_MOTOR_ID,
     CAN_BUS_MOTORS,
-    false,
-    "Yaw Motor Bottom",
+    true,
+    "YawMotor",
     false,
     1,
-    YAW_MOTOR_CONFIG_BOTTOM.startEncoderValue);
+    YAW_MOTOR_CONFIG.startEncoderValue);
 
-src::chassis::ChassisSubsystem chassisSubsystem(
+ChassisSubsystem chassisSubsystem(
     drivers(),
     src::chassis::ChassisConfig{
         .leftFrontId = src::chassis::LEFT_FRONT_MOTOR_ID,
@@ -68,17 +69,15 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotorBottom);
+    &yawMotor);
 
-src::chassis::ChassisDriveCommand chassisDriveCommand(
+ChassisDriveCommand chassisDriveCommand(&chassisSubsystem, &drivers()->controlOperatorInterface);
+
+ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     1,
@@ -86,7 +85,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     1,
     true);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
+ChassisBeybladeCommand chassisBeyBladeFastCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     1,

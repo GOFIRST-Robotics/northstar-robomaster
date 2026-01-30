@@ -5,11 +5,15 @@
 #define USING_TURRET
 #define USING_AGITATOR
 #define USING_FLYWHEEL
-#define USING_REV
+// #define USING_REV
+
+#include "control/dummy_subsystem.hpp"
 
 #include "drivers_singleton.hpp"
 
 src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
+inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+DummySubsystem dummySubsystem(drivers());
 
 #ifdef USING_CHASSIS
 
@@ -44,12 +48,16 @@ src::testbed::driversFunc drivers = src::testbed::DoNotUse_getDrivers;
 
 #if defined(USING_TURRET) && defined(USING_REV)
 
+#include "tap/motor/sparkmax/rev_motor.hpp"
+
 #include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/user/neo_turret_user_control_command.hpp"
 
 #endif
 
 #ifdef USING_AGITATOR
+
+#include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
