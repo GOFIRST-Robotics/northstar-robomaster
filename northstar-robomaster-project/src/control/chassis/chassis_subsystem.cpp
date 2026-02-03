@@ -189,6 +189,23 @@ float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxAccelSpeed.second;
 }
 
+float ChassisSubsystem::getVoltageReductionFactorFromTorque()
+{
+    float torqueSum = 0.0f;
+    for (Motor& i : motors)
+    {
+        torqueSum += i.getTorque();
+    }
+    if (torqueSum <= CHASSIS_TORQUE_LIMIT)
+    {
+        return 1.0f;
+    }
+    else
+    {
+        return CHASSIS_TORQUE_LIMIT / torqueSum;
+    }
+}
+
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
@@ -213,7 +230,8 @@ void ChassisSubsystem::driveBasedOnHeading(
     int RF = static_cast<int>(MotorId::RF);
     int RB = static_cast<int>(MotorId::RB);
     float calculatedMaxRPMPower =
-        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
+        getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit()) *
+        getVoltageReductionFactorFromTorque();
     desiredOutput[LF] = limitVal<float>(LFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[LB] = limitVal<float>(LBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
