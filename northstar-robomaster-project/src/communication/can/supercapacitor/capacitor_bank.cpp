@@ -26,12 +26,12 @@ namespace src::can::capbank
 CapacitorBank::CapacitorBank(
     tap::Drivers* drivers,
     tap::can::CanBus canBus,
-    const float capacitance,
-    src::control::ControlOperatorInterface* operatorInterface)
-    : tap::can::CanRxListener(drivers, CAP_BANK_CAN_ID, canBus),
+    uint16_t canID,
+    const float capacitance)
+    : tap::can::CanRxListener(drivers, canID, canBus),
       capacitance(capacitance),
       powerLimit(0),
-      operatorInterface(operatorInterface)
+      canID(canID)
 {
     attachSelfToRxHandler();
     currentTXMessageState = {
@@ -57,7 +57,7 @@ void CapacitorBank::processMessage(const modm::can::Message& message)
 void CapacitorBank::sendTXMessage(TXcapMessage msg)
 {
     const size_t data_length = sizeof(TXcapMessage);
-    modm::can::Message message(CAP_BANK_CAN_ID, data_length);
+    modm::can::Message message(canID, data_length);
     std::memcpy(message.data, &msg, data_length);
     this->drivers->can.sendMessage(this->canBus, message);
 }
@@ -92,16 +92,14 @@ void CapacitorBank::setEnergyBuffer(uint16_t energyBuffer)
     sendTXMessage(currentTXMessageState);
 }
 
-bool CapacitorBank::isEnabled() const { return currentTXMessageState.enable_module; }
+bool CapacitorBank::isEnabled() { return currentTXMessageState.enable_module; }
 
-bool CapacitorBank::canSprint() const
+bool CapacitorBank::canSprint(uint8_t sprintThresholdPercent)
 {
     if (!isEnabled())
     {
         return false;
     }
-    return getAvailableEnergy() >= CAPACITOR_SPRINT_THRESHOLD_PERCENT;
+    return getAvailableEnergy() >= sprintThresholdPercent;
 }
-
-bool CapacitorBank::isSprinting() { return operatorInterface->isSprinting(); }
 }  // namespace src::can::capbank

@@ -22,14 +22,10 @@
 
 #include "tap/architecture/timeout.hpp"
 #include "tap/communication/can/can_rx_listener.hpp"
-#include "tap/control/chassis/power_limiter.hpp"
 #include "tap/drivers.hpp"
 
 #include "modm/architecture/interface/can_message.hpp"
 #include "modm/math/interpolation/linear.hpp"
-#include "robot/control_operator_interface.hpp"
-
-#include "capacitor_constants.hpp"
 
 namespace src::can::capbank
 {
@@ -72,8 +68,8 @@ public:
     CapacitorBank(
         tap::Drivers* drivers,
         tap::can::CanBus canBus,
-        const float capacitance,
-        src::control::ControlOperatorInterface* operatorInterface);
+        uint16_t canID,
+        const float capacitance);
 
     void processMessage(const modm::can::Message& message) override;
 
@@ -87,19 +83,14 @@ public:
     void setEnergyBuffer(uint16_t energyBuffer);
 
 public:
-    int getAvailableEnergy() const { return this->lastCapData.cap_energy; };
-    int getPowerLimit() const { return this->powerLimit; };
-    uint16_t getAllowedSprintWattage() const { return ALLOWED_SPRINT_WATTAGE; }
+    int getAvailableEnergy() { return this->lastCapData.cap_energy; };
+    int getPowerLimit() { return this->powerLimit; };
 
-    bool isEnabled() const;
+    bool isEnabled();
 
-    bool canSprint() const;
+    bool canSprint(uint8_t sprintThresholdPercent);
 
-    bool isSprinting();
-
-#ifndef ENV_UNIT_TESTS
 private:
-#endif
     const float capacitance;
 
     TXcapMessage currentTXMessageState;
@@ -110,7 +101,7 @@ private:
 
     tap::arch::MilliTimeout heartbeat;
 
-    src::control::ControlOperatorInterface* operatorInterface;
+    uint16_t canID;
 };
 }  // namespace src::can::capbank
 

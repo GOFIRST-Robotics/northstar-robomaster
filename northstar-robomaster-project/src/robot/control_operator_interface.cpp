@@ -218,8 +218,6 @@ float ControlOperatorInterface::getDrivetrainVerticalTranslation()
     return output;
 }
 
-bool ControlOperatorInterface::isSprinting() { return remote.keyPressed(Remote::Key::SHIFT); }
-
 float ControlOperatorInterface::getMecanumVerticalTranslationKeyBoard()
 {
     uint32_t updateCounter = remote.getUpdateCounter();
