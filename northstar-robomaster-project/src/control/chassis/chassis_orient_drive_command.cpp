@@ -30,7 +30,7 @@ void ChassisOrientDriveCommand::execute()
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
 
-    float rotationFromPID = chassis->chassisSpeedRotationPID();
+    float rotationFromPID = chassis->chassisSpeedRotationPID(chassis->getChassisZeroTurret());
 
     float rotationalAlpha =
         std::max<float>(1.0f - abs(chassis->getChassisZeroTurret()) / M_PI, AUTO_ROTATION_ALPHA);
