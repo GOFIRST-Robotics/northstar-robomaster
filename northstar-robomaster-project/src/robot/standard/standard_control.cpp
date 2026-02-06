@@ -388,11 +388,6 @@ ToggleCommandMapping gPressed(
 //     false);
 
 // super capacitor
-CapacitorBank capacitorBank(
-    drivers(),
-    CanBus::CAN_BUS2,
-    SUPER_CAPACITOR_CAPACITANCE,
-    &drivers()->controlOperatorInterface);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(

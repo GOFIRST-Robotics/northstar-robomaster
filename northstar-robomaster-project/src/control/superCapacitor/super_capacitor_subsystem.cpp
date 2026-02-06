@@ -1,13 +1,19 @@
 #include "super_capacitor_subsystem.hpp"
 
+#include "capacitor_constants.hpp"
+
 namespace src::capacitor
 {
-SuperCapacitor::SuperCapacitor()
+SuperCapacitor::SuperCapacitor(tap::Drivers* drivers, tap::can::CanBus canBus)
+    : capacitorbank(
+          drivers,
+          canBus,
+          capacitor::CAP_BANK_CAN_ID,
+          capacitor::SUPERCAPACITOR_CAPACITANCE),
+      isSprinting(false)
 {
-    capacitorBank = CapacitorBank(
-        drivers(),
-        CanBus::CAN_BUS2,
-        SUPER_CAPACITOR_CAPACITANCE,
-        &drivers()->controlOperatorInterface);
 }
+
+void SuperCapacitor::sprint() { isSprinting = true; }
+
 }  // namespace src::capacitor

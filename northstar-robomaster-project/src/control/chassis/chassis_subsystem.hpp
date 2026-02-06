@@ -7,10 +7,10 @@
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
-#include "communication/can/supercapacitor/capacitor_bank.hpp"
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
 #include "control/chassis/rate_limiters/slew_rate_limiter.hpp"
+#include "control/superCapacitor/super_capacitor_subsystem.hpp"
 #include "modm/math/filter/pid.hpp"
 #include "modm/math/geometry/angle.hpp"
 
@@ -61,7 +61,7 @@ public:
         const ChassisConfig& config,
         src::can::TurretMCBCanComm* turretMCBCanComm,
         tap::motor::DjiMotor* yawMotor,
-        src::can::capbank::CapacitorBank* superCap);
+        src::capacitor::SuperCapacitor* superCap);
 
     void initialize() override;
 
@@ -116,7 +116,7 @@ private:
 
     tap::motor::DjiMotor* yawMotor;
 
-    src::can::capbank::CapacitorBank* superCap;
+    src::capacitor::SuperCapacitor* superCap;
 
     float beyBladeRotationSpeed = 0.0f;
 

@@ -12,6 +12,7 @@ public:
     void sprint();
     void stopSprinting();
     bool getIsSprinting();
+    float getAllowedSprintWattage();
 
 private:
     src::can::capbank::CapacitorBank capacitorbank;

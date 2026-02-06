@@ -17,7 +17,7 @@ ChassisSubsystem::ChassisSubsystem(
     const ChassisConfig& config,
     src::can::TurretMCBCanComm* turretMcbCanComm,
     tap::motor::DjiMotor* yawMotor,
-    src::can::capbank::CapacitorBank* superCap)
+    src::capacitor::SuperCapacitor* superCap)
     : Subsystem(drivers),
       desiredOutput{},
       pidControllers{
