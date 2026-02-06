@@ -3,6 +3,7 @@
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/press_command_mapping.hpp"
+#include "tap/control/sequential_command.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
@@ -87,6 +88,7 @@
 // songs
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/rouser.hpp"
 #include "control/buzzer/song/tuff_startup_noise.hpp"
 
 using tap::can::CanBus;
@@ -119,6 +121,7 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 // songs
 BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
+// PlaySongCommand playStartupSongCommand(&buzzerSubsystem, rouser_song);
 
 // flywheel subsystem
 FlywheelSubsystem flywheel(
@@ -479,11 +482,13 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     &chassisSubsystem,
     &playStartupSongCommand);
 
-ImuCalibratingGovernor imuCalibratingGovernor(drivers(), imuCalibrateCommand);
+ImuCalibratingGovernor imuCalibratingGovernor(drivers());
+
+SequentialCommand<2> imuCalibrateThenResetOdometry({&imuCalibrateCommand, &odometryResetCommand});
 
 PressCommandMapping leftSwitchDownResetOdometry(
     drivers(),
-    {&odometryResetCommand, &imuCalibrateCommand},
+    {&imuCalibrateThenResetOdometry},
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(

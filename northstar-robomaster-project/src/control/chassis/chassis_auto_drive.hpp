@@ -13,7 +13,15 @@ namespace src::chassis
 class ChassisAutoDrive
 {
     static constexpr float MAXIMUM_MPS = 1.0f;
-    static constexpr float MINIMUM_MPS = 0.38f;
+    static constexpr float MINIMUM_MPS = 0.4f;
+
+    static constexpr float T_INCREASE_MULT = 0.016f;
+    static constexpr float T_INCREASE = T_INCREASE_MULT * MAXIMUM_MPS;
+
+    static constexpr float T_CHECK_MULT = 0.005f;
+    static constexpr float T_CHECK = T_CHECK_MULT * MAXIMUM_MPS;
+
+    static constexpr float SLOWDOWN_DISTANCE = 0.2f;
 
     static constexpr float MAX_POSITION_ERROR = 0.02f;
 
@@ -120,6 +128,18 @@ private:
         }
 
         return 1;
+    }
+
+    void calculateRotationToFacePoint(modm::Vector<float, 2> localPoint)
+    {
+        float rotationFromPID = chassis->chassisSpeedRotationPID();
+
+        float desiredFacingRadians = atan2(localPoint.y, localPoint.x);
+        float rotationalAlpha =
+            std::max<float>(1.0f - abs(desiredFacingRadians) / M_PI, AUTO_ROTATION_ALPHA);
+
+        desiredRotation =
+            tap::algorithms::lowPassFilter(desiredRotation, rotationFromPID, rotationalAlpha);
     }
 };
 

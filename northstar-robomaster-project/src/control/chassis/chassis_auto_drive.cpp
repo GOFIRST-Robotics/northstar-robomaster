@@ -45,25 +45,19 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> dirToTarget = getDirectionToCurve(currentT);
     float distanceToTarget = dirToTarget.getLength();
 
-    if (distanceToTarget < 0.0025)
+    if (distanceToTarget < T_CHECK)
     {
         // currentT += path.front().evaluateDerivative(currentT).getLength() * 0.005f;
-        currentT += 0.008f;
+        currentT += T_INCREASE;
         return;
     }
-
-    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.05);
-    // float desiredFacingRadians = atan2(lookaheadDerivative.x, lookaheadDerivative.y);
-    // float d = tap::algorithms::Angle(desiredFacingRadians).minDifference(getOdometryRotation());
-    // desiredRotation = d * -2.0f;
-    desiredRotation = 0;
 
     float distanceToEnd = approximateDistanceToEndOfCurve();
     float slowdownMult = 1;
 
-    if (distanceToEnd < 0.5f)
+    if (distanceToEnd < SLOWDOWN_DISTANCE)
     {
-        slowdownMult = distanceToEnd / 0.5f;
+        slowdownMult = distanceToEnd / SLOWDOWN_DISTANCE;
 
         if (slowdownMult < 0.1f)
         {
@@ -71,15 +65,19 @@ void ChassisAutoDrive::updateAutoDrive()
         }
     }
 
+    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.025);
+
     desiredGlobalVelocity = clampMagnitude(
         ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
          lengthOfCurrentCurve()) *
             1.5f * slowdownMult,
-        0.4f,
-        0.5f);
+        MINIMUM_MPS,
+        MAXIMUM_MPS);
 
     xDir = desiredGlobalVelocity.x;
     yDir = desiredGlobalVelocity.y;
+
+    calculateRotationToFacePoint(dirToTarget);
 }
 
 };  // namespace src::chassis

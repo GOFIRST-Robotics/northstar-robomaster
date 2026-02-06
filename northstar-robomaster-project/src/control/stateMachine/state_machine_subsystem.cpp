@@ -41,24 +41,11 @@ void StateMachineSubsystem::refresh()
 
     chassisAutoDrive->updateAutoDrive();
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
-    float desiredRadiansPerSecond = 0.0f;
-    if (beyblade)
-    {
-        desiredRadiansPerSecond = chassisSubsystem->calculateMaxRotationSpeed(
-            desiredGlobalVelocity.y,
-            desiredGlobalVelocity.x);
-    }
-    else
-    {
-        desiredRadiansPerSecond =
-            chassisAutoDrive
-                ->getDesiredRotation();  // use chassisSpeedRotationPID with heading passed in
-    }
 
     chassisSubsystem->setVelocityFieldDrive(
         desiredGlobalVelocity.y,
         desiredGlobalVelocity.x,
-        0.5f);  // desiredRadiansPerSecond
+        chassisAutoDrive->getDesiredRotation());
 }  // namespace src::stateMachine
 
 }  // namespace src::stateMachine
