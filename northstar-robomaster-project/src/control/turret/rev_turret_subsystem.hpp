@@ -1,53 +1,26 @@
-/*
- * Copyright (c) 2020-2022 Advanced Robotics at the University of Washington <robomstr@uw.edu>
- *
- * This file is part of aruw-mcb.
- *
- * aruw-mcb is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * aruw-mcb is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-#ifndef TURRET_SUBSYSTEM_HPP_
-#define TURRET_SUBSYSTEM_HPP_
+#ifndef REV_TURRET_SUBSYSTEM_HPP_
+#define REV_TURRET_SUBSYSTEM_HPP_
 
 #include "tap/algorithms/linear_interpolation_predictor.hpp"
 #include "tap/algorithms/wrapped_float.hpp"
 #include "tap/control/subsystem.hpp"
 #include "tap/control/turret_subsystem_interface.hpp"
 #include "tap/motor/dji_motor.hpp"
+#include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "turret_motor_config.hpp"
 
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "src/mock/turret_motor_mock.hpp"
 #else
+#include "turret_double_motor_rev.hpp"
 #include "turret_motor_GM6020.hpp"
+
 #endif
 
 #include "tap/util_macros.hpp"
 
 #include "modm/math/filter/pid.hpp"
-
-namespace src::can
-{
-class TurretMCBCanComm;
-}
-
-namespace src::control::turret::algorithms
-{
-class TurretPitchControllerInterface;
-class TurretYawControllerInterface;
-}  // namespace src::control::turret::algorithms
 
 namespace src::control::turret
 {
@@ -59,22 +32,23 @@ namespace src::control::turret
  * 0-M_TWOPI rotated counterclockwise when looking at the turret from above. Pitch is a value from
  * 0-M_TWOPI rotated counterclockwise when looking at the turret from the right side of the turret.
  */
-class TurretSubsystem : public tap::control::Subsystem
+class RevTurretSubsystem : public tap::control::Subsystem
 {
 public:
     /**
-     * Constructs a TurretSubsystem.
+     * Constructs a RevTurretSubsystem.
      *
-     * @param[in] pitchMotor Pointer to pitch motor that this `TurretSubsystem` will own.
-     * @param[in] yawMotor Pointer to yaw motor that this `TurretSubsystem` will own.
+     * @param[in] pitchMotor Pointer to pitch motor that this `RevTurretSubsystem` will own.
+     * @param[in] yawMotor1 Pointer to yaw motor that this `RevTurretSubsystem` will own.
+     * @param[in] yawMotor2 Pointer to yaw motor that this `RevTurretSubsystem` will own.
      */
-    explicit TurretSubsystem(
+    explicit RevTurretSubsystem(
         tap::Drivers* drivers,
         tap::motor::MotorInterface* pitchMotor,
-        tap::motor::MotorInterface* yawMotor,
+        tap::motor::RevMotor* yawMotor1,
+        tap::motor::RevMotor* yawMotor2,
         const TurretMotorConfig& pitchMotorConfig,
-        const TurretMotorConfig& yawMotorConfig,
-        const src::can::TurretMCBCanComm* turretMCB);
+        const TurretMotorConfig& yawMotorConfig);
 
     void initialize() override;
 
@@ -90,8 +64,6 @@ public:
 
     mockable inline bool isOnline() const { return pitchMotor.isOnline() && yawMotor.isOnline(); }
 
-    const inline src::can::TurretMCBCanComm* getTurretMCB() const { return turretMCB; }
-
 #ifdef ENV_UNIT_TESTS
     testing::NiceMock<mock::TurretMotorMock> pitchMotor;
     testing::NiceMock<mock::TurretMotorMock> yawMotor;
@@ -99,13 +71,11 @@ public:
     /// Associated with and contains logic for controlling the turret's pitch motor
     TurretMotorGM6020 pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretMotorGM6020 yawMotor;
+    TurretDoubleMotorRev yawMotor;
 #endif
 
-protected:
-    const src::can::TurretMCBCanComm* turretMCB;
-};  // class TurretSubsystem
+};  // class RevTurretSubsystem
 
 }  // namespace src::control::turret
 
-#endif  // TURRET_SUBSYSTEM_HPP_
+#endif  // REV_TURRET_SUBSYSTEM_HPP_
