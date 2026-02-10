@@ -90,7 +90,7 @@ public:
 
     float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
-    float getVoltageReductionFactorFromTorque();
+    float getVoltageReductionFactorFromTorque(float chassisPowerLimit);
 
     void refresh() override;
 
