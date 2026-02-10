@@ -33,8 +33,7 @@
 #elif TURRET
 #include "robot/standard/standard_turret_constants.hpp"
 #elif TARGET_TEST_BED
-// #include "robot/sentry/sentry_turret_constants.hpp"
-#include "robot/standard/standard_turret_constants.hpp"
+#include "robot/testbed/testbed_turret_constants.hpp"
 
 #else
 #include "robot/standard/standard_turret_constants.hpp"

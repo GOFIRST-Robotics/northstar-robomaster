@@ -100,10 +100,17 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 // flywheel
 FlywheelSubsystem flywheelBottom(
     drivers(),
-    LEFT_MOTOR_ID_BOTTOM,
-    RIGHT_MOTOR_ID_BOTTOM,
-    UP_MOTOR_ID_BOTTOM,
-    CAN_BUS);
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    UP_MOTOR_ID,
+    CAN_BUS,
+    tap::motor::RevMotor::PIDConfig{
+        .PIDSlot = 0,
+        .kP = FLYWHEEL_PID_KP,
+        .kI = FLYWHEEL_PID_KI,
+        .kD = FLYWHEEL_PID_KD,
+        .kF = FLYWHEEL_PID_KF,
+    });
 
 FlywheelRunCommand flywheelRunCommandBottom(&flywheelBottom);
 
@@ -114,10 +121,17 @@ ToggleCommandMapping fNotCtrlPressed(
 
 FlywheelSubsystem flywheelTop(
     drivers(),
-    LEFT_MOTOR_ID_TOP,
-    RIGHT_MOTOR_ID_TOP,
-    UP_MOTOR_ID_TOP,
-    CAN_BUS);
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    UP_MOTOR_ID,
+    CAN_BUS,
+    tap::motor::RevMotor::PIDConfig{
+        .PIDSlot = 0,
+        .kP = FLYWHEEL_PID_KP,
+        .kI = FLYWHEEL_PID_KI,
+        .kD = FLYWHEEL_PID_KD,
+        .kF = FLYWHEEL_PID_KF,
+    });
 
 FlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
 
@@ -709,7 +723,7 @@ void setDefaultSentryCommands(Drivers *drivers)
 void startSentryCommands(Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
 }
 
 void registerSentryIoMappings(Drivers *drivers)

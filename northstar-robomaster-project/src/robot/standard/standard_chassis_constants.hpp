@@ -46,13 +46,17 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
 };
 
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
-    {50, 0.006},
-    {60, 0.008},
-    {70, 0.01},
-    {80, 0.012},
-    {100, 0.014},
-    {120, 0.016},
+    {50, 0.010},
+    {60, 0.012},
+    {70, 0.014},
+    {80, 0.016},
+    {100, 0.02},
+    {120, 0.024},
 };
+
+static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = {
+    {100, 1.0},
+    {130, 1.3}};
 
 static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = {
     {100, 1.0},
