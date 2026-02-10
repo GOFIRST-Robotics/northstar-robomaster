@@ -64,19 +64,6 @@ static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_ACCE
     CHASSIS_POWER_TO_MAX_ACCEL_LUT,
     MODM_ARRAY_SIZE(CHASSIS_POWER_TO_MAX_ACCEL_LUT));
 
-static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
-{
-    float dist = sqrt((vert * vert) + (hor * hor));
-    if (dist > 1.0f)
-    {
-        return modm::Pair<float, float>(vert / dist, hor / dist);
-    }
-    else
-    {
-        return modm::Pair<float, float>(vert, hor);
-    }
-}
-
 }  // namespace src::chassis
 
 #endif
