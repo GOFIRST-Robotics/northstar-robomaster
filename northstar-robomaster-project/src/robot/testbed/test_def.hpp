@@ -1,10 +1,10 @@
 #ifndef TEST_DEF_HPP_
 #define TEST_DEF_HPP_
 
-#define USING_CHASSIS
+// #define USING_CHASSIS
 #define USING_TURRET
-#define USING_AGITATOR
-#define USING_FLYWHEEL
+// #define USING_AGITATOR
+// #define USING_FLYWHEEL
 // #define USING_REV
 
 #include "control/dummy_subsystem.hpp"
@@ -43,6 +43,8 @@ DummySubsystem dummySubsystem(drivers());
 // sentry turret
 #include "robot/sentry/sentry_turret_subsystem.hpp"
 #include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
+// testbed turret
+#include "control/turret/test/turret_test_command.hpp"
 
 #endif
 

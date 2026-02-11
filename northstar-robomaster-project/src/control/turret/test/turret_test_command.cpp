@@ -30,11 +30,15 @@ TurretTestCommand::TurretTestCommand(
     TurretSubsystem *turretSubsystem,
     float yawMoveAmount,
     float pitchMoveAmount,
+    algorithms::TurretYawControllerInterface *yawController,
+    algorithms::TurretPitchControllerInterface *pitchController,
     float allowedError)
     : turretSubsystem(turretSubsystem),
       yawMoveAmount(yawMoveAmount),
       pitchMoveAmount(pitchMoveAmount),
-      allowedError(allowedError)
+      allowedError(allowedError),
+      yawController(yawController),
+      pitchController(pitchController)
 {
     addSubsystemRequirement(turretSubsystem);
 }
@@ -45,23 +49,24 @@ float totalTime = 0;
 
 void TurretTestCommand::initialize()
 {
-    startYawAngle = turretSubsystem->yawMotor.getChassisFrameMeasuredAngle();
+    yawController->initialize();
+    pitchController->initialize();
 
-    startPitchAngle = turretSubsystem->pitchMotor.getChassisFrameMeasuredAngle();
+    startYawAngle = yawController->getSetpoint();
 
-    WrappedFloat newYawSetpoint = startYawAngle + yawMoveAmount;
+    startPitchAngle = pitchController->getSetpoint();
 
-    turretSubsystem->yawMotor.setChassisFrameSetpoint(newYawSetpoint);
+    newYawSetpoint = startYawAngle + yawMoveAmount;
 
-    // turretSubsystem->yawMotor.attachTurretController(nullptr);
+    yawController->setSetpoint(newYawSetpoint);
 
-    WrappedFloat newPitchSetpoint = startPitchAngle + pitchMoveAmount;
+    newPitchSetpoint = startPitchAngle + pitchMoveAmount;
 
-    turretSubsystem->pitchMotor.setChassisFrameSetpoint(newPitchSetpoint);
-
-    // turretSubsystem->pitchMotor.attachTurretController(nullptr);
+    pitchController->setSetpoint(newPitchSetpoint);
 
     startTime = tap::arch::clock::getTimeMilliseconds();
+
+    prevTime = startTime;
 }
 
 float yawAngle;
@@ -75,21 +80,26 @@ void TurretTestCommand::execute()
     pitchAngle =
         abs(turretSubsystem->pitchMotor.getChassisFrameMeasuredAngle().getWrappedValue() -
             startPitchAngle.getWrappedValue());
+    uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
+    uint32_t dt = currTime - prevTime;
+    prevTime = currTime;
+    yawController->runController(dt, newYawSetpoint);
+    pitchController->runController(dt, newPitchSetpoint);
 }
 
 bool TurretTestCommand::isFinished() const
 {
-    WrappedFloat yawSetpoint = turretSubsystem->yawMotor.getChassisFrameSetpoint();
+    WrappedFloat yawSetpoint = newYawSetpoint;
     bool yawMovementDone =
-        yawSetpoint.minDifference(turretSubsystem->yawMotor.getChassisFrameMeasuredAngle()) <=
+        abs(yawSetpoint.minDifference(turretSubsystem->yawMotor.getChassisFrameMeasuredAngle())) <=
         allowedError;
 
-    WrappedFloat pitchSetpoint = turretSubsystem->pitchMotor.getChassisFrameSetpoint();
+    WrappedFloat pitchSetpoint = pitchController->getSetpoint();
     bool pitchMovementDone =
-        pitchSetpoint.minDifference(turretSubsystem->pitchMotor.getChassisFrameMeasuredAngle()) <=
-        allowedError;
+        abs(pitchSetpoint.minDifference(
+            turretSubsystem->pitchMotor.getChassisFrameMeasuredAngle())) <= allowedError;
 
-    return yawMovementDone && pitchMovementDone;
+    return yawMovementDone;
 }
 
 void TurretTestCommand::end(bool)

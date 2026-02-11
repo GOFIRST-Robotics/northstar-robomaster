@@ -2,6 +2,7 @@
 #define USING_TURRET_HPP_
 
 #include "tap/control/hold_command_mapping.hpp"
+#include "tap/control/press_command_mapping.hpp"
 #include "tap/control/remote_map_state.hpp"
 
 #include "robot/testbed/test_def.hpp"
@@ -121,6 +122,14 @@ cv::TurretCVControlCommand turretCVControlCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+test::TurretTestCommand turretTestCommand(
+    &turretSubsystem,
+    modm::toRadian(90),
+    modm::toRadian(0),
+    &worldFrameYawTurretImuController,
+    &worldFramePitchTurretImuController,
+    modm::toRadian(0.5));
+
 user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     drivers(),
     drivers()->controlOperatorInterface,
@@ -136,6 +145,13 @@ HoldCommandMapping xPressed(
     drivers(),
     {&turretCVControlCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
+
+PressCommandMapping turretTestCommandMapping(
+    drivers(),
+    {&turretTestCommand},
+    RemoteMapState(RemoteMapState(
+        {tap::communication::serial::Remote::Switch::LEFT_SWITCH,
+         tap::communication::serial::Remote::SwitchState::DOWN})));
 
 #endif
 

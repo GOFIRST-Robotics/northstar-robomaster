@@ -124,6 +124,7 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 #endif
 #ifdef USING_TURRET
     drivers->commandMapper.addMap(&xPressed);
+    drivers->commandMapper.addMap(&turretTestCommandMapping);
 #endif  // USING_TURRET
     // drivers->commandMapper.addMap(&ctrlCPressed);
 #ifdef USING_CHASSIS

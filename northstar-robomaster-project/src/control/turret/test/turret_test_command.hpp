@@ -54,6 +54,8 @@ public:
         TurretSubsystem *turretSubsystem,
         float yawMoveAmount,
         float pitchMoveAmount,
+        algorithms::TurretYawControllerInterface *yawController,
+        algorithms::TurretPitchControllerInterface *pitchController,
         float allowedError = 0.5f);
 
     bool isReady() override;
@@ -74,9 +76,14 @@ private:
     float pitchMoveAmount;
     uint32_t startTime;
     uint32_t endTime;
+    uint32_t prevTime;
     WrappedFloat startYawAngle = WrappedFloat(0, 0, M_TWOPI);
     WrappedFloat startPitchAngle = WrappedFloat(0, 0, M_TWOPI);
+    WrappedFloat newYawSetpoint = WrappedFloat(0, 0, M_TWOPI);
+    WrappedFloat newPitchSetpoint = WrappedFloat(0, 0, M_TWOPI);
     float allowedError;
+    algorithms::TurretYawControllerInterface *yawController;
+    algorithms::TurretPitchControllerInterface *pitchController;
 };
 }  // namespace src::control::turret::test
 
