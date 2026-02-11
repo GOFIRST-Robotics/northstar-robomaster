@@ -275,7 +275,7 @@ cv::TurretCVControlCommand turretCVControlCommand(
 
 user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
 
-test::TurretTestCommand turretTestCommand(
+test::TurretTestCommand cTurretTestCommand(
     &turret,
     modm::toRadian(90),
     modm::toRadian(0),
@@ -293,7 +293,7 @@ ToggleCommandMapping xCtrlPressedCvControl(
 
 PressCommandMapping turretTestCommandMapping(
     drivers(),
-    {&turretTestCommand},
+    {&cTurretTestCommand},
     RemoteMapState({Remote::Key::C}));
 
 // user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
@@ -665,7 +665,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
-    drivers->commandMapper.addMap(&ctrlShiftZSong);
+    // drivers->commandMapper.addMap(&ctrlShiftZSong);
     drivers->commandMapper.addMap(&ePressed180);
     drivers->commandMapper.addMap(&turretTestCommandMapping);
 }

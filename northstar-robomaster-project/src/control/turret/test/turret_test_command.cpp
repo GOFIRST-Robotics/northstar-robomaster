@@ -53,13 +53,13 @@ void TurretTestCommand::initialize()
 
     turretSubsystem->yawMotor.setChassisFrameSetpoint(newYawSetpoint);
 
-    turretSubsystem->yawMotor.attachTurretController(nullptr);
+    // turretSubsystem->yawMotor.attachTurretController(nullptr);
 
     WrappedFloat newPitchSetpoint = startPitchAngle + pitchMoveAmount;
 
     turretSubsystem->pitchMotor.setChassisFrameSetpoint(newPitchSetpoint);
 
-    turretSubsystem->pitchMotor.attachTurretController(nullptr);
+    // turretSubsystem->pitchMotor.attachTurretController(nullptr);
 
     startTime = tap::arch::clock::getTimeMilliseconds();
 }
