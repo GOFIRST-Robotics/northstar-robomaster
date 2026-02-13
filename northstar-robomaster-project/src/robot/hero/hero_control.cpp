@@ -16,7 +16,7 @@
 #include "drivers_singleton.hpp"
 
 // supercapacitor
-#include "communication/can/supercapacitor/capacitor_bank.hpp"
+#include "control/superCapacitor/super_capacitor_subsystem.hpp"
 
 // chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
@@ -291,11 +291,7 @@ user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     USER_PITCH_INPUT_SCALAR);
 
 // supercapacitor
-CapacitorBank capacitorBank(
-    drivers(),
-    CanBus::CAN_BUS2,
-    SUPER_CAPACITOR_CAPACITANCE,
-    &drivers()->controlOperatorInterface);
+src::capacitor::SuperCapacitor superCapacitor(drivers(), CanBus::CAN_BUS1);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
@@ -314,7 +310,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     },
     &drivers()->turretMCBCanCommBus2,
     &yawMotor,
-    &capacitorBank);
+    &superCapacitor);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,

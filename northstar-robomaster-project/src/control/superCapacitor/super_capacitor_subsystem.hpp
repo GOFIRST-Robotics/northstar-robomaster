@@ -3,6 +3,9 @@
 
 #include "communication/can/supercapacitor/capacitor_bank.hpp"
 
+#include "capacitor_constants.hpp"
+
+
 namespace src::capacitor
 {
 class SuperCapacitor

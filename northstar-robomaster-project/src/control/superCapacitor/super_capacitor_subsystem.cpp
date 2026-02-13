@@ -1,7 +1,5 @@
 #include "super_capacitor_subsystem.hpp"
 
-#include "capacitor_constants.hpp"
-
 namespace src::capacitor
 {
 SuperCapacitor::SuperCapacitor(tap::Drivers* drivers, tap::can::CanBus canBus)

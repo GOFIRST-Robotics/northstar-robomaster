@@ -17,7 +17,7 @@
 #include "drivers_singleton.hpp"
 
 // supercapacitor
-#include "communication/can/supercapacitor/capacitor_bank.hpp"
+#include "control/superCapacitor/super_capacitor_subsystem.hpp"
 
 // chassis
 #include "control/chassis/chassis_beyblade_command.hpp"
@@ -62,6 +62,9 @@
 // hopper
 #include "control/hopper/hopper_subsystem.hpp"
 #include "control/hopper/hopper_toggle_command.hpp"
+
+// supercapacitor
+#include "control/superCapacitor/super_capacitor_subsystem.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -122,7 +125,7 @@ using namespace src::control::client_display;
 using namespace tap::communication::serial;
 using namespace src::control::hopper;
 using namespace src::control::buzzer;
-using namespace src::can::capbank;
+using namespace src::capacitor;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -401,6 +404,7 @@ ToggleCommandMapping gPressed(
 //     false);
 
 // super capacitor
+src::capacitor::SuperCapacitor superCapacitor(drivers(), CanBus::CAN_BUS1);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
@@ -419,7 +423,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
     },
     &drivers()->turretMCBCanCommBus2,
     &yawMotor,
-    &capacitorBank);
+    &superCapacitor);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
