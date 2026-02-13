@@ -78,7 +78,7 @@ void ChassisAutoDrive::updateAutoDrive()
     xDir = desiredGlobalVelocity.x;
     yDir = desiredGlobalVelocity.y;
 
-    calculateRotationToFacePoint(lookaheadDirection, desiredGlobalVelocity.getLength());
+    calculateRotationToFacePoint(lookaheadDirection);
 }
 
 };  // namespace src::chassis

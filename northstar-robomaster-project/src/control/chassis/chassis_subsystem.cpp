@@ -161,23 +161,20 @@ float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 float ChassisSubsystem::chassisSpeedRotationAutoDrivePID(float angleOffset)
 {
     // P
-    float currentRotationPidP = angleOffset * 8;  // P
+    float currentRotationPidP = angleOffset * 5;  // P
     currentRotationPidP =
         limitVal<float>(currentRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
-    currentRotationPidP = 0;
 
     // D
-    float currentRotationPidD = getChassisRotationSpeed() * 0.98f;  // D
+    float currentRotationPidD = -getChassisRotationSpeed() * 0.05f;  // D
     currentRotationPidD =
         limitVal<float>(currentRotationPidD, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
-    return currentRotationPidD;
 
     float chassisRotationSpeed = limitVal<float>(
         currentRotationPidP + currentRotationPidD,
         -CHASSIS_ROTATION_MAX_VEL,
         CHASSIS_ROTATION_MAX_VEL);
 
-    // return CHASSIS_ROTATION_MAX_VEL;
     return chassisRotationSpeed;
 }
 
