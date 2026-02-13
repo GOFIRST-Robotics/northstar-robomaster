@@ -50,4 +50,7 @@ jobs:
       - name: Build with SCons
         working-directory: ./northstar-robomaster-project
         run: |
-          pipenv run scons build profile=debug profiling=true robot=TARGET_CHASSIS
+          pipenv run scons build profile=debug profiling=true robot=TARGET_STANDARD
+          pipenv run scons build profile=debug profiling=true robot=TARGET_HERO
+          pipenv run scons build profile=debug profiling=true robot=TARGET_SENTRY
+          pipenv run scons build profile=debug profiling=true robot=TARGET_TEST_BED
