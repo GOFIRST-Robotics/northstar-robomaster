@@ -34,6 +34,8 @@ static const float RAMP_UP_RPM_INCREMENT_MPS = 0.01f;
 
 static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
 
+static constexpr float CHASSIS_TORQUE_LIMIT = 4.0f;
+
 static constexpr float MAX_CHASSIS_WHEEL_SPEED = 9000.0f;
 
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
@@ -54,6 +56,10 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
     {120, 0.024},
 };
 
+static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = {
+    {100, 1.0},
+    {130, 1.3}};
+
 static constexpr float CHASSIS_DECCEL_VALUE = 0.04f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
@@ -64,18 +70,9 @@ static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_ACCE
     CHASSIS_POWER_TO_MAX_ACCEL_LUT,
     MODM_ARRAY_SIZE(CHASSIS_POWER_TO_MAX_ACCEL_LUT));
 
-static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
-{
-    float dist = sqrt((vert * vert) + (hor * hor));
-    if (dist > 1.0f)
-    {
-        return modm::Pair<float, float>(vert / dist, hor / dist);
-    }
-    else
-    {
-        return modm::Pair<float, float>(vert, hor);
-    }
-}
+static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_TORQUE_LIMIT_FROM_POWER(
+    CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT,
+    MODM_ARRAY_SIZE(CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT));
 
 }  // namespace src::chassis
 
