@@ -1,0 +1,53 @@
+name: Northstar RoboMaster Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      # 1. Checkout the repository and all submodules
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # 2. Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pipenv'
+
+      # 3. Install ARM GCC Toolchain (Matches your required downloads)
+      - name: Install ARM Toolchain
+        uses: ryanwinter/arm-none-eabi-gcc@master
+        with:
+          release: '10.3-2021.10'
+
+      # 4. Install supporting build tools via Chocolatey
+      - name: Install OpenOCD and MinGW
+        run: |
+          choco install openocd --version 0.11.0 -y
+          choco install mingw -y
+
+      # 5. Install Pipenv & Project Dependencies
+      # Runs specifically in the northstar-robomaster-project folder
+      - name: Install Pipenv and project dependencies
+        working-directory: ./northstar-robomaster-project
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv
+          pipenv install --deploy
+
+      # 6. Run SCons Build
+      # Runs specifically in the northstar-robomaster-project folder
+      - name: Build with SCons
+        working-directory: ./northstar-robomaster-project
+        run: |
+          pipenv run scons build profile=debug profiling=true robot=TARGET_CHASSIS
