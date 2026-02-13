@@ -133,10 +133,10 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
 }
 
-float ChassisSubsystem::chassisSpeedRotationPID()
+float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
     // P
-    float currRotationPidP = getChassisZeroTurret() * CHASSIS_ROTATION_P;  // P
+    float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
     currRotationPidP =
         limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 

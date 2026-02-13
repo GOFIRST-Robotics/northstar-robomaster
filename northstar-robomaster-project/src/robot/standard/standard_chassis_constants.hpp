@@ -58,10 +58,6 @@ static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = 
     {100, 1.0},
     {130, 1.3}};
 
-static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = {
-    {100, 1.0},
-    {130, 1.3}};
-
 static constexpr float CHASSIS_DECCEL_VALUE = 0.04f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(

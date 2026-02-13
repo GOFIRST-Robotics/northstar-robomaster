@@ -71,7 +71,7 @@ public:
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    float chassisSpeedRotationPID();
+    float chassisSpeedRotationPID(float angleOffset);
 
     float calculateMaxRotationSpeed(float vert, float hor);
 
