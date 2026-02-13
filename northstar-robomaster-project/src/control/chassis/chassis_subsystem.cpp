@@ -11,6 +11,7 @@ namespace src::chassis
 {
 modm::Pair<int, float> lastComputedMaxWheelSpeed = CHASSIS_POWER_TO_MAX_SPEED_LUT[0];
 modm::Pair<int, float> lastComputedMaxAccelSpeed = CHASSIS_POWER_TO_MAX_ACCEL_LUT[0];
+modm::Pair<int, float> lastComputerMaxTorque = CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[0];
 
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
@@ -132,10 +133,10 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
 }
 
-float ChassisSubsystem::chassisSpeedRotationPID()
+float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
     // P
-    float currRotationPidP = getChassisZeroTurret() * CHASSIS_ROTATION_P;  // P
+    float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
     currRotationPidP =
         limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 
@@ -187,6 +188,29 @@ float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowe
     }
 
     return lastComputedMaxAccelSpeed.second;
+}
+
+float ChassisSubsystem::getVoltageReductionFactorFromTorque(float chassisPowerLimit)
+{
+    float torqueSum = 0.0f;
+    for (Motor& i : motors)
+    {
+        torqueSum += i.getTorque();
+    }
+    if (lastComputerMaxTorque.first != (int)chassisPowerLimit)
+    {
+        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
+        lastComputedMaxAccelSpeed.second =
+            CHASSIS_TORQUE_LIMIT_FROM_POWER.interpolate(chassisPowerLimit);
+    }
+    if (torqueSum <= lastComputedMaxAccelSpeed.second)
+    {
+        return 1.0f;
+    }
+    else
+    {
+        return lastComputedMaxAccelSpeed.second / torqueSum;
+    }
 }
 
 void ChassisSubsystem::driveBasedOnHeading(

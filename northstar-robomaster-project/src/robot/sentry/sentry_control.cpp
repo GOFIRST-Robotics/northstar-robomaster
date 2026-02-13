@@ -100,9 +100,9 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 // flywheel
 FlywheelSubsystem flywheelBottom(
     drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
+    LEFT_MOTOR_ID_BOTTOM,
+    RIGHT_MOTOR_ID_BOTTOM,
+    UP_MOTOR_ID_BOTTOM,
     CAN_BUS,
     tap::motor::RevMotor::PIDConfig{
         .PIDSlot = 0,
@@ -121,9 +121,9 @@ ToggleCommandMapping fNotCtrlPressed(
 
 FlywheelSubsystem flywheelTop(
     drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
+    LEFT_MOTOR_ID_TOP,
+    RIGHT_MOTOR_ID_TOP,
+    UP_MOTOR_ID_TOP,
     CAN_BUS,
     tap::motor::RevMotor::PIDConfig{
         .PIDSlot = 0,
