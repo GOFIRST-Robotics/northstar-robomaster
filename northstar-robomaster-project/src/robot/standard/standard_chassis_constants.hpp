@@ -36,6 +36,8 @@ static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
 
 static constexpr float CHASSIS_TORQUE_LIMIT = 4.0f;
 
+static constexpr float MAX_CHASSIS_WHEEL_SPEED = 9000.0f;
+
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
     {50, 4'500},
     {60, 5'700},
