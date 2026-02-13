@@ -31,7 +31,7 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "src/mock/turret_motor_mock.hpp"
 #else
-#include "turret_motor.hpp"
+#include "turret_motor_GM6020.hpp"
 #endif
 
 #include "tap/util_macros.hpp"
@@ -97,9 +97,9 @@ public:
     testing::NiceMock<mock::TurretMotorMock> yawMotor;
 #else
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotor pitchMotor;
+    TurretMotorGM6020 pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretMotor yawMotor;
+    TurretMotorGM6020 yawMotor;
 #endif
 
 protected:

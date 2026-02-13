@@ -29,15 +29,30 @@ static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
 };
-static constexpr int AGITATOR_NUM_POCKETS = 12;         // number of balls in one rotation
+static constexpr int AGITATOR_NUM_POCKETS = 10;         // number of balls in one rotation
 static constexpr float AGITATOR_MAX_ROF = 30.0f;        // balls per second
 static constexpr float OVERSHOOT_FUDGE_FACTOR = .2586;  // how much agitator overshoots
 
-static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
+static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG_TOM = {
     .gearRatio = 1 / (36.0f * (120.0f / 54.0f)),
     .agitatorMotorId = tap::motor::MOTOR4,
     .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
     .isAgitatorInverted = false,
+    /**
+     * The jamming constants. Agitator is considered jammed if difference between the velocity
+     * setpoint and actual velocity is > jammingVelocityDifference for > jammingTime.
+     */
+    .jammingVelocityDifference = M_TWOPI,
+    .jammingTime = 100,
+    .jamLogicEnabled = true,
+    .velocityPIDFeedForwardGain = 700.0f / M_TWOPI,
+};
+
+static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG_2 = {
+    .gearRatio = 1 / (36.0f),
+    .agitatorMotorId = tap::motor::MOTOR4,
+    .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
+    .isAgitatorInverted = true,
     /**
      * The jamming constants. Agitator is considered jammed if difference between the velocity
      * setpoint and actual velocity is > jammingVelocityDifference for > jammingTime.

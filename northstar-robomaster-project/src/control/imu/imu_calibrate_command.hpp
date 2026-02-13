@@ -29,6 +29,7 @@
 #include "tap/drivers.hpp"
 
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
+#include "control/buzzer/play_song_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/turret_subsystem.hpp"
@@ -120,6 +121,7 @@ public:
         tap::Drivers *drivers,
         const std::vector<TurretIMUCalibrationConfig> &turretsAndControllers,
         chassis::ChassisSubsystem *chassis,
+        src::control::buzzer::PlaySongCommand *song = nullptr,
         float velocityZeroThreshold = ImuCalibrateCommand::DEFAULT_VELOCITY_ZERO_THRESHOLD,
         float positionZeroThreshold = ImuCalibrateCommand::DEFAULT_POSITION_ZERO_THRESHOLD);
 
@@ -160,6 +162,7 @@ protected:
     tap::Drivers *drivers;
     std::vector<TurretIMUCalibrationConfig> turretsAndControllers;
     chassis::ChassisSubsystem *chassis;
+    src::control::buzzer::PlaySongCommand *song;
 
     CalibrationState calibrationState;
 
@@ -175,8 +178,6 @@ protected:
     tap::arch::MilliTimeout calibrationTimer;
 
     tap::arch::MilliTimeout buzzerTimer;
-
-    std::vector<int> notes = {1000, 800, 1200, 900, 1000, 0};
 
     /**
      * Timeout used to determine if we should give up on calibration.

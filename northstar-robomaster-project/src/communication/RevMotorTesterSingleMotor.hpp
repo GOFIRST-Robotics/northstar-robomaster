@@ -5,6 +5,8 @@
 #include "tap/control/subsystem.hpp"
 #include "tap/util_macros.hpp"
 
+#include "modm/math/filter/pid.hpp"
+
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
 #else
@@ -31,6 +33,8 @@ public:
     const char* getName() { return "RevMotorTesterSubsytem"; }
 
 private:
+    modm::Pid<float> pid;
+
     Motor singularMotor;
 
 };  // class ChassisSubsystem

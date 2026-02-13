@@ -2,6 +2,7 @@
 
 #include "tap/control/command.hpp"
 
+#include "control/chassis/constants/chassis_constants.hpp"
 #include "modm/math/filter/pid.hpp"
 
 namespace src
@@ -21,15 +22,13 @@ class ChassisSubsystem;
 class ChassisOrientDriveCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 7.0f;
-
     ChassisOrientDriveCommand(
         ChassisSubsystem *chassis,
         src::control::ControlOperatorInterface *operatorInterface);
 
     const char *getName() const override { return "Chassis tank drive"; }
 
-    void initialize() override {}
+    void initialize() override;
 
     void execute() override;
 
@@ -42,8 +41,6 @@ private:
 
     src::control::ControlOperatorInterface *operatorInterface;
 
-    modm::Pid<float> orientPid;
-
-    float angleOffset;
+    float rotationalValue;
 };
 }  // namespace src::chassis

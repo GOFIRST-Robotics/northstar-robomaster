@@ -40,6 +40,8 @@
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/test/turret_test_command.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -78,6 +80,12 @@
 
 #include "ref_system_constants.hpp"
 
+// BUZZER
+#include "control/buzzer/buzzer_subsystem.hpp"
+#include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/twinkle_twinkle.hpp"
+
 // HUD
 #include "tap/communication/serial/ref_serial_transmitter.hpp"
 
@@ -111,6 +119,7 @@ using namespace tap::control::governor;
 using namespace src::control::client_display;
 using namespace tap::communication::serial;
 using namespace src::control::hopper;
+using namespace src::control::buzzer;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -120,8 +129,32 @@ DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
+// songs
+BuzzerSubsystem buzzerSubsystem(drivers());
+
+PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
+
+// PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+
+// PressCommandMapping ctrlShiftZSong(
+//     drivers(),
+//     {&playMegalovaniaCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
+
 // flywheel subsystem
-FlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+FlywheelSubsystem flywheel(
+    drivers(),
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    UP_MOTOR_ID,
+    CAN_BUS,
+    tap::motor::RevMotor::PIDConfig{
+        .PIDSlot = 0,
+        .kP = FLYWHEEL_PID_KP,
+        .kI = FLYWHEEL_PID_KI,
+        .kD = FLYWHEEL_PID_KD,
+        .kF = FLYWHEEL_PID_KF,
+    });
 
 // flywheel commands
 FlywheelRunCommand flywheelRunCommand(&flywheel);
@@ -240,21 +273,39 @@ cv::TurretCVControlCommand turretCVControlCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
+
+test::TurretTestCommand cTurretTestCommand(
+    &turret,
+    modm::toRadian(90),
+    modm::toRadian(0),
+    modm::toRadian(1));
+
+PressCommandMapping ePressed180(
+    drivers(),
+    {&turret180TurnCommand},
+    RemoteMapState({Remote::Key::Q}));
+
 ToggleCommandMapping xCtrlPressedCvControl(
     drivers(),
     {&turretCVControlCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
 
-user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+PressCommandMapping turretTestCommandMapping(
     drivers(),
-    drivers()->controlOperatorInterface,
-    &turret,
-    &worldFrameYawChassisImuController,
-    &worldFramePitchChassisImuController,
-    &worldFrameYawTurretCanImuController,
-    &worldFramePitchTurretCanImuController,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+    {&cTurretTestCommand},
+    RemoteMapState({Remote::Key::C}));
+
+// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &turret,
+//     &worldFrameYawChassisImuController,
+//     &worldFramePitchChassisImuController,
+//     &worldFrameYawTurretCanImuController,
+//     &worldFramePitchTurretCanImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -404,7 +455,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     1,
     -1,
     M_PI,
-    true);
+    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -459,15 +510,21 @@ ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     {&chassisBeyBladeFastCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
+ToggleCommandMapping qPressedNormDrive(
+    drivers(),
+    {&chassisDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
+
 ToggleCommandMapping rPressedOrientDrive(
     drivers(),
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
-ToggleCommandMapping zPressedWiggle(
+ToggleCommandMapping zPressedNotCtrlWiggle(
     drivers(),
     {&chassisWiggleCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Z})));
+    RemoteMapState(
+        RemoteMapState({tap::communication::serial::Remote::Key::Z}, {Remote::Key::CTRL})));
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
@@ -498,7 +555,8 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playTwinkleCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -557,6 +615,7 @@ void initializeSubsystems(Drivers *drivers)
     flywheel.initialize();
     turret.initialize();
     hopperSubsystem.initialize();
+    buzzerSubsystem.initialize();
 }
 
 void registerStandardSubsystems(Drivers *drivers)
@@ -568,11 +627,12 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
+    drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -582,7 +642,7 @@ void setDefaultStandardCommands(Drivers *drivers)
 void startStandardCommands(Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
@@ -597,13 +657,17 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&rPressedCVGovernoreToggle);
     drivers->commandMapper.addMap(&gOrVPressedCycleShotSpeed);
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
-    drivers->commandMapper.addMap(&zPressedWiggle);
+    drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
+    drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
+    // drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&ePressed180);
+    drivers->commandMapper.addMap(&turretTestCommandMapping);
 }
 }  // namespace standard_control
 

@@ -32,6 +32,7 @@ ImuCalibrateCommand::ImuCalibrateCommand(
     tap::Drivers *drivers,
     const std::vector<TurretIMUCalibrationConfig> &turretsAndControllers,
     chassis::ChassisSubsystem *chassis,
+    src::control::buzzer::PlaySongCommand *song,
     float velocityZeroThreshold,
     float positionZeroThreshold)
     : ImuCalibrateCommandBase(),
@@ -39,7 +40,8 @@ ImuCalibrateCommand::ImuCalibrateCommand(
       positionZeroThreshold(positionZeroThreshold),
       drivers(drivers),
       turretsAndControllers(turretsAndControllers),
-      chassis(chassis)
+      chassis(chassis),
+      song(song)
 {
     for (auto &config : turretsAndControllers)
     {
@@ -90,17 +92,15 @@ void ImuCalibrateCommand::execute()
             // calibrated. The onboard Bmi088 will never be in the `IMU_NOT_CONNECTED` state unless
             // the Bmi088 is shorted (which has never happened). The turret MCB will only be
             // offline if the turret MCB is unplugged.
-            bool turretMCBsReady = true;
             bool turretsOnline = true;
 
             for (auto &config : turretsAndControllers)
             {
-                // turretMCBsReady &= config.turretMCBCanComm->isConnected();
                 turretsOnline &= config.turret->isOnline();
             }
 
-            if (turretsOnline && (turretMCBsReady || (drivers->bmi088.getImuState() !=
-                                                      Bmi088::ImuState::IMU_NOT_CONNECTED)))
+            if (turretsOnline &&
+                ((drivers->bmi088.getImuState() != Bmi088::ImuState::IMU_NOT_CONNECTED)))
             {
                 calibrationLongTimeout.restart(MAX_CALIBRATION_WAITTIME_MS);
                 calibrationTimer.restart(WAIT_TIME_TURRET_RESPONSE_MS);
@@ -141,20 +141,13 @@ void ImuCalibrateCommand::execute()
                 // plus 1 second extra to handle sending the request and processing it
                 // TODO to handle the case where the turret MCB doesn't receive information,
                 // potentially add ACK sequence to turret MCB CAN comm class.
-                calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
-                calibrationState = CalibrationState::BUZZING;
-            }
-            buzzerTimer.restart(1000);
-            break;
-        case CalibrationState::BUZZING:
-            if (buzzerTimer.isExpired())
-            {
+                // calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
                 calibrationState = CalibrationState::WAITING_CALIBRATION_COMPLETE;
             }
-            tap::buzzer::playNote(&drivers->pwm, notes[4 - buzzerTimer.timeRemaining() / 201]);
+            calibrationTimer.restart(200);
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
-            tap::buzzer::silenceBuzzer(&drivers->pwm);
+            drivers->commandScheduler.addCommand(song);
             break;
     }
 

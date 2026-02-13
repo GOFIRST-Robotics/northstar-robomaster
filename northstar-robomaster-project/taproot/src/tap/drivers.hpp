@@ -156,7 +156,8 @@ public:
     communication::sensors::imu::bmi088::Bmi088 bmi088;
     control::CommandScheduler commandScheduler;
 #endif
-};  // class Drivers
+    static constexpr uint8_t DT = 1000 / 500;  // ms, main loop period
+};                                             // class Drivers
 
 }  // namespace tap
 
