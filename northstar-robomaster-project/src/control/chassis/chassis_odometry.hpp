@@ -150,9 +150,6 @@ public:
     float getImuPitch() { return imu->getPitch(); }
     float getImuYaw() { return imu->getYaw(); }
     float getImuRoll() { return imu->getRoll(); }
-
-    // floor length = 2.15m
-    // ramp length = 2.80m
 };
 
 }  // namespace src::chassis

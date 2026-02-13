@@ -3,6 +3,9 @@
 
 #include <deque>
 
+#include "tap/algorithms/math_user_utils.hpp"
+#include "tap/algorithms/wrapped_float.hpp";
+
 #include "control/algorithms/CubicBezier.hpp"
 
 #include "chassis_odometry.hpp"
@@ -12,7 +15,7 @@ namespace src::chassis
 {
 class ChassisAutoDrive
 {
-    static constexpr float MAXIMUM_MPS = 1.0f;
+    static constexpr float MAXIMUM_MPS = 0.5f;
     static constexpr float MINIMUM_MPS = 0.4f;
 
     static constexpr float T_INCREASE_MULT = 0.016f;
@@ -20,6 +23,9 @@ class ChassisAutoDrive
 
     static constexpr float T_CHECK_MULT = 0.005f;
     static constexpr float T_CHECK = T_CHECK_MULT * MAXIMUM_MPS;
+
+    static constexpr float T_LOOKAHEAD_MULT = 0.1f;
+    static constexpr float T_LOOKAHEAD = T_LOOKAHEAD_MULT * MAXIMUM_MPS;
 
     static constexpr float SLOWDOWN_DISTANCE = 0.2f;
 
@@ -47,18 +53,40 @@ public:
 
     float getOdometryRotation() { return chassisOdometry->getRotation(); }
 
+    bool hasValidPath() { return path.size() > 0 && currentT < 1; }
+
     modm::Vector<float, 2> getDirectionToCurve(float t)
     {
         return path.front().evaluate(t) - chassisOdometry->getPositionGlobal();
     }
 
-    modm::Vector<float, 2> getLookaheadDeriv(float t, float lookaheadVal)
+    float getLookahead(float lookaheadVal)
     {
-        float lookahead = t + lookaheadVal;
+        float lookahead = currentT + lookaheadVal;
         if (lookahead > 1)
         {
             lookahead = 1;
         }
+
+        return lookahead;
+    }
+
+    modm::Vector<float, 2> getDirectionToLookaheadPoint(float t, float lookaheadVal)
+    {
+        float lookahead = getLookahead(lookaheadVal);
+        if (lookahead < 1)
+        {
+            return path.front().evaluate(lookahead) - chassisOdometry->getPositionGlobal();
+        }
+        else
+        {
+            return path.front().evaluate(1) - path.front().evaluate(0.975f);
+        }
+    }
+
+    modm::Vector<float, 2> getLookaheadDeriv(float t, float lookaheadVal)
+    {
+        float lookahead = getLookahead(lookaheadVal);
 
         return path.front().evaluateDerivative(lookahead);
     }
@@ -130,16 +158,24 @@ private:
         return 1;
     }
 
-    void calculateRotationToFacePoint(modm::Vector<float, 2> localPoint)
+    void calculateRotationToFacePoint(modm::Vector<float, 2> localPoint, float desiredSpeed)
     {
-        float rotationFromPID = chassis->chassisSpeedRotationPID();
+        float desiredWorldAngle = -atan2(localPoint.y, localPoint.x);
+        float differenceInDesiredFacingRadians =
+            chassis->getDifferenceToTargetAngle((desiredWorldAngle + M_PI_2));
 
-        float desiredFacingRadians = atan2(localPoint.y, localPoint.x);
-        float rotationalAlpha =
-            std::max<float>(1.0f - abs(desiredFacingRadians) / M_PI, AUTO_ROTATION_ALPHA);
+        float rotationFromPID = chassis->chassisSpeedRotationAutoDrivePID(
+            tap::algorithms::WrappedFloat(differenceInDesiredFacingRadians, -M_PI_4, M_PI_4)
+                .getWrappedValue());
 
-        desiredRotation =
-            tap::algorithms::lowPassFilter(desiredRotation, rotationFromPID, rotationalAlpha);
+        // float rotationalAlpha = std::max<float>(
+        //     1.0f - abs(differenceInDesiredFacingRadians) / M_PI_4,
+        //     AUTO_ROTATION_ALPHA);
+
+        // float rawDesiredRotation =
+        //     tap::algorithms::lowPassFilter(desiredRotation, rotationFromPID, rotationalAlpha);
+
+        desiredRotation = rotationFromPID;
     }
 };
 

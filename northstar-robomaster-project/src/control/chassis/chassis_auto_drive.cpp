@@ -65,7 +65,8 @@ void ChassisAutoDrive::updateAutoDrive()
         }
     }
 
-    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.025);
+    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, T_LOOKAHEAD);
+    modm::Vector<float, 2> lookaheadDirection = getDirectionToLookaheadPoint(currentT, T_LOOKAHEAD);
 
     desiredGlobalVelocity = clampMagnitude(
         ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
@@ -77,7 +78,7 @@ void ChassisAutoDrive::updateAutoDrive()
     xDir = desiredGlobalVelocity.x;
     yDir = desiredGlobalVelocity.y;
 
-    calculateRotationToFacePoint(dirToTarget);
+    calculateRotationToFacePoint(lookaheadDirection, desiredGlobalVelocity.getLength());
 }
 
 };  // namespace src::chassis
