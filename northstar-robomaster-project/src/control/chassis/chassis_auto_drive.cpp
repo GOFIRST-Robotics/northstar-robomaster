@@ -65,7 +65,8 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, T_LOOKAHEAD);
     modm::Vector<float, 2> lookaheadDirection = getDirectionToLookaheadPoint(currentT, T_LOOKAHEAD);
 
-    float dot = dirToTarget.normalized().dot(chassisOdometry->getVelocityGlobal().normalized());
+    float dot =
+        lookaheadDirection.normalized().dot(chassisOdometry->getVelocityGlobal().normalized());
 
     desiredGlobalVelocity = clampMagnitude(
         ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
