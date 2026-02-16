@@ -159,7 +159,7 @@ private:
             }
 
             d = currentDistToTarget;
-            t += 0.001f;
+            t += 0.002f;
         }
 
         return 1;
@@ -174,13 +174,6 @@ private:
         float rotationFromPID = chassis->chassisSpeedRotationAutoDrivePID(
             tap::algorithms::WrappedFloat(differenceInDesiredFacingRadians, -M_PI_4, M_PI_4)
                 .getWrappedValue());
-
-        // float rotationalAlpha = std::max<float>(
-        //     1.0f - abs(differenceInDesiredFacingRadians) / M_PI_4,
-        //     AUTO_ROTATION_ALPHA);
-
-        // float rawDesiredRotation =
-        //     tap::algorithms::lowPassFilter(desiredRotation, rotationFromPID, rotationalAlpha);
 
         desiredRotation = rotationFromPID;
     }

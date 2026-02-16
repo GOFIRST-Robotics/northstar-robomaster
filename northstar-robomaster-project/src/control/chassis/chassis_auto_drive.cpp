@@ -30,9 +30,6 @@ void ChassisAutoDrive::addCurveToPath(CubicBezier newPoint)
     }
 }
 
-float xDir;
-float yDir;
-
 void ChassisAutoDrive::updateAutoDrive()
 {
     if (!tryUpdatePath())
@@ -47,7 +44,6 @@ void ChassisAutoDrive::updateAutoDrive()
 
     if (distanceToTarget < T_CHECK)
     {
-        // currentT += path.front().evaluateDerivative(currentT).getLength() * 0.005f;
         currentT += T_INCREASE;
         return;
     }
@@ -69,8 +65,7 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, T_LOOKAHEAD);
     modm::Vector<float, 2> lookaheadDirection = getDirectionToLookaheadPoint(currentT, T_LOOKAHEAD);
 
-    float dot =
-        lookaheadDirection.normalized().dot(chassisOdometry->getVelocityGlobal().normalized());
+    float dot = dirToTarget.normalized().dot(chassisOdometry->getVelocityGlobal().normalized());
 
     desiredGlobalVelocity = clampMagnitude(
         ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
@@ -78,9 +73,6 @@ void ChassisAutoDrive::updateAutoDrive()
             1.5f * slowdownMult * dot,
         MINIMUM_MPS,
         MAXIMUM_MPS);
-
-    xDir = desiredGlobalVelocity.x;
-    yDir = desiredGlobalVelocity.y;
 
     calculateRotationToFacePoint(lookaheadDirection);
 }
