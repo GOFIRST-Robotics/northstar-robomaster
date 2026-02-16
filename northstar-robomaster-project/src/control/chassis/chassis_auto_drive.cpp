@@ -58,6 +58,7 @@ void ChassisAutoDrive::updateAutoDrive()
     if (distanceToEnd < SLOWDOWN_DISTANCE)
     {
         slowdownMult = distanceToEnd / SLOWDOWN_DISTANCE;
+        slowdownMult *= slowdownMult;
 
         if (slowdownMult < 0.1f)
         {
@@ -68,10 +69,13 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, T_LOOKAHEAD);
     modm::Vector<float, 2> lookaheadDirection = getDirectionToLookaheadPoint(currentT, T_LOOKAHEAD);
 
+    float dot =
+        lookaheadDirection.normalized().dot(chassisOdometry->getVelocityGlobal().normalized());
+
     desiredGlobalVelocity = clampMagnitude(
         ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
          lengthOfCurrentCurve()) *
-            1.5f * slowdownMult,
+            1.5f * slowdownMult * dot,
         MINIMUM_MPS,
         MAXIMUM_MPS);
 
