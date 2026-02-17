@@ -499,7 +499,7 @@ ToggleCommandMapping zPressedNotCtrlWiggle(
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
     true);
 
@@ -559,7 +559,7 @@ TextHudIndicators textHudIndicators(
     *drivers(),
     agitator,
     // imuCalibrateCommand,
-    {&chassisWiggleCommand, &chassisBeyBladeFastCommand},
+    {&chassisWiggleCommand, &chassisBeyBladeCommand},
     refSerialTransmitter);
 
 std::vector<HudIndicator *> hudIndicators = {

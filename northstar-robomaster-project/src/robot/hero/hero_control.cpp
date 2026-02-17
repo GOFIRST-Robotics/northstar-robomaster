@@ -333,7 +333,7 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 // GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
 //     {&chassisSubsystem},
 //     chassisBeyBladeSlowCommand,
-//     chassisBeyBladeFastCommand,
+//     chassisBeyBladeCommand,
 //     {&firedRecentlyGovernor, &plateHitGovernor},
 //     true);
 
@@ -386,14 +386,14 @@ FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, 
 //     *drivers(),
 //     (tap::control::Subsystem)agitator,
 //     // imuCalibrateCommand,
-//     {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
+//     {&chassisWiggleCommand, &chassisBeyBladeCommand},
 //     refSerialTransmitter);
 
 HeroSpinIndicator heroSpinIndicator(
     refSerialTransmitter,
     drivers()->refSerial,
     *drivers(),
-    &chassisBeyBladeFastCommand,
+    &chassisBeyBladeCommand,
     &chassisWiggleCommand);
 
 std::vector<HudIndicator *> hudIndicators = {
