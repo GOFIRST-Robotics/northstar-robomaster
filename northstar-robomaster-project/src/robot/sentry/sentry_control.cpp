@@ -602,9 +602,7 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
 src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI,
     true);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(

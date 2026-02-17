@@ -422,21 +422,11 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI_2,
     true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
-    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -488,7 +478,7 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 // chassis Mappings
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 ToggleCommandMapping qPressedNormDrive(
