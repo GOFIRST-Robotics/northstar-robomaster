@@ -18,16 +18,16 @@ class ChassisAutoDrive
     static constexpr float MAXIMUM_MPS = 2.0f;
     static constexpr float MINIMUM_MPS = 0.45f;
 
-    static constexpr float T_INCREASE_MULT = 0.018f;
+    static constexpr float T_INCREASE_MULT = 0.01f;
     static constexpr float T_INCREASE = T_INCREASE_MULT * MAXIMUM_MPS;
 
-    static constexpr float T_CHECK_MULT = 0.006f;
+    static constexpr float T_CHECK_MULT = 0.005f;
     static constexpr float T_CHECK = T_CHECK_MULT * MAXIMUM_MPS;
 
-    static constexpr float T_LOOKAHEAD_MULT = 0.085f;
+    static constexpr float T_LOOKAHEAD_MULT = 0.08f;
     static constexpr float T_LOOKAHEAD = T_LOOKAHEAD_MULT * MAXIMUM_MPS;
 
-    static constexpr float SLOWDOWN_DISTANCE = 0.35f;
+    static constexpr float SLOWDOWN_DISTANCE = 0.4f;
     static constexpr float MAX_POSITION_ERROR = 0.02f;
     static constexpr float DEGEN_CURVE_LENGTH = 0.1f;
 
