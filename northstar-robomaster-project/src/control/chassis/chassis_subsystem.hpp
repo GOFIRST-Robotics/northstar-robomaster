@@ -136,8 +136,22 @@ public:
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
+    /**
+     * Gets the max chassis wheel speed based on a power limit.
+     *
+     * @param refSerialOnline Is the ref system online and connected.
+     * @param chassisPowerLimit The chassis power limit in watts.
+     * @return The max chassis wheel speed.
+     */
     float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
+    /**
+     * Gets the max chassis current output.
+     *
+     * @param refSerialOnline Is the ref system online and connected.
+     * @param chassisPowerLimit The chassis power limit in watts.
+     * @return The max chassis current.
+     */
     float getMaxCurrentOutput(bool refSerialOnline, float chassisPowerLimit);
 
     void refresh() override;
@@ -152,9 +166,13 @@ public:
 
     virtual const char* getName() const override { return "Chassis"; }
 
-    float getYaw();
-
 private:
+    /**
+     * Gets the wheel RPM from a desired mps
+     *
+     * @param mps Desired wheel mps
+     * @returns Calcualted R wheel RPM
+     */
     inline float mpsToRpm(float mps)
     {
         return mps / (M_PI * src::chassis::WHEEL_DIAMETER_M) * 60.0f / CHASSIS_GEAR_RATIO;
@@ -172,6 +190,9 @@ private:
 
     std::array<tap::algorithms::Ramp, static_cast<uint8_t>(2)> rampControllers;
 
+    /**
+     * @return The turret yaw angle in radians.
+     */
     inline float getTurretYaw();
 
 protected:
