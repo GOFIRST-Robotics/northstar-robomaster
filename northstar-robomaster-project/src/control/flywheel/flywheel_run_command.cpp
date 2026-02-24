@@ -15,7 +15,10 @@ void FlywheelRunCommand::initialize()
     flywheel->setDesiredLaunchSpeed(20.7);  // 24.5
 }
 
-void FlywheelRunCommand::end(bool interrupted) { flywheel->setDesiredLaunchSpeed(0); }
+void FlywheelRunCommand::end([[maybe_unused]] bool interrupted)
+{
+    flywheel->setDesiredLaunchSpeed(0);
+}
 
 }  // namespace src::control::flywheel
 

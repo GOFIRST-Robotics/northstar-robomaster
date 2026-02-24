@@ -48,7 +48,7 @@ void ChassisDriveDistanceCommand::execute()
     yDistanceCounter += yPid.getValue() * 0.5f * (dt / 1000.0);
 }
 
-void ChassisDriveDistanceCommand::end(bool interrupted)
+void ChassisDriveDistanceCommand::end([[maybe_unused]] bool interrupted)
 {
     chassis->setVelocityTurretDrive(0, 0, 0);
 }

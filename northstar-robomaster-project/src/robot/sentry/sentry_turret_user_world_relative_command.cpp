@@ -11,10 +11,10 @@ SentryTurretUserWorldRelativeCommand::SentryTurretUserWorldRelativeCommand(
     algorithms::TurretYawControllerInterface *chassisImuYawControllerBottom,
     algorithms::TurretPitchControllerInterface *chassisImuPitchControllerBottom,
     algorithms::TurretYawControllerInterface *turretImuYawControllerBottom,
-    algorithms::TurretPitchControllerInterface *turretImuPitchControllerBottom,
+    [[maybe_unused]] algorithms::TurretPitchControllerInterface *turretImuPitchControllerBottom,
     algorithms::TurretYawControllerInterface *chassisFrameYawTurretControllerTop,
     algorithms::TurretPitchControllerInterface *chassisImuPitchControllerTop,
-    algorithms::TurretPitchControllerInterface *turretImuPitchControllerTop,
+    [[maybe_unused]] algorithms::TurretPitchControllerInterface *turretImuPitchControllerTop,
     float userYawInputScalar,
     float userPitchInputScalar,
     float DELTA_MAX)

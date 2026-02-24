@@ -49,10 +49,6 @@ void SentryScanCommand::execute()
     uint32_t dt = currTime - prevTime;
     prevTime = currTime;
 
-    float bottomMeasurement = yawControllerBottom->getMeasurement().getUnwrappedValue() -
-                              turretSubsystem->bottomMeasurementOffset;
-    float topMeasurement = yawControllerTop->getMeasurement().getUnwrappedValue() -
-                           turretSubsystem->topMeasurementOffset;
     float bottomSetPoint = yawControllerBottom->getSetpoint().getUnwrappedValue();
     debugbottomSetPoint = bottomSetPoint;
     float topSetPoint = yawControllerTop->getSetpoint().getUnwrappedValue();

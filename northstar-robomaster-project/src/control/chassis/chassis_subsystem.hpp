@@ -33,6 +33,9 @@ struct ChassisConfig
     modm::Pid<float>::Parameter wheelVelocityPidConfig;
 };
 
+/**
+ * Represents a chassis subsystem
+ */
 class ChassisSubsystem : public tap::control::Subsystem
 {
 public:
@@ -63,22 +66,71 @@ public:
 
     void initialize() override;
 
+    /**
+     * Sets the desired forward, sideways, and rotational velocity in relation to the turret.
+     *
+     * @param forward The desired forward velocity in MPS.
+     * @param sideways The desired sideways velocity in MPS.
+     * @param rotational The desired rotational velocity. Radians Per Second.
+     */
     mockable void setVelocityTurretDrive(float forward, float sideways, float rotational);
 
+    /**
+     * Sets the desired forward, sideways, and rotational velocity in relation to a zero'd angle.
+     *
+     * @param forward The desired forward velocity in MPS.
+     * @param sideways The desired sideways velocity in MPS.
+     * @param rotational The desired rotational velocity. Radians Per Second.
+     */
     mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
 
-    mockable void setVelocityBeyBladeDrive(float forward, float sideways, float rotational);
-
+    /**
+     * Sets the desired forward, sideways, and rotational velocity based on a heading.
+     * The other drive methods use this one.
+     *
+     * @param forward The desired forward velocity in MPS.
+     * @param sideways The desired sideways velocity in MPS.
+     * @param rotational The desired rotational velocity. Radians Per Second.
+     * @param heading The desired heading. Whatever heading is passed in will be positive forward.
+     */
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
+    /**
+     * Gets a rotation speed for the chassis based on a distance from a desired angle.
+     *
+     * @param angleOffset Distance away from the target angle.
+     * @return A chassis speed in Radians per Second
+     */
     float chassisSpeedRotationPID(float angleOffset);
 
-    float calculateMaxRotationSpeed(float vert, float hor);
+    /**
+     * Calculates the max rotation speed based on the max chassis wheel speed.
+     *
+     * @param forward The forward commanded chassis velocity.
+     * @param sideways The sideways commanded chassis velocity.
+     * @return the maximum rotational speed to use based on forward and sideways velocity.
+     */
+    float calculateMaxRotationSpeed(float forward, float sideways);
 
+    /**
+     * Calculates the chassis rotational speed.
+     *
+     * @return The chassis rotational speed in Radians per Second.
+     */
     float getChassisRotationSpeed();
 
+    /**
+     * Calculates the angluar distance from the chassis zero and the turret angle.
+     *
+     * @return The angular distance from the chassis zero to the turret angle.
+     */
     float getChassisZeroTurret();
 
+    /**
+     * Gets the chassis power limit from the ref system.
+     *
+     * @return The max chassis power limit.
+     */
     float getChassiPowerLimit()
     {
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
@@ -102,7 +154,7 @@ public:
         }
     }
 
-    const char* getName() const override { return "Chassis"; }
+    virtual const char* getName() const override { return "Chassis"; }
 
     float getYaw();
 

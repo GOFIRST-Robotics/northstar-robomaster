@@ -55,7 +55,10 @@ void ChassisBeybladeCommand::execute()
     chassis->setVelocityTurretDrive(verticalSpeed, horizontalSpeed, calcedRot);
 }
 
-void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisBeybladeCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 
 float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uint32_t dt)
 {
@@ -72,7 +75,7 @@ float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uin
         if (RandomNumberGenerator::isReady())
         {
             calcSpeed = limitVal<float>(
-                0.1 * sin(RandomNumberGenerator::getValue()) + calcSpeed,
+                0.1f * static_cast<float>(sin(RandomNumberGenerator::getValue())) + calcSpeed,
                 -1.0f,
                 1.0f);
         }

@@ -33,5 +33,8 @@ void ChassisFieldCommand::execute()
         scale(operatorInterface->getDrivetrainRotationalTranslation()));
 }
 
-void ChassisFieldCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisFieldCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 };  // namespace src::chassis

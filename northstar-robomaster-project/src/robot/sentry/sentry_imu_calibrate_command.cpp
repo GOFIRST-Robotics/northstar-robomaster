@@ -113,10 +113,12 @@ void SentryImuCalibrateCommand::execute()
                 // enter calibration phase
                 calibrationTimer.stop();
 
-                for (auto &config : turretsAndControllers)
-                {
-                    // config.turretMCBCanComm->sendImuCalibrationRequest();
-                }
+                /*
+                 *for (auto &config : turretsAndControllers)
+                 *{
+                 *     config.turretMCBCanComm->sendImuCalibrationRequest();
+                 *}
+                 */
 
                 drivers->bmi088.requestCalibration();
                 calibrationState = CalibrationState::CALIBRATING_IMU;

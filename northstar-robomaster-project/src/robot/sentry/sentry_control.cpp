@@ -694,7 +694,7 @@ ToggleCommandMapping leftSwitchUp(
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
-void initializeSubsystems(Drivers *drivers)
+void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitatorTop.initialize();
@@ -714,7 +714,7 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&sentryTurrets);
 }
 
-void setDefaultSentryCommands(Drivers *drivers)
+void setDefaultSentryCommands([[maybe_unused]] Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     sentryTurrets.setDefaultCommand(&turretUserControlCommand);

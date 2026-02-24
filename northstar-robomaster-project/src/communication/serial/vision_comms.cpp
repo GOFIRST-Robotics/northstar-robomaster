@@ -97,6 +97,7 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
             }
         }
     }
+    return true;
 }
 
 void VisionComms::sendRobotIdMessage()

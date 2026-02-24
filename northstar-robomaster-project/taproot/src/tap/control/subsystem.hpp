@@ -130,7 +130,10 @@ public:
      */
     mockable inline Command* getTestCommand() const { return testCommand; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual const char* getName() const;
+#pragma GCC diagnostic pop
 
     mockable inline int getGlobalIdentifier() const { return globalIdentifier; }
 
