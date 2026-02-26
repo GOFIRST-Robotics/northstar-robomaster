@@ -104,7 +104,7 @@ using namespace tap::communication::serial;
 // #define REV_THREE_FLYWHEEL_TEST
 #define DJI_TWO_FLYWHEEL_TEST
 // #define REV_TEST
-#define AGITATOR_TEST
+// #define AGITATOR_TEST
 // #define SENTRY_TURRET_TEST
 // #define SENTRY_CONSTANTS
 // #define NEO_TURRET_TEST
@@ -135,7 +135,7 @@ TwoFlywheelRunRPMCommand flywheelRunCommand(&flywheel, 6500.0f);
 ToggleCommandMapping leftSwitchUpFlywheelRun(
     drivers(),
     {&flywheelRunCommand},
-    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
+    RemoteMapState(RemoteMapState::MouseButton::LEFT));
 
 #endif
 
