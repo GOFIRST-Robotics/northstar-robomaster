@@ -86,7 +86,9 @@ public:
 
     float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
-    float getMaxCurrentOutput(bool refSerialOnline, float chassisPowerLimit);
+    float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
+
+    float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
     void refresh() override;
 
