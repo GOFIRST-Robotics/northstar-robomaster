@@ -10,7 +10,6 @@ using tap::algorithms::limitVal;
 namespace src::chassis
 {
 modm::Pair<int, float> lastComputedMaxWheelSpeed = CHASSIS_POWER_TO_MAX_SPEED_LUT[0];
-modm::Pair<int, float> lastComputedMaxAccelSpeed = CHASSIS_POWER_TO_MAX_ACCEL_LUT[0];
 
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
@@ -136,15 +135,14 @@ float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
     // P
     float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
-    currRotationPidP =
-        limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 
     // D
     float currentRotationPidD = -(drivers->bmi088.getGz()) * CHASSIS_ROTATION_D;  // D
 
-    currentRotationPidD = limitVal<float>(currentRotationPidD, -1, 1);
-
-    float chassisRotationSpeed = limitVal<float>(currRotationPidP + currentRotationPidD, -1, 1);
+    float chassisRotationSpeed = limitVal<float>(
+        currRotationPidP + currentRotationPidD,
+        -CHASSIS_ROTATION_MAX_VEL,
+        CHASSIS_ROTATION_MAX_VEL);
 
     return chassisRotationSpeed;
 }
@@ -169,39 +167,17 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxWheelSpeed.second;
 }
 
-float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit)
-{
-    if (!refSerialOnline)
-    {
-        chassisPowerLimit = 80;
-    }
-
-    // only re-interpolate when needed (since this function is called a lot and the chassis
-    // power limit rarely changes, this helps cut down on unnecessary array
-    // searching/interpolation)
-    if (lastComputedMaxAccelSpeed.first != (int)chassisPowerLimit)
-    {
-        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
-        lastComputedMaxAccelSpeed.second =
-            CHASSIS_POWER_TO_ACCEL_INTERPOLATOR.interpolate(chassisPowerLimit);
-    }
-
-    return lastComputedMaxAccelSpeed.second;
-}
-
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
     float rotational,
     float heading)
 {
-    float maxAccelSpeed =
-        getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassiPowerLimit());
     rampControllers[0].setTarget(forward);
-    rampControllers[0].update(maxAccelSpeed);
+    rampControllers[0].update(CHASSIS_ACCEL_VALUE);
     float rampedForward = rampControllers[0].getValue();
     rampControllers[1].setTarget(sideways);
-    rampControllers[1].update(maxAccelSpeed);
+    rampControllers[1].update(CHASSIS_ACCEL_VALUE);
     float rampedSideways = rampControllers[1].getValue();
     double cos_theta = cos(heading);
     double sin_theta = sin(heading);

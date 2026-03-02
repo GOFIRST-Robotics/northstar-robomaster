@@ -81,14 +81,11 @@ public:
 
     float getChassiPowerLimit()
     {
-        return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
+        return 120.0f;
+        // return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
     float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
     void refresh() override;
 
