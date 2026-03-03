@@ -19,6 +19,8 @@ namespace src::chassis
 class ChassisOdometry
 {
     static constexpr float ONE_OVER_THREE = 1.0f / 3.0f;
+    static constexpr float VELOCITY_SMOOTHING_ALPHA =
+        0.98f;  // 0-1, 1 = no smoothing, 0 = max smoothing
 
     tap::communication::sensors::imu::bmi088::Bmi088* imu;
     tap::motor::DjiMotor* turretYaw;
@@ -30,6 +32,7 @@ class ChassisOdometry
     modm::Vector<float, 2> positionGlobal;
     modm::Vector<float, 2> velocityGlobal;
     modm::Vector<float, 2> velocityLocal;
+    modm::Vector<float, 2> velocitySmoothedLocal;
     modm::Vector<float, 3> velocity3dGlobal;
     modm::Vector<float, 2> positionProjectedGlobal;
     modm::Vector<float, 2> velocityProjectedGlobal;
@@ -85,7 +88,8 @@ public:
             return;
         }
 
-        float deltaTimeSeconds = (currentTimeMicroSeconds - previousTimeMicroSeconds) / 1'000'000.0;
+        float deltaTimeSeconds =
+            (currentTimeMicroSeconds - previousTimeMicroSeconds) / 1'000'000.0f;
         previousTimeMicroSeconds = currentTimeMicroSeconds;
 
         float mps_LF = motorRPS_LF * RPS_TO_MPS;
@@ -99,13 +103,15 @@ public:
         velocityLocal.x = localVelX;
         velocityLocal.y = localVelY;
 
+        velocitySmoothedLocal = vectorLowPassFilter(velocityLocal, velocitySmoothedLocal, 0.5f);
+
         // velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
 
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
         rotation = calculateRobotHeading();
 
-        velocityGlobal = convertLocalToGlobal(velocityLocal);
+        velocityGlobal = convertLocalToGlobal(velocitySmoothedLocal);
         positionGlobal += velocityGlobal * deltaTimeSeconds;
 
         velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
@@ -150,6 +156,14 @@ public:
     float getImuPitch() { return imu->getPitch(); }
     float getImuYaw() { return imu->getYaw(); }
     float getImuRoll() { return imu->getRoll(); }
+
+    modm::Vector<float, 2> vectorLowPassFilter(
+        modm::Vector<float, 2> current,
+        modm::Vector<float, 2> previous,
+        float alpha)
+    {
+        return (current * alpha) + (previous * (1.0f - alpha));
+    }
 };
 
 }  // namespace src::chassis

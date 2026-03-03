@@ -264,6 +264,8 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
 
+double chassisRotationOdom;
+
 void ChassisSubsystem::refresh()
 {
     auto runPid = [](Pid& pid, Motor& motor, float desiredOutput) {
@@ -289,5 +291,7 @@ void ChassisSubsystem::refresh()
     desiredOutputDebug1 = desiredOutput[1];
     desiredOutputDebug2 = desiredOutput[2];
     desiredOutputDebug3 = desiredOutput[3];
+
+    chassisRotationOdom = chassisOdometry->getRotation();
 }
 }  // namespace src::chassis
