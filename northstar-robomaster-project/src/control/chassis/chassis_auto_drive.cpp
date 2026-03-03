@@ -30,9 +30,6 @@ void ChassisAutoDrive::addCurveToPath(CubicBezier newPoint)
     }
 }
 
-float xDir;
-float yDir;
-
 void ChassisAutoDrive::updateAutoDrive()
 {
     if (!tryUpdatePath())
@@ -47,7 +44,6 @@ void ChassisAutoDrive::updateAutoDrive()
 
     if (distanceToTarget < T_CHECK)
     {
-        // currentT += path.front().evaluateDerivative(currentT).getLength() * 0.005f;
         currentT += T_INCREASE;
         return;
     }
@@ -59,26 +55,34 @@ void ChassisAutoDrive::updateAutoDrive()
     {
         slowdownMult = distanceToEnd / SLOWDOWN_DISTANCE;
 
-        if (slowdownMult < 0.1f)
+        if (slowdownMult < 0.15f)
         {
-            slowdownMult = 0.1f;
+            slowdownMult = 0.15f;
         }
     }
 
     modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, T_LOOKAHEAD);
     modm::Vector<float, 2> lookaheadDirection = getDirectionToLookaheadPoint(currentT, T_LOOKAHEAD);
+    modm::Vector<float, 2> globalVelocity = chassisOdometry->getVelocityGlobal();
+
+    float dot = lookaheadDirection.normalize().dot(globalVelocity);
+    if (dot < 0.5f)
+    {
+        dot = 0.5f;
+    }
+    else if (dot > 1.0f)
+    {
+        dot = 1.0f;
+    }
 
     desiredGlobalVelocity = clampMagnitude(
-        ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
-         lengthOfCurrentCurve()) *
-            1.5f * slowdownMult,
+        ((dirToTarget / distanceToTarget) *
+         (lookaheadDerivative.getLength() / lengthOfCurrentCurve())) *
+            (slowdownMult * dot),
         MINIMUM_MPS,
         MAXIMUM_MPS);
 
-    xDir = desiredGlobalVelocity.x;
-    yDir = desiredGlobalVelocity.y;
-
-    calculateRotationToFacePoint(lookaheadDirection, desiredGlobalVelocity.getLength());
+    calculateRotationToFacePoint(lookaheadDirection);
 }
 
 };  // namespace src::chassis

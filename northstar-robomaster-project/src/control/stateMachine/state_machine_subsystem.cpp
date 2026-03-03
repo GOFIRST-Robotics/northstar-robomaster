@@ -36,11 +36,9 @@ void StateMachineSubsystem::refresh()
 
         return;
     }
-    if (true || !chassisAutoDrive->hasValidPath())
+    if (!chassisAutoDrive->hasValidPath())
     {
-        float rotationFromPID = chassisSubsystem->chassisSpeedRotationAutoDrivePID(
-            chassisSubsystem->getDifferenceToTargetAngle(0));
-        chassisSubsystem->setVelocityFieldDrive(0, 0, rotationFromPID);
+        chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
         return;
     }
 
