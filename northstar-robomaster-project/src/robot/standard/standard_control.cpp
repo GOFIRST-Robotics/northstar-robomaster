@@ -133,12 +133,12 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 
 PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
-PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
+// PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
-PressCommandMapping ctrlShiftZSong(
-    drivers(),
-    {&playMegalovaniaCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
+// PressCommandMapping ctrlShiftZSong(
+//     drivers(),
+//     {&playMegalovaniaCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
 FlywheelSubsystem flywheel(
@@ -436,7 +436,7 @@ src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
     1,
     -1,
     M_PI,
-    true);
+    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -491,6 +491,11 @@ ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     {&chassisBeyBladeFastCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
+ToggleCommandMapping qPressedNormDrive(
+    drivers(),
+    {&chassisDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
+
 ToggleCommandMapping rPressedOrientDrive(
     drivers(),
     {&chassisOrientDriveCommand},
@@ -532,7 +537,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playMegalovaniaCommand);
+    &playTwinkleCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -608,7 +613,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -618,7 +623,7 @@ void setDefaultStandardCommands(Drivers *drivers)
 void startStandardCommands(Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
@@ -635,12 +640,13 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
     drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
+    drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
-    drivers->commandMapper.addMap(&ctrlShiftZSong);
+    // drivers->commandMapper.addMap(&ctrlShiftZSong);
 }
 }  // namespace standard_control
 

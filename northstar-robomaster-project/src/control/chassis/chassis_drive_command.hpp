@@ -2,6 +2,8 @@
 
 #include "tap/control/command.hpp"
 
+#include "control/chassis/constants/chassis_constants.hpp"
+
 namespace src
 {
 class Drivers;
@@ -19,8 +21,6 @@ class ChassisSubsystem;
 class ChassisDriveCommand : public tap::control::Command
 {
 public:
-    static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
-
     ChassisDriveCommand(
         ChassisSubsystem *chassis,
         src::control::ControlOperatorInterface *operatorInterface);

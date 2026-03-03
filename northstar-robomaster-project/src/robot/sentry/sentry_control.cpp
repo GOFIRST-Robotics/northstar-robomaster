@@ -723,7 +723,7 @@ void setDefaultSentryCommands(Drivers *drivers)
 void startSentryCommands(Drivers *drivers)
 {
     drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(-45), 0));
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
 }
 
 void registerSentryIoMappings(Drivers *drivers)

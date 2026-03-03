@@ -52,17 +52,17 @@ public:
 
     float getCurrentLeftFlywheelMotorRPM() const
     {
-        return leftWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+        return leftWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI);
     }
 
     float getCurrentRightFlywheelMotorRPM() const
     {
-        return rightWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+        return rightWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI);
     }
 
     float getCurrentUpFlywheelMotorRPM() const
     {
-        return upWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI) * 60;
+        return upWheel.getEncoder()->getVelocity() * 60 / (2 * M_PI);
     }
 
     void refresh() override;
