@@ -312,20 +312,10 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI,
-    true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
     true);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
@@ -343,14 +333,14 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 // GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
 //     {&chassisSubsystem},
 //     chassisBeyBladeSlowCommand,
-//     chassisBeyBladeFastCommand,
+//     chassisBeyBladeCommand,
 //     {&firedRecentlyGovernor, &plateHitGovernor},
 //     true);
 
 // chassis Mappings
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 // imu commands
@@ -396,14 +386,14 @@ FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, 
 //     *drivers(),
 //     (tap::control::Subsystem)agitator,
 //     // imuCalibrateCommand,
-//     {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
+//     {&chassisWiggleCommand, &chassisBeyBladeCommand},
 //     refSerialTransmitter);
 
 HeroSpinIndicator heroSpinIndicator(
     refSerialTransmitter,
     drivers()->refSerial,
     *drivers(),
-    &chassisBeyBladeFastCommand,
+    &chassisBeyBladeCommand,
     &chassisWiggleCommand);
 
 std::vector<HudIndicator *> hudIndicators = {
