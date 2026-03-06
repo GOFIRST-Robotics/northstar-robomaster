@@ -57,6 +57,18 @@ void VTM13::clearDataBuffer()
     drivers->uart.discardReceiveBuffer(Uart::UartPort::Uart1);
 }
 
+void VTM13::reset()
+{
+    state = VTM13_State{};
+    clearDataBuffer();
+    drivers->commandMapper.handleKeyStateChange(
+        0,
+        tap::communication::serial::Remote::SwitchState::UNKNOWN,
+        tap::communication::serial::Remote::SwitchState::UNKNOWN,
+        false,
+        false);
+}
+
 bool VTM13::isConnected() const { return connected; }
 
 void VTM13::parseDataFrame()
@@ -125,6 +137,15 @@ void VTM13::parseDataFrame()
 
     // CRC (16 bits at the end of frame)
     state.crc = static_cast<uint16_t>(readBits(rel(152), 16));
+
+    drivers->commandMapper.handleKeyStateChange(
+        state.keyboard,
+        state.leftButton ? tap::communication::serial::Remote::SwitchState::DOWN
+                         : tap::communication::serial::Remote::SwitchState::UP,
+        state.rightButton ? tap::communication::serial::Remote::SwitchState::DOWN
+                          : tap::communication::serial::Remote::SwitchState::UP,
+        state.mouseLeft != 0,
+        state.mouseRight != 0);
 
     updateCounter++;
 }

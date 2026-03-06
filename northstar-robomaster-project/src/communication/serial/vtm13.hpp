@@ -23,28 +23,6 @@ struct VTM13ChannelOffset
     u_int8_t length;  // bits
 };
 
-namespace Channels
-{
-static constexpr VTM13ChannelOffset RIGHT_HORIZONTAL{16, 11};
-static constexpr VTM13ChannelOffset RIGHT_VERTICAL{27, 11};
-static constexpr VTM13ChannelOffset LEFT_VERTICAL{38, 11};
-static constexpr VTM13ChannelOffset LEFT_HORIZONTAL{49, 11};
-static constexpr VTM13ChannelOffset MODE_SWITCH{60, 2};
-static constexpr VTM13ChannelOffset PAUSE_BUTTON{62, 1};
-static constexpr VTM13ChannelOffset LEFT_BUTTON{63, 1};
-static constexpr VTM13ChannelOffset RIGHT_BUTTON{64, 1};
-static constexpr VTM13ChannelOffset DIAL{65, 11};
-static constexpr VTM13ChannelOffset TRIGGER{76, 1};
-static constexpr VTM13ChannelOffset MOUSE_X{80, 16};
-static constexpr VTM13ChannelOffset MOUSE_Y{96, 16};
-static constexpr VTM13ChannelOffset MOUSE_SCROLL{112, 16};
-static constexpr VTM13ChannelOffset MOUSE_LEFT{128, 2};
-static constexpr VTM13ChannelOffset MOUSE_RIGHT{130, 2};
-static constexpr VTM13ChannelOffset MOUSE_MIDDLE{132, 2};
-static constexpr VTM13ChannelOffset KEYBOARD{136, 16};
-static constexpr VTM13ChannelOffset CYCLIC_REDUNDANCY_CHECK{152, 16};
-}  // namespace Channels
-
 struct VTM13_State
 {
     // Stick channels (11-bit each, centered at 1024 in raw frame; we convert to signed).
@@ -93,6 +71,7 @@ public:
 
     void initialize();
     void read();
+    void reset();
 
     bool isConnected() const;
 
