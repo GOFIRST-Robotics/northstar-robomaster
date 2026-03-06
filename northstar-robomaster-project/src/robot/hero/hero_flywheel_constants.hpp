@@ -62,8 +62,11 @@ static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
            {10.0f, 5'300.0f},
            {15.0f, 8'000.0f}}}}};
 
-static std::array<modm::Pair<float, float>, 4> MPS_TO_RPM = {
-    {{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}};
+static constexpr modm::Pair<float, float> MPS_TO_RPM[] = {
+    {0.0f, 0.0f},
+    {15.0f, 4714.0f},
+    {18.0f, 5621.0f},
+    {24.5f, 7700.0f}};
 
 inline std::optional<Spin> toSpinPreset(int value)
 {
