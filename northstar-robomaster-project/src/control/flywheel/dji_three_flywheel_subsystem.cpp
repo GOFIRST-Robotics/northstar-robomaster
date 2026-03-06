@@ -1,5 +1,4 @@
-#ifdef TARGET_HERO
-#include "hero_flywheel_subsystem.hpp"
+#include "dji_three_flywheel_subsystem.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 
@@ -11,32 +10,31 @@ using namespace src::flywheel;
 
 namespace src::control::flywheel
 {
-HeroFlywheelSubsystem::HeroFlywheelSubsystem(
+DJIThreeFlywheelSubsystem::DJIThreeFlywheelSubsystem(
     tap::Drivers *drivers,
     tap::motor::MotorId leftMotorId,
     tap::motor::MotorId rightMotorId,
     tap::motor::MotorId downMotorId,
     tap::can::CanBus canBus)
-    : tap::control::Subsystem(drivers),
-      spinToRPMMap(SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
+    : ThreeFlywheelSubsystem(drivers, SPIN_TO_INTERPOLATABLE_MPS_TO_RPM),
       velocityPidLeftWheel(
-          FLYWHEEL_PID_KP,
-          FLYWHEEL_PID_KI,
-          FLYWHEEL_PID_KD,
-          FLYWHEEL_PID_MAX_ERROR_SUM,
-          FLYWHEEL_PID_MAX_OUTPUT),
+          FLYWHEEL_PID_KP_DJI,
+          FLYWHEEL_PID_KI_DJI,
+          FLYWHEEL_PID_KD_DJI,
+          FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
+          FLYWHEEL_PID_MAX_OUTPUT_DJI),
       velocityPidRightWheel(
-          FLYWHEEL_PID_KP,
-          FLYWHEEL_PID_KI,
-          FLYWHEEL_PID_KD,
-          FLYWHEEL_PID_MAX_ERROR_SUM,
-          FLYWHEEL_PID_MAX_OUTPUT),
+          FLYWHEEL_PID_KP_DJI,
+          FLYWHEEL_PID_KI_DJI,
+          FLYWHEEL_PID_KD_DJI,
+          FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
+          FLYWHEEL_PID_MAX_OUTPUT_DJI),
       velocityPidDownWheel(
-          FLYWHEEL_PID_KP,
-          FLYWHEEL_PID_KI,
-          FLYWHEEL_PID_KD,
-          FLYWHEEL_PID_MAX_ERROR_SUM,
-          FLYWHEEL_PID_MAX_OUTPUT),
+          FLYWHEEL_PID_KP_DJI,
+          FLYWHEEL_PID_KI_DJI,
+          FLYWHEEL_PID_KD_DJI,
+          FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
+          FLYWHEEL_PID_MAX_OUTPUT_DJI),
       leftWheel(drivers, leftMotorId, canBus, true, "Left Flywheel"),
       rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
       downWheel(drivers, downMotorId, canBus, true, "Down Flywheel"),
@@ -47,7 +45,7 @@ HeroFlywheelSubsystem::HeroFlywheelSubsystem(
       desiredRpmRampRight(0),
       desiredRpmRampDown(0){};
 
-void HeroFlywheelSubsystem::initialize()
+void DJIThreeFlywheelSubsystem::initialize()
 {
     leftWheel.initialize();
     rightWheel.initialize();
@@ -55,7 +53,7 @@ void HeroFlywheelSubsystem::initialize()
     prevTime = tap::arch::clock::getTimeMilliseconds();
 }
 
-void HeroFlywheelSubsystem::setDesiredSpin(u_int16_t spin)
+void DJIThreeFlywheelSubsystem::setDesiredSpin(u_int16_t spin)
 {
     if (auto spinSet = toSpinPreset(spin))
     {
@@ -64,32 +62,41 @@ void HeroFlywheelSubsystem::setDesiredSpin(u_int16_t spin)
     }
 }
 
-void HeroFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
+void DJIThreeFlywheelSubsystem::setDesiredLaunchSpeed(float speed)
 {
-    desiredLaunchSpeedLeft = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED);
-    desiredLaunchSpeedDown =
-        limitVal(speed * (desiredSpinValue / 100.0f), 0.0f, MAX_DESIRED_LAUNCH_SPEED);  // uses spin
+    desiredLaunchSpeedLeft = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED_RPM);
+    desiredLaunchSpeedRight = limitVal(speed, 0.0f, MAX_DESIRED_LAUNCH_SPEED_RPM);
+    desiredLaunchSpeedDown = limitVal(
+        speed * (desiredSpinValue / 100.0f),
+        0.0f,
+        MAX_DESIRED_LAUNCH_SPEED_RPM);  // uses spin
 
     desiredRpmRampLeft.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedLeft));
     desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedRight));
     desiredRpmRampDown.setTarget(launchSpeedToFlywheelRpm(desiredLaunchSpeedDown));
 }
 
-float HeroFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
+void DJIThreeFlywheelSubsystem::setDesiredFlywheelSpeed(float rpm)
+{
+    desiredRpmRampLeft.setTarget(launchSpeedToFlywheelRpm(rpm));
+    desiredRpmRampRight.setTarget(launchSpeedToFlywheelRpm(rpm));
+    desiredRpmRampDown.setTarget(launchSpeedToFlywheelRpm(rpm * (desiredSpinValue / 100.0f)));
+}
+
+float DJIThreeFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) const
 {
     modm::interpolation::Linear<modm::Pair<float, float>> MPSToRPMInterpolator = {
         spinToRPMMap.at(desiredSpin).data(),
         spinToRPMMap.at(desiredSpin).size()};
     return MPSToRPMInterpolator.interpolate(launchSpeed);
 }
-float debugWheelLeft = 0;
-float debugWheelRight = 0;
-float debugWheelDown = 0;
-float debugDesiredLeft = 0;
-float debugDesiredRight = 0;
-float debugDesiredDown = 0;
-void HeroFlywheelSubsystem::refresh()
+float debugWheelLeft2 = 0;
+float debugWheelRight2 = 0;
+float debugWheelDown2 = 0;
+float debugDesiredLeft2 = 0;
+float debugDesiredRight2 = 0;
+float debugDesiredDown2 = 0;
+void DJIThreeFlywheelSubsystem::refresh()
 {
     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
     if (currTime == prevTime)
@@ -106,13 +113,11 @@ void HeroFlywheelSubsystem::refresh()
     rightWheel.setDesiredOutput(static_cast<int32_t>(velocityPidRightWheel.getValue()));
     velocityPidDownWheel.update(desiredRpmRampDown.getValue() - getWheelRPM(&downWheel));
     downWheel.setDesiredOutput(static_cast<int32_t>(velocityPidDownWheel.getValue()));
-    debugDesiredLeft = desiredRpmRampLeft.getValue();
-    debugDesiredRight = desiredRpmRampRight.getValue();
-    debugDesiredDown = desiredRpmRampDown.getValue();
-    debugWheelLeft = getWheelRPM(&leftWheel);
-    debugWheelRight = getWheelRPM(&rightWheel);
-    debugWheelDown = getWheelRPM(&downWheel);
+    debugDesiredLeft2 = desiredRpmRampLeft.getValue();
+    debugDesiredRight2 = desiredRpmRampRight.getValue();
+    debugDesiredDown2 = desiredRpmRampDown.getValue();
+    debugWheelLeft2 = getWheelRPM(&leftWheel);
+    debugWheelRight2 = getWheelRPM(&rightWheel);
+    debugWheelDown2 = getWheelRPM(&downWheel);
 }
 }  // namespace src::control::flywheel
-
-#endif  // TARGET_HERO
