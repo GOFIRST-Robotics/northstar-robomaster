@@ -29,8 +29,6 @@
 #include "control/agitator/constants/agitator_constants.hpp"
 #include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
-#include "robot/hero/hero_agitator_shoot_command.hpp"
-#include "robot/hero/hero_agitator_subsystem.hpp"
 
 // turret
 #include "communication/RevMotorTester.hpp"
@@ -127,13 +125,10 @@ ToggleCommandMapping leftSwitchUpPressedFlywheel(
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
 
 // agitator subsystem
-HeroAgitatorSubsystem agitator(
+VelocityAgitatorSubsystem agitator(
     drivers(),
-    constants::AGITATOR_CONFIG,
-    constants::AGITATOR_PID_CONFIG);
-
-// agitator commands
-HeroAgitatorShootCommand agitatorShootCommand(&agitator);
+    constants::AGITATOR_PID_CONFIG,
+    constants::AGITATOR_CONFIG);
 
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
