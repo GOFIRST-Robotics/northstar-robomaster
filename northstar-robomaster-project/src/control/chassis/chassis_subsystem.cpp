@@ -227,10 +227,10 @@ void ChassisSubsystem::driveBasedOnHeading(
     rampControllers[1].setTarget(sideways);
     rampControllers[1].update(maxAccelSpeed);
     float rampedSideways = rampControllers[1].getValue();
-    double cos_theta = cos(heading);
-    double sin_theta = sin(heading);
-    double vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
-    double vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
+    float cos_theta = cos(heading);
+    float sin_theta = sin(heading);
+    float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+    float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
     LFSpeed = mpsToRpm(
         (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
