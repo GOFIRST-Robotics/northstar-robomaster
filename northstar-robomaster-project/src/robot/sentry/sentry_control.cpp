@@ -123,19 +123,9 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 // PlaySongCommand playStartupSongCommand(&buzzerSubsystem, rouser_song);
 
-ToggleCommandMapping fNotCtrlPressed(
-    drivers(),
-    {&flywheelRunCommandBottom},
-    RemoteMapState({Remote::Key::F}, {Remote::Key::CTRL}));
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
-RevThreeFlywheelSubsystem flywheelTop(
-    drivers(),
-    LEFT_MOTOR_ID_TOP,
-    RIGHT_MOTOR_ID_TOP,
-    UP_MOTOR_ID_TOP,
-    CAN_BUS);
-
-ThreeFlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -398,19 +388,11 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     -1,
     true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
-    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -439,7 +421,7 @@ PressCommandMapping lClickPressedDriveOneMeter(
 
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 ToggleCommandMapping rPressedOrientDrive(
@@ -460,7 +442,7 @@ ToggleCommandMapping zPressedNotCtrlWiggle(
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
     true);
 
