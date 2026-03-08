@@ -16,10 +16,12 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// chassis
+#include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_drive_distance_command.hpp"
+#include "control/chassis/chassis_drive_to_point_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
@@ -83,6 +85,7 @@
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
 #include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/tuff_startup_noise.hpp"
 #include "control/buzzer/song/twinkle_twinkle.hpp"
 
 // HUD
@@ -384,6 +387,13 @@ ToggleCommandMapping gPressed(
 //     RemoteMapState(RemoteMapState::MouseButton::LEFT),
 //     false);
 
+// chassis odometry
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -400,7 +410,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &yawMotor,
+    chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -422,33 +433,12 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
-src::chassis::ChassisDriveDistanceCommand driveDist1(
+src::chassis::ChassisDriveToPointCommand driveToOneMeterForward(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    3,
+    chassisOdometry,
     0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist2(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    3,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist3(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    -3,
-    0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist4(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    -3,
-    0.2);
+    1,
+    0.02);
 
 // Chassis Governors
 
@@ -464,6 +454,11 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     false);
 
 // chassis Mappings
+PressCommandMapping lClickPressedDriveOneMeter(
+    drivers(),
+    {&driveToOneMeterForward},
+    RemoteMapState(RemoteMapState::MouseButton::LEFT));
+
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
     {&chassisBeyBladeCommand},
@@ -514,8 +509,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem,
-    &playTwinkleCommand);
+    &chassisSubsystem);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -591,7 +585,8 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands(Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //
+    // chassisOrientDriveCommand);
     // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
@@ -600,8 +595,14 @@ void setDefaultStandardCommands(Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(-135),
+        modm::toRadian(-90)));
+
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 

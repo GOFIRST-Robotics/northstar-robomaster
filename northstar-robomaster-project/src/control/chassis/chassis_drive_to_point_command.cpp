@@ -1,4 +1,4 @@
-#include "chassis_drive_distance_command.hpp"
+#include "chassis_drive_to_point_command.hpp"
 
 #include "tap/algorithms/math_user_utils.hpp"
 
@@ -8,11 +8,11 @@ using tap::algorithms::limitVal;
 
 namespace src::chassis
 {
-ChassisDriveDistanceCommand::ChassisDriveDistanceCommand(
+ChassisDriveToPointCommand::ChassisDriveToPointCommand(
     ChassisSubsystem* chassis,
     src::chassis::ChassisOdometry* chassisOdometry,
-    float xDist,
-    float yDist,
+    float xPosition,
+    float yPosition,
     float maxError)
     : chassis(chassis),
       chassisOdometry(chassisOdometry),
@@ -20,14 +20,12 @@ ChassisDriveDistanceCommand::ChassisDriveDistanceCommand(
 
 {
     addSubsystemRequirement(chassis);
-
-    targetPosition = chassisOdometry->getPositionGlobal() +
-                     chassisOdometry->convertLocalToGlobal(modm::Vector<float, 2>(xDist, yDist));
+    targetPosition = modm::Vector<float, 2>(xPosition, yPosition);
 }
 
-void ChassisDriveDistanceCommand::initialize() {}
+void ChassisDriveToPointCommand::initialize() {}
 
-void ChassisDriveDistanceCommand::execute()
+void ChassisDriveToPointCommand::execute()
 {
     auto scale = [](float raw) -> float { return limitVal(raw, -1.0f, 1.0f) * 0.5f; };
     modm::Vector<float, 2> dirToTarget = (targetPosition - chassisOdometry->getPositionGlobal());
@@ -45,18 +43,15 @@ void ChassisDriveDistanceCommand::execute()
     }
     else
     {
-        velocityToTarget = dirToTarget;
+        velocityToTarget = dirToTarget.normalized();
     }
 
     chassis->setVelocityFieldDrive(velocityToTarget.y, velocityToTarget.x, 0);
 }
 
-void ChassisDriveDistanceCommand::end(bool interrupted)
-{
-    chassis->setVelocityTurretDrive(0, 0, 0);
-}
+void ChassisDriveToPointCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
 
-bool ChassisDriveDistanceCommand::isFinished() const
+bool ChassisDriveToPointCommand::isFinished() const
 {
     return chassisOdometry->getPositionGlobal().getDistanceTo(targetPosition) <= maxError;
 }

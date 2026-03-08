@@ -126,6 +126,10 @@ int main()
         {
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
         }
+#if defined(TARGET_SENTRY)
+        PROFILE(drivers->profiler, drivers->visionComms.sendMessage, ());
+#endif
+
 #endif
         modm::delay_us(10);
     }
@@ -141,6 +145,7 @@ static void initializeIo(Drivers *drivers)
     drivers->errorController.init();
     // drivers->terminalSerial.initialize();
     drivers->bmi088.initialize(500, .001, 0);
+    drivers->visionComms.initializeUartDelays();
 
 #if defined(TARGET_STANDARD) || defined(TARGET_HERO)
     drivers->turretMCBCanCommBus2.init();

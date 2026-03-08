@@ -267,7 +267,7 @@ void WorldFramePitchChassisImuTurretController::runController(
         turretMotor.getValidMinError(worldFrameSetpoint, worldFramePitchAngle);
     float pidOutput = pid.runController(
         positionControllerError,
-        turretMotor.getChassisFrameVelocity() + drivers.bmi088.getGx(),
+        turretMotor.getChassisFrameVelocity() + drivers.bmi088.getGy(),
         dt);
     pidOutput += -computeGravitationalForceOffset(
         TURRET_CG_X,

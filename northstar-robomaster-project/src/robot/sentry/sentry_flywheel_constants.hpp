@@ -11,12 +11,9 @@ namespace src::control::flywheel
 {
 static constexpr float FRICTION_WHEEL_RAMP_SPEED = 8.0f;
 
-static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR1;
-static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR3;
-static constexpr tap::motor::REVMotorId UP_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR2;
-static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID_TOP = tap::motor::REV_MOTOR4;
-static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID_TOP = tap::motor::REV_MOTOR6;
-static constexpr tap::motor::REVMotorId UP_MOTOR_ID_TOP = tap::motor::REV_MOTOR5;
+static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID = tap::motor::REV_MOTOR1;
+static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID = tap::motor::REV_MOTOR3;
+static constexpr tap::motor::REVMotorId UP_MOTOR_ID = tap::motor::REV_MOTOR2;
 
 static constexpr tap::motor::MotorId LEFT_MOTOR_ID_DJI = tap::motor::MOTOR1;
 static constexpr tap::motor::MotorId RIGHT_MOTOR_ID_DJI = tap::motor::MOTOR2;
@@ -60,6 +57,25 @@ static constexpr modm::Pair<float, float> MPS_TO_RPM[] = {
     {15.0f, 4714.0f},
     {18.0f, 5621.0f},
     {24.5f, 7700.0f}};
+
+// SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
+//     {{{{0.0f, 0.0f},
+//        {15.0f, 4'500.0f},
+//        {18.0f, 5'700.0f},
+//        {30.0f, 6'400.0f},
+//        {32.0f, 7'000.0f}}},  // SPIN_90
+//      {{{0.0f, 0.0f},
+//        {15.0f, 4'500.0f},
+//        {18.0f, 5'700.0f},
+//        {30.0f, 6'400.0f},
+//        {32.0f, 7'000.0f}}},  // SPIN_100
+//      {{
+//          {0.0f, 0.0f},
+//          {15.0f, 4'500.0f},
+//          {18.0f, 5'700.0f},
+//          {30.0f, 6'400.0f},
+//          {32.0f, 7'000.0f}  // SPIN_110
+//      }}}};
 
 inline std::optional<Spin> toSpinPreset(int value)
 {

@@ -4,12 +4,11 @@ namespace src::serial
 {
 VisionComms::VisionComms(tap::Drivers* drivers)
     : DJISerial(drivers, VISION_COMMS_RX_UART_PORT),
-      lastAimData()
+      lastAimData(),
+      chassisOdometry(nullptr),
+      chassisAutoDrive(nullptr),
+      pitchMotor(nullptr)
 {
-    for (size_t i = 0; i < control::turret::NUM_TURRETS; i++)
-    {
-        // this->lastAimData[i].updated = false;
-    }
 }
 
 VisionComms::~VisionComms() {}
@@ -20,11 +19,19 @@ void VisionComms::initializeCV()
     drivers->uart.init<VISION_COMMS_TX_UART_PORT, VISION_COMMS_BAUD_RATE>();
 }
 
+void VisionComms::initializeUartDelays()
+{
+    sendHealthMsgTimeout.stop();
+    sendRefTurretDataMsgTimeout.stop();
+    sendRobotIDMsgTimeout.stop();
+    sendOdometryMsgTimeout.stop();
+}
+
 void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMessage)
 {
     switch (completeMessage.messageType)
     {
-        case MessageType::TURRET_DATA:
+        case MessageType::TURRET_AIM_DATA:
         {
             decodeToTurretAimData(completeMessage);
             return;
@@ -39,12 +46,15 @@ void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMe
             cvOfflineTimeout.restart(TIME_OFFLINE_CV_AIM_DATA_MS);
             return;
         }
-        case 4:
+        case MessageType::ODOMETRY:
         {
+            decodeToOdometeryData(completeMessage);
             return;
         }
-        case 5:
+
+        case MessageType::AUTO_PATH:
         {
+            decodeToAutoPathData(completeMessage);
             return;
         }
 
@@ -99,17 +109,225 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
     }
 }
 
+bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)
+{
+    if (sizeof(OdometryData) > message.header.dataLength)
+    {
+        return false;
+    }
+
+    OdometryData cleanData;
+
+    std::memcpy(&cleanData, message.data, sizeof(OdometryData));
+
+    chassisOdometry->setOdometry(
+        {cleanData.chassis_data.pos_x, cleanData.chassis_data.pos_y},
+        {cleanData.chassis_data.vel_x, cleanData.chassis_data.vel_y},
+        cleanData.turret_data.yaw);
+
+    return true;
+}
+
+bool VisionComms::decodeToAutoPathData(const ReceivedSerialMessage& message)
+{
+    assert(chassisAutoDrive != nullptr);
+
+    if (sizeof(CubicBezier::CurveData) > message.header.dataLength)
+    {
+        return false;
+    }
+
+    CubicBezier::CurveData wireData;
+
+    std::memcpy(&wireData, message.data, sizeof(CubicBezier::CurveData));
+
+    CubicBezier newCurve(wireData);
+
+    chassisAutoDrive->resetPath();
+    chassisAutoDrive->addCurveToPath(newCurve);
+
+    return true;
+}
+
+void VisionComms::sendMessage()
+{  // TODO: make these depend on which robot type is selected to make sure that we only send what we
+   // need
+    if (messageOffsetInitializationTimeout.isExpired())
+    {
+        sendRobotOdometry();
+        sendRobotIdMessage();
+        sendHealthData();
+        sendTurretRefData();
+    }
+    else
+    {
+        if (sendOdometryMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_ODOMETRY_MSG)
+        {
+            sendOdometryMsgTimeout.restart();
+        }
+
+        if (sendRobotIDMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_ROBOT_ID_MSG)
+        {
+            sendRobotIDMsgTimeout.restart();
+        }
+
+        if (sendHealthMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() < TIME_BEFORE_SENDING_HEALTH_MSG)
+        {
+            sendHealthMsgTimeout.restart();
+        }
+
+        if (sendRefTurretDataMsgTimeout.isStopped() &&
+            messageOffsetInitializationTimeout.timeRemaining() <
+                TIME_BTWN_SENDING_REF_TURRET_DATA_MSG)
+        {
+            sendRefTurretDataMsgTimeout.restart();
+        }
+    }
+}
+
 void VisionComms::sendRobotIdMessage()
 {
-    DJISerial::SerialMessage<1> robotTypeMessage;
-    robotTypeMessage.messageType = MessageType::ROBOT_ID;
-    robotTypeMessage.data[0] = static_cast<uint8_t>(drivers->refSerial.getRobotData().robotId);
-    robotTypeMessage.setCRC16();
-    drivers->uart.write(
-        VISION_COMMS_TX_UART_PORT,
-        reinterpret_cast<uint8_t*>(&robotTypeMessage),
-        sizeof(robotTypeMessage));
+    if (sendRobotIDMsgTimeout.execute())
+    {
+        DJISerial::SerialMessage<1> robotTypeMessage;
+        robotTypeMessage.messageType = MessageType::ROBOT_ID;
+        robotTypeMessage.data[0] = static_cast<uint8_t>(drivers->refSerial.getRobotData().robotId);
+        robotTypeMessage.setCRC16();
+        drivers->uart.write(
+            VISION_COMMS_TX_UART_PORT,
+            reinterpret_cast<uint8_t*>(&robotTypeMessage),
+            sizeof(robotTypeMessage));
+    }
 }
+
+void VisionComms::sendRobotOdometry()
+{
+    if (sendOdometryMsgTimeout.execute())
+    {
+        assert(chassisOdometry != nullptr);
+        assert(pitchMotor != nullptr);
+
+        DJISerial::SerialMessage<sizeof(OdometryData)> odometryMessage;
+
+        odometryMessage.messageType = MessageType::ODOMETRY;
+
+        OdometryData* data = reinterpret_cast<OdometryData*>(odometryMessage.data);
+
+        modm::Vector2f global_pos = chassisOdometry->getPositionGlobal();
+        modm::Vector2f global_vel = chassisOdometry->getVelocityGlobal();
+
+        // Chassis data
+        data->chassis_data.pos_x = global_pos.x;  // meters
+        data->chassis_data.pos_y = global_pos.y;  // meters
+        data->chassis_data.pos_z = 0;  // TODO: this assumes the robot is on level ground.
+                                       // Odometry should support z for varied height fields
+
+        data->chassis_data.vel_x = global_vel.x;  // meters/second
+        data->chassis_data.vel_y = global_vel.y;  // meters/second
+        data->chassis_data.vel_z = 0;             // TODO: see z on position (it doesn't exist)
+
+        // Turret Data
+        data->turret_data.pitch = pitchMotor->getPositionWrapped();  // radians
+        data->turret_data.yaw = drivers->bmi088.getYaw();            // radians
+        data->turret_data.roll = drivers->bmi088.getRoll();          // radians
+
+        data->turret_data.pitch_vel = pitchMotor->getShaftRPM() / 60 * M_TWOPI;
+        data->turret_data.yaw_vel = drivers->bmi088.getGz();
+        data->turret_data.roll_vel = drivers->bmi088.getGx();
+
+        odometryMessage.setCRC16();
+        drivers->uart.write(
+            VISION_COMMS_TX_UART_PORT,
+            reinterpret_cast<uint8_t*>(&odometryMessage),
+            sizeof(odometryMessage));
+    }
+}
+
+void VisionComms::sendHealthData()
+{
+    if (sendHealthMsgTimeout.execute())
+    {
+        DJISerial::SerialMessage<sizeof(uint16_t)> message;
+
+        message.messageType = MessageType::HEALTH;
+
+        // save into the message
+        message.data[0] = static_cast<uint16_t>(drivers->refSerial.getRobotData().currentHp);
+
+        message.setCRC16();
+        drivers->uart.write(
+            VISION_COMMS_TX_UART_PORT,
+            reinterpret_cast<uint8_t*>(&message),
+            sizeof(message));
+    }
+}
+
+void VisionComms::sendTurretRefData()
+{
+    if (sendRefTurretDataMsgTimeout.execute())
+    {
+        tap::communication::serial::RefSerialData::Rx::TurretData refTurretData =
+            drivers->refSerial.getRobotData().turret;
+
+        DJISerial::SerialMessage<sizeof(refTurretData)> message;
+
+        message.messageType = MessageType::REF_TURRET_DATA;
+
+        // save into the message
+        message.data[0] = static_cast<uint16_t>(refTurretData.bulletSpeed);
+
+        message.data[1] = static_cast<uint16_t>(refTurretData.bulletsRemaining17);
+
+        message.data[2] = static_cast<uint16_t>(refTurretData.bulletsRemaining42);
+
+        message.data[3] = static_cast<uint16_t>(refTurretData.bulletType);
+
+        message.data[4] = static_cast<uint16_t>(refTurretData.coolingRate);
+
+        message.data[5] = static_cast<uint16_t>(refTurretData.firingFreq);
+
+        message.data[6] = static_cast<uint16_t>(refTurretData.heat17ID1);
+
+        message.data[7] = static_cast<uint16_t>(refTurretData.heat17ID2);
+
+        message.data[8] = static_cast<uint16_t>(refTurretData.heat42);
+
+        message.data[9] = static_cast<uint16_t>(refTurretData.heatLimit);
+
+        message.data[10] = static_cast<uint16_t>(refTurretData.lastReceivedLaunchingInfoTimestamp);
+
+        message.data[11] = static_cast<uint16_t>(refTurretData.launchMechanismID);
+
+        message.data[12] = static_cast<uint16_t>(refTurretData.yaw);
+
+        message.setCRC16();
+        drivers->uart.write(
+            VISION_COMMS_TX_UART_PORT,
+            reinterpret_cast<uint8_t*>(&message),
+            sizeof(message));
+    }
+}
+
+// Should do something like this (from ARUW)
+
+// void VisionCoprocessor::sendRobotTypeData()
+// {
+//     if (sendRobotIdTimeout.execute())
+//     {
+//         DJISerial::SerialMessage<1> robotTypeMessage;
+//         robotTypeMessage.messageType = CV_MESSAGE_TYPE_ROBOT_ID;
+//         robotTypeMessage.data[0] =
+//         static_cast<uint8_t>(drivers->refSerial.getRobotData().robotId);
+//         robotTypeMessage.setCRC16();
+//         drivers->uart.write(
+//             VISION_COPROCESSOR_TX_UART_PORT,
+//             reinterpret_cast<uint8_t*>(&robotTypeMessage),
+//             sizeof(robotTypeMessage));
+//     }
+// }
 
 bool VisionComms::isCvOnline() const { return !cvOfflineTimeout.isExpired(); }
 

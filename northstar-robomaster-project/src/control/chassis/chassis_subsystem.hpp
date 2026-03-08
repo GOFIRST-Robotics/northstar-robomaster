@@ -20,6 +20,7 @@
 #else
 #include "tap/motor/dji_motor.hpp"
 #endif
+#include "chassis_odometry.hpp"
 
 namespace src::chassis
 {
@@ -59,7 +60,8 @@ public:
         tap::Drivers* drivers,
         const ChassisConfig& config,
         src::can::TurretMCBCanComm* turretMCBCanComm,
-        tap::motor::DjiMotor* yawMotor);
+        tap::motor::DjiMotor* yawMotor,
+        ChassisOdometry* chassisOdometry_);
 
     void initialize() override;
 
@@ -79,7 +81,7 @@ public:
 
     float getChassisZeroTurret();
 
-    float getChassiPowerLimit()
+    float getChassisPowerLimit()
     {
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
@@ -112,6 +114,8 @@ private:
         return mps / (M_PI * src::chassis::WHEEL_DIAMETER_M) * 60.0f / CHASSIS_GEAR_RATIO;
     }
 
+    src::chassis::ChassisOdometry* chassisOdometry;
+
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
     tap::motor::DjiMotor* yawMotor;
@@ -129,4 +133,5 @@ private:
 protected:
     std::array<Motor, static_cast<uint8_t>(MotorId::NUM_MOTORS)> motors;
 };  // class ChassisSubsystem
+
 }  // namespace src::chassis

@@ -225,15 +225,15 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
-    if (abs(worldFrameMeasurementIMU - getBmi088Yaw(true).getWrappedValue()) > M_TWOPI * .7f)
+    if (abs(worldFrameMeasurementIMU - getBmi088Yaw(false).getWrappedValue()) > M_TWOPI * .7f)
     {
         IMUrevolutions += tap::algorithms::getSign(
-            worldFrameMeasurementIMU - getBmi088Yaw(true).getWrappedValue());
+            worldFrameMeasurementIMU - getBmi088Yaw(false).getWrappedValue());
     }
-    worldFrameMeasurementIMU = getBmi088Yaw(true).getWrappedValue();
+    worldFrameMeasurementIMU = getBmi088Yaw(false).getWrappedValue();
     const WrappedFloat chassisFrameYaw = turretMotor.getChassisFrameMeasuredAngle();
-    const WrappedFloat worldFrameYawAngle = getBmi088Yaw(true);  // negitive
-    const float worldFrameYawVelocity = -getBmi088YawVelocity();
+    const WrappedFloat worldFrameYawAngle = getBmi088Yaw(false);  // negitive
+    const float worldFrameYawVelocity = getBmi088YawVelocity();
 
     updateWorldFrameSetpoint(
         desiredSetpoint,
