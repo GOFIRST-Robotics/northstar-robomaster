@@ -93,6 +93,25 @@ public:
         return length;
     }
 
+    float getRotationalVelocity(float t, float linearVelocity)
+    {
+        modm::Vector<float, 2> d = evaluateDerivative(t);
+        modm::Vector<float, 2> dd = evaluateSecondDerivative(t);
+
+        float numerator = (d[0] * dd[1]) - (d[1] * dd[0]);
+
+        float tangentMagnitudeSquared = (d[0] * d[0]) + (d[1] * d[1]);
+        float denominator = powf(tangentMagnitudeSquared, 1.5f);
+
+        if (denominator < 1e-5f)
+        {
+            return 0.0f;
+        }
+
+        float curvature = numerator / denominator;
+        return linearVelocity * curvature;
+    }
+
 private:
     CurveData curveData;
 };

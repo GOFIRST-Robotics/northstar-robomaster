@@ -12,21 +12,14 @@ namespace src::control::governor
 class ImuCalibratingGovernor : public tap::control::governor::CommandGovernorInterface
 {
 public:
-    ImuCalibratingGovernor(
-        tap::Drivers *drivers,
-        src::control::imu::ImuCalibrateCommand &imuCommand)
-        : drivers(drivers),
-          imuCommand(imuCommand)
-    {
-    }
+    ImuCalibratingGovernor(tap::Drivers *drivers) : drivers(drivers) {}
 
-    bool isReady() final { return !drivers->commandScheduler.isCommandScheduled(&imuCommand); }
+    bool isReady() final { return !src::control::imu::ImuCalibrateCommand::GetIsComandRunning(); }
 
     bool isFinished() final { return !isReady(); }
 
 private:
     tap::Drivers *drivers;
-    src::control::imu::ImuCalibrateCommand &imuCommand;
 };
 }  // namespace src::control::governor
 

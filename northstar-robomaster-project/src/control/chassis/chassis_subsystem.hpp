@@ -75,6 +75,8 @@ public:
 
     float chassisSpeedRotationPID(float angleOffset);
 
+    float chassisSpeedRotationAutoDrivePID(float angleOffset);
+
     float calculateMaxRotationSpeed(float vert, float hor);
 
     float getChassisRotationSpeed();
@@ -107,6 +109,16 @@ public:
     const char* getName() const override { return "Chassis"; }
 
     float getYaw();
+
+    inline float getChassisYaw()
+    {
+        return modm::Angle::normalize(drivers->bmi088.getYaw() - getTurretYaw());
+    }
+
+    inline float getDifferenceToTargetAngle(float targetAngle)
+    {
+        return modm::Angle::normalize(targetAngle - getChassisYaw());
+    }
 
 private:
     inline float mpsToRpm(float mps)

@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "tap/algorithms/math_user_utils.hpp"
+#include "tap/communication/gpio/pwm.hpp"
 #include "tap/drivers.hpp"
 
 using tap::algorithms::limitVal;
@@ -79,6 +80,7 @@ void ChassisSubsystem::initialize()
         i.initialize();
     }
 }
+
 float LFSpeed;
 float LBSpeed;
 float RFSpeed;
@@ -92,6 +94,13 @@ float ChassisSubsystem::getChassisZeroTurret()
     return (angle > M_PI) ? angle - M_TWOPI : angle;
 }
 
+float currentChassisRotationSpeed;
+float motorSumDebug;
+float desiredOutputDebug0;
+float desiredOutputDebug1;
+float desiredOutputDebug2;
+float desiredOutputDebug3;
+
 float ChassisSubsystem::getChassisRotationSpeed()
 {
     float motorSum = 0.0f;
@@ -99,7 +108,9 @@ float ChassisSubsystem::getChassisRotationSpeed()
     {
         motorSum += i.getEncoder()->getVelocity();
     }
-    return (WHEEL_DIAMETER_M / (2 * DIST_TO_CENTER)) * motorSum;
+
+    motorSumDebug = motorSum;
+    return (motorSum * WHEEL_DIAMETER_M / 2.0f) / (4 * DIST_TO_CENTER);
 }
 
 float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
@@ -139,7 +150,7 @@ float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
         limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 
     // D
-    float currentRotationPidD = -(drivers->bmi088.getGz()) * CHASSIS_ROTATION_D;  // D
+    float currentRotationPidD = -drivers->bmi088.getGz() * CHASSIS_ROTATION_D;  // D
 
     currentRotationPidD = limitVal<float>(currentRotationPidD, -1, 1);
 
@@ -148,11 +159,31 @@ float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
     return chassisRotationSpeed;
 }
 
+float ChassisSubsystem::chassisSpeedRotationAutoDrivePID(float angleOffset)
+{
+    // P
+    float currentRotationPidP = angleOffset * 5;  // P
+    currentRotationPidP =
+        limitVal<float>(currentRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
+
+    // D
+    float currentRotationPidD = -getChassisRotationSpeed() * 0.05f;  // D
+    currentRotationPidD =
+        limitVal<float>(currentRotationPidD, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
+
+    float chassisRotationSpeed = limitVal<float>(
+        currentRotationPidP + currentRotationPidD,
+        -CHASSIS_ROTATION_MAX_VEL,
+        CHASSIS_ROTATION_MAX_VEL);
+
+    return chassisRotationSpeed;
+}
+
 float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit)
 {
     if (!refSerialOnline)
     {
-        chassisPowerLimit = 80;
+        chassisPowerLimit = 120;
     }
 
     // only re-interpolate when needed (since this function is called a lot and the chassis
@@ -257,15 +288,7 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
 
-float xPosOdometry;
-float yPosOdometry;
-float xVelOdometry;
-float yVelOdometry;
-float xVelGlobOdometry;
-float yVelGlobOdometry;
-float rotationOdometry;
-float rotationOdometryDegrees;
-float xl;
+double chassisRotationOdom;
 
 void ChassisSubsystem::refresh()
 {
@@ -287,14 +310,12 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
 
-    xPosOdometry = chassisOdometry->getPositionGlobal().x;
-    yPosOdometry = chassisOdometry->getPositionGlobal().y;
-    xVelOdometry = chassisOdometry->getVelocityGlobal().x;
-    yVelOdometry = chassisOdometry->getVelocityGlobal().y;
-    xl = chassisOdometry->getVelocityLocal().x;
-    xVelGlobOdometry = chassisOdometry->getVelocityProjectedGlobal().x;
-    yVelGlobOdometry = chassisOdometry->getVelocityProjectedGlobal().y;
-    rotationOdometry = chassisOdometry->getRotation();
-    rotationOdometryDegrees = modm::toDegree(rotationOdometry);
+    currentChassisRotationSpeed = getChassisRotationSpeed();
+    desiredOutputDebug0 = desiredOutput[0];
+    desiredOutputDebug1 = desiredOutput[1];
+    desiredOutputDebug2 = desiredOutput[2];
+    desiredOutputDebug3 = desiredOutput[3];
+
+    chassisRotationOdom = chassisOdometry->getRotation();
 }
 }  // namespace src::chassis

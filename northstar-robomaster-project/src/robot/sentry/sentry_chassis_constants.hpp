@@ -23,7 +23,7 @@ static constexpr float VELOCITY_PID_KS = 0.0f;                  // 350.0f;
 static constexpr float VELOCITY_PID_MAX_OUTPUT = DjiMotor::MAX_OUTPUT_C620;
 static constexpr float CHASSIS_ROTATION_P = 0.9f;
 static constexpr float CHASSIS_ROTATION_D = 0.01f;
-static constexpr float CHASSIS_ROTATION_MAX_VEL = 1.0f;
+static constexpr float CHASSIS_ROTATION_MAX_VEL = 4.0f;
 static constexpr float AUTO_ROTATION_ALPHA = 0.01f;
 
 static constexpr float CHASSIS_GEAR_RATIO = (187.0f / 3591.0f);
@@ -46,7 +46,7 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
 };
 
 // rpm per 2ms
-static constexpr float ACCEL_MULT = 0.014f;
+static constexpr float ACCEL_MULT = 0.016f;
 
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
     {50, ACCEL_MULT},

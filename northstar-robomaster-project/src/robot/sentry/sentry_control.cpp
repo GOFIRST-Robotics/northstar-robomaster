@@ -3,6 +3,7 @@
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/press_command_mapping.hpp"
+#include "tap/control/sequential_command.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
@@ -87,6 +88,7 @@
 // songs
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/rouser.hpp"
 #include "control/buzzer/song/tuff_startup_noise.hpp"
 
 using tap::can::CanBus;
@@ -116,29 +118,14 @@ DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
-// flywheel
-RevThreeFlywheelSubsystem flywheelBottom(
-    drivers(),
-    LEFT_MOTOR_ID_BOTTOM,
-    RIGHT_MOTOR_ID_BOTTOM,
-    UP_MOTOR_ID_BOTTOM,
-    CAN_BUS);
+// songs
+BuzzerSubsystem buzzerSubsystem(drivers());
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
+// PlaySongCommand playStartupSongCommand(&buzzerSubsystem, rouser_song);
 
-ThreeFlywheelRunCommand flywheelRunCommandBottom(&flywheelBottom);
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
-ToggleCommandMapping fNotCtrlPressed(
-    drivers(),
-    {&flywheelRunCommandBottom},
-    RemoteMapState({Remote::Key::F}, {Remote::Key::CTRL}));
-
-RevThreeFlywheelSubsystem flywheelTop(
-    drivers(),
-    LEFT_MOTOR_ID_TOP,
-    RIGHT_MOTOR_ID_TOP,
-    UP_MOTOR_ID_TOP,
-    CAN_BUS);
-
-ThreeFlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -401,19 +388,11 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     -1,
     true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
-    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -442,7 +421,7 @@ PressCommandMapping lClickPressedDriveOneMeter(
 
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 ToggleCommandMapping rPressedOrientDrive(
@@ -463,7 +442,7 @@ ToggleCommandMapping zPressedNotCtrlWiggle(
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
     true);
 
@@ -479,11 +458,13 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     &chassisSubsystem,
     &playStartupSongCommand);
 
-ImuCalibratingGovernor imuCalibratingGovernor(drivers(), imuCalibrateCommand);
+ImuCalibratingGovernor imuCalibratingGovernor(drivers());
+
+SequentialCommand<2> imuCalibrateThenResetOdometry({&imuCalibrateCommand, &odometryResetCommand});
 
 PressCommandMapping leftSwitchDownResetOdometry(
     drivers(),
-    {&odometryResetCommand, &imuCalibrateCommand},
+    {&imuCalibrateThenResetOdometry},
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(

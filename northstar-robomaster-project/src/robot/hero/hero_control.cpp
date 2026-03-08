@@ -288,6 +288,12 @@ user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -304,7 +310,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &yawMotor,
+    chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
