@@ -57,8 +57,8 @@
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // imu
 #include "robot/sentry/sentry_imu_calibrate_command.hpp"
@@ -123,23 +123,19 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 // PlaySongCommand playStartupSongCommand(&buzzerSubsystem, rouser_song);
 
-// flywheel subsystem
-FlywheelSubsystem flywheel(
+ToggleCommandMapping fNotCtrlPressed(
     drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
-    CAN_BUS,
-    tap::motor::RevMotor::PIDConfig{
-        .PIDSlot = 0,
-        .kP = FLYWHEEL_PID_KP,
-        .kI = FLYWHEEL_PID_KI,
-        .kD = FLYWHEEL_PID_KD,
-        .kF = FLYWHEEL_PID_KF,
-    });
+    {&flywheelRunCommandBottom},
+    RemoteMapState({Remote::Key::F}, {Remote::Key::CTRL}));
 
-// flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+RevThreeFlywheelSubsystem flywheelTop(
+    drivers(),
+    LEFT_MOTOR_ID_TOP,
+    RIGHT_MOTOR_ID_TOP,
+    UP_MOTOR_ID_TOP,
+    CAN_BUS);
+
+ThreeFlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -405,9 +401,7 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
 src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI_2,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(

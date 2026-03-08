@@ -13,15 +13,11 @@ namespace src::chassis
 ChassisBeybladeCommand::ChassisBeybladeCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface,
-    float distScaleFactor,
     short direction,
-    float spinVel,
     bool isVariable)
     : chassis(chassis),
       operatorInterface(operatorInterface),
-      distScaleFactor(distScaleFactor),
       direction(direction),
-      spinVel(spinVel),
       isVariable(isVariable)
 {
     addSubsystemRequirement(chassis);
@@ -72,7 +68,7 @@ float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uin
         if (RandomNumberGenerator::isReady())
         {
             calcSpeed = limitVal<float>(
-                0.1 * sin(RandomNumberGenerator::getValue()) + calcSpeed,
+                0.1f * sin(RandomNumberGenerator::getValue()) + calcSpeed,
                 -1.0f,
                 1.0f);
         }

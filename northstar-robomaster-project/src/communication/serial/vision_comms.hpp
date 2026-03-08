@@ -10,6 +10,8 @@
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 
+#include "uart_constants.hpp"
+
 namespace src::serial
 {
 class VisionComms : public tap::communication::serial::DJISerial
@@ -24,12 +26,14 @@ public:
 
     enum MessageType : uint16_t
     {
-        TURRET_DATA = 1,
+        TURRET_AIM_DATA = 1,
         ROBOT_ID = 2,
         ALIVE = 3,
         ODOMETRY = 4,
         AUTO_PATH = 5,
-        REF_DATA = 6
+        // REF_DATA = 6
+        HEALTH = 6,
+        REF_TURRET_DATA
     };
 
     struct RefData
@@ -159,6 +163,8 @@ public:
 
     mockable void initializeCV();
 
+    mockable void initializeUartDelays();
+
     void messageReceiveCallback(const ReceivedSerialMessage& completeMessage) override;
 
     mockable bool isCvOnline() const;
@@ -193,11 +199,6 @@ public:
         this->pitchMotor = pitchMotor;
     }
 
-    /** Time in ms between sending the odometry message. */
-    static constexpr uint32_t TIME_BTWN_SENDING_ODOMETRY_MSG = 33;
-
-    tap::arch::PeriodicMilliTimer sendOdometryMsgTimeout{TIME_BTWN_SENDING_ODOMETRY_MSG};
-
     mockable void sendMessage();
 
 private:
@@ -213,7 +214,9 @@ private:
 
     mockable void sendRobotOdometry();
 
-    mockable void sendRefData();
+    mockable void sendHealthData();
+
+    mockable void sendTurretRefData();
 
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
 

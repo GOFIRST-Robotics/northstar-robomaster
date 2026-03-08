@@ -27,10 +27,10 @@
 // agitator
 #include "control/agitator/constant_velocity_agitator_command.hpp"
 #include "control/agitator/constants/agitator_constants.hpp"
+#include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
 #include "robot/hero/hero_agitator_shoot_command.hpp"
 #include "robot/hero/hero_agitator_subsystem.hpp"
-#include "robot/hero/hero_set_fire_rate_command.hpp"
 
 // turret
 #include "communication/RevMotorTester.hpp"
@@ -45,9 +45,9 @@
 #include "control/turret/user/turret_user_world_relative_command.hpp"
 
 // flywheel
-#include "robot/hero/hero_flywheel_constants.hpp"
-#include "robot/hero/hero_flywheel_run_command.hpp"
-#include "robot/hero/hero_flywheel_subsystem.hpp"
+#include "control/flywheel/dji_three_flywheel_subsystem.hpp"
+#include "control/flywheel/flywheel_constants.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -61,10 +61,10 @@
 
 #include "control/governor/fire_rate_limit_governor.hpp"
 #include "control/governor/fired_recently_governor.hpp"
+#include "control/governor/flywheel_on_governor.hpp"
 #include "control/governor/heat_limit_governor.hpp"
 #include "control/governor/plate_hit_governor.hpp"
 #include "control/governor/ref_system_projectile_launched_governor.hpp"
-#include "robot/hero/hero_flywheel_on_governor.hpp"
 
 #include "ref_system_constants.hpp"
 
@@ -107,9 +107,14 @@ DummySubsystem dummySubsystem(drivers());
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
 // flywheel
-HeroFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, DOWN_MOTOR_ID, CAN_BUS);
+DJIThreeFlywheelSubsystem flywheel(
+    drivers(),
+    LEFT_MOTOR_ID,
+    RIGHT_MOTOR_ID,
+    DOWN_MOTOR_ID,
+    CAN_BUS);
 
-HeroFlywheelRunCommand heroFlywheelRunCommand(&flywheel);
+ThreeFlywheelRunCommand heroFlywheelRunCommand(&flywheel);
 
 ToggleCommandMapping fPressedFlywheel(
     drivers(),
@@ -136,7 +141,7 @@ HeatLimitGovernor heatLimitGovernor(
     tap::communication::serial::RefSerialData::Rx::MechanismID::TURRET_42MM,
     constants::HEAT_LIMIT_BUFFER);
 
-HeroFlywheelOnGovernor flywheelOnGovernor(flywheel);
+FlywheelOnGovernor flywheelOnGovernor(flywheel);
 
 RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
     drivers()->refSerial,
@@ -144,11 +149,8 @@ RefSystemProjectileLaunchedGovernor refSystemProjectileLaunchedGovernor(
 
 ManualFireRateReselectionManager manualFireRateReselectionManager;
 
-HeroSetFireRateCommand setFireRateCommand1RPS(&dummySubsystem, manualFireRateReselectionManager, 1);
-HeroSetFireRateCommand setFireRateCommand5SPR(
-    &dummySubsystem,
-    manualFireRateReselectionManager,
-    .2);
+SetFireRateCommand setFireRateCommand1RPS(&dummySubsystem, manualFireRateReselectionManager, 1);
+SetFireRateCommand setFireRateCommand5SPR(&dummySubsystem, manualFireRateReselectionManager, .2);
 
 FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
@@ -312,20 +314,10 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI,
-    true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
     true);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
@@ -343,14 +335,14 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 // GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
 //     {&chassisSubsystem},
 //     chassisBeyBladeSlowCommand,
-//     chassisBeyBladeFastCommand,
+//     chassisBeyBladeCommand,
 //     {&firedRecentlyGovernor, &plateHitGovernor},
 //     true);
 
 // chassis Mappings
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 // imu commands
@@ -396,14 +388,14 @@ FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, 
 //     *drivers(),
 //     (tap::control::Subsystem)agitator,
 //     // imuCalibrateCommand,
-//     {&chassisWiggleCommand, &beyBladeSlowOutOfCombat},
+//     {&chassisWiggleCommand, &chassisBeyBladeCommand},
 //     refSerialTransmitter);
 
 HeroSpinIndicator heroSpinIndicator(
     refSerialTransmitter,
     drivers()->refSerial,
     *drivers(),
-    &chassisBeyBladeFastCommand,
+    &chassisBeyBladeCommand,
     &chassisWiggleCommand);
 
 std::vector<HudIndicator *> hudIndicators = {
