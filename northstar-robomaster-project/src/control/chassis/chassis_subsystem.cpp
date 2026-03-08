@@ -3,7 +3,6 @@
 #include <cmath>
 
 #include "tap/algorithms/math_user_utils.hpp"
-#include "tap/communication/gpio/pwm.hpp"
 #include "tap/drivers.hpp"
 
 using tap::algorithms::limitVal;
@@ -80,7 +79,6 @@ void ChassisSubsystem::initialize()
         i.initialize();
     }
 }
-
 float LFSpeed;
 float LBSpeed;
 float RFSpeed;
@@ -94,13 +92,6 @@ float ChassisSubsystem::getChassisZeroTurret()
     return (angle > M_PI) ? angle - M_TWOPI : angle;
 }
 
-float currentChassisRotationSpeed;
-float motorSumDebug;
-float desiredOutputDebug0;
-float desiredOutputDebug1;
-float desiredOutputDebug2;
-float desiredOutputDebug3;
-
 float ChassisSubsystem::getChassisRotationSpeed()
 {
     float motorSum = 0.0f;
@@ -109,7 +100,6 @@ float ChassisSubsystem::getChassisRotationSpeed()
         motorSum += i.getEncoder()->getVelocity();
     }
 
-    motorSumDebug = motorSum;
     return (motorSum * WHEEL_DIAMETER_M / 2.0f) / (4 * DIST_TO_CENTER);
 }
 
@@ -117,11 +107,9 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 {
     float maxWheelSpeed =
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
-    float allowedwheelSpeed = maxWheelSpeed - mpsToRpm(modm::Vector2f(vert, hor).getLength());
-    // float allowedwheelSpeed =
-    //     (maxWheelSpeed -
-    //      ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) *
-    //      maxWheelSpeed));
+    float allowedwheelSpeed =
+        (maxWheelSpeed -
+         ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) * maxWheelSpeed));
     if (allowedwheelSpeed < 0.0f)
     {
         allowedwheelSpeed = 0.0f;
@@ -132,7 +120,16 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
+    // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
+    if (turretRot > M_TWOPI)
+    {
+        turretRot -= M_TWOPI;
+    }
+    else if (turretRot < 0.0f)
+    {
+        turretRot += M_TWOPI;
+    }
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
@@ -183,7 +180,7 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
 {
     if (!refSerialOnline)
     {
-        chassisPowerLimit = 120;
+        chassisPowerLimit = 80;
     }
 
     // only re-interpolate when needed (since this function is called a lot and the chassis
@@ -263,16 +260,16 @@ void ChassisSubsystem::driveBasedOnHeading(
     float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
     float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
     LFSpeed = mpsToRpm(
-        (vy_local + vx_local) / M_SQRT2 +
+        (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vy_local + vx_local) / M_SQRT2 +
+        (-vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vy_local - vx_local) / M_SQRT2 +
+        (-vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vy_local - vx_local) / M_SQRT2 +
+        (vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
@@ -287,8 +284,6 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
-
-double chassisRotationOdom;
 
 void ChassisSubsystem::refresh()
 {
@@ -309,13 +304,5 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
-
-    currentChassisRotationSpeed = getChassisRotationSpeed();
-    desiredOutputDebug0 = desiredOutput[0];
-    desiredOutputDebug1 = desiredOutput[1];
-    desiredOutputDebug2 = desiredOutput[2];
-    desiredOutputDebug3 = desiredOutput[3];
-
-    chassisRotationOdom = chassisOdometry->getRotation();
 }
 }  // namespace src::chassis
