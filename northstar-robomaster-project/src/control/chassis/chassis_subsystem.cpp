@@ -18,6 +18,7 @@ namespace src::chassis
 {
 modm::Pair<int, float> lastComputedMaxWheelSpeed = CHASSIS_POWER_TO_MAX_SPEED_LUT[0];
 modm::Pair<int, float> lastComputedMaxAccelSpeed = CHASSIS_POWER_TO_MAX_ACCEL_LUT[0];
+modm::Pair<int, float> lastComputerMaxTorque = CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[0];
 
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
@@ -130,11 +131,10 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
     driveBasedOnHeading(forward, sideways, rotational, robotHeading);
 }
 
-float ChassisSubsystem::chassisSpeedRotationPID()  // make this take in the heading to follow then
-                                                   // use with auto drive
+float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
     // P
-    float currRotationPidP = getChassisZeroTurret() * CHASSIS_ROTATION_P;  // P
+    float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
     currRotationPidP =
         limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 
@@ -188,6 +188,29 @@ float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxAccelSpeed.second;
 }
 
+float ChassisSubsystem::getVoltageReductionFactorFromTorque(float chassisPowerLimit)
+{
+    float torqueSum = 0.0f;
+    for (Motor& i : motors)
+    {
+        torqueSum += i.getTorque();
+    }
+    if (lastComputerMaxTorque.first != (int)chassisPowerLimit)
+    {
+        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
+        lastComputedMaxAccelSpeed.second =
+            CHASSIS_TORQUE_LIMIT_FROM_POWER.interpolate(chassisPowerLimit);
+    }
+    if (torqueSum <= lastComputedMaxAccelSpeed.second)
+    {
+        return 1.0f;
+    }
+    else
+    {
+        return lastComputedMaxAccelSpeed.second / torqueSum;
+    }
+}
+
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
@@ -204,10 +227,10 @@ void ChassisSubsystem::driveBasedOnHeading(
     rampControllers[1].update(
         abs(sideways) < abs(rampControllers[1].getValue()) ? CHASSIS_DECCEL_VALUE : maxAccelSpeed);
     float rampedSideways = rampControllers[1].getValue();
-    double cos_theta = cos(heading);
-    double sin_theta = sin(heading);
-    double vx_local = rampedSideways * cos_theta + rampedForward * sin_theta;
-    double vy_local = -rampedSideways * sin_theta + rampedForward * cos_theta;
+    float cos_theta = cos(heading);
+    float sin_theta = sin(heading);
+    float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+    float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
     LFSpeed = mpsToRpm(
         (vy_local + vx_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel

@@ -73,7 +73,7 @@ public:
 
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
-    float chassisSpeedRotationPID();
+    float chassisSpeedRotationPID(float angleOffset);
 
     float calculateMaxRotationSpeed(float vert, float hor);
 
@@ -91,6 +91,8 @@ public:
     float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
     float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
+
+    float getVoltageReductionFactorFromTorque(float chassisPowerLimit);
 
     void refresh() override;
 

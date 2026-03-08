@@ -57,7 +57,11 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
     {120, ACCEL_MULT},
 };
 
-static constexpr float CHASSIS_DECCEL_VALUE = 0.08f;
+static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = {
+    {100, 1.0},
+    {130, 1.3}};
+
+static constexpr float CHASSIS_DECCEL_VALUE = 0.04f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
     CHASSIS_POWER_TO_MAX_SPEED_LUT,
@@ -67,6 +71,9 @@ static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_ACCE
     CHASSIS_POWER_TO_MAX_ACCEL_LUT,
     MODM_ARRAY_SIZE(CHASSIS_POWER_TO_MAX_ACCEL_LUT));
 
+static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_TORQUE_LIMIT_FROM_POWER(
+    CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT,
+    MODM_ARRAY_SIZE(CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT));
 }  // namespace src::chassis
 
 #endif

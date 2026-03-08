@@ -56,8 +56,8 @@
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // imu
 #include "robot/sentry/sentry_imu_calibrate_command.hpp"
@@ -116,27 +116,29 @@ DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
-// songs
-BuzzerSubsystem buzzerSubsystem(drivers());
-PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
-
-// flywheel subsystem
-FlywheelSubsystem flywheel(
+// flywheel
+RevThreeFlywheelSubsystem flywheelBottom(
     drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
-    CAN_BUS,
-    tap::motor::RevMotor::PIDConfig{
-        .PIDSlot = 0,
-        .kP = FLYWHEEL_PID_KP,
-        .kI = FLYWHEEL_PID_KI,
-        .kD = FLYWHEEL_PID_KD,
-        .kF = FLYWHEEL_PID_KF,
-    });
+    LEFT_MOTOR_ID_BOTTOM,
+    RIGHT_MOTOR_ID_BOTTOM,
+    UP_MOTOR_ID_BOTTOM,
+    CAN_BUS);
 
-// flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+ThreeFlywheelRunCommand flywheelRunCommandBottom(&flywheelBottom);
+
+ToggleCommandMapping fNotCtrlPressed(
+    drivers(),
+    {&flywheelRunCommandBottom},
+    RemoteMapState({Remote::Key::F}, {Remote::Key::CTRL}));
+
+RevThreeFlywheelSubsystem flywheelTop(
+    drivers(),
+    LEFT_MOTOR_ID_TOP,
+    RIGHT_MOTOR_ID_TOP,
+    UP_MOTOR_ID_TOP,
+    CAN_BUS);
+
+ThreeFlywheelRunCommand flywheelRunCommandTop(&flywheelTop);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -402,9 +404,7 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
 src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI_2,
     true);
 
 src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(

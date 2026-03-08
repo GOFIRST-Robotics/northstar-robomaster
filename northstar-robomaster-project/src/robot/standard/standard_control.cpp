@@ -55,8 +55,8 @@
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // hopper
 #include "control/hopper/hopper_subsystem.hpp"
@@ -144,22 +144,10 @@ PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 //     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(
-    drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
-    CAN_BUS,
-    tap::motor::RevMotor::PIDConfig{
-        .PIDSlot = 0,
-        .kP = FLYWHEEL_PID_KP,
-        .kI = FLYWHEEL_PID_KI,
-        .kD = FLYWHEEL_PID_KD,
-        .kF = FLYWHEEL_PID_KF,
-    });
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f, 90.0f);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -433,21 +421,11 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI_2,
     true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
-    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -483,8 +461,13 @@ PressCommandMapping lClickPressedDriveOneMeter(
 
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
+
+ToggleCommandMapping qPressedNormDrive(
+    drivers(),
+    {&chassisDriveCommand},
+    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
 
 ToggleCommandMapping rPressedOrientDrive(
     drivers(),
@@ -504,7 +487,7 @@ ToggleCommandMapping zPressedNotCtrlWiggle(
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
     true);
 
@@ -563,7 +546,7 @@ TextHudIndicators textHudIndicators(
     *drivers(),
     agitator,
     // imuCalibrateCommand,
-    {&chassisWiggleCommand, &chassisBeyBladeFastCommand},
+    {&chassisWiggleCommand, &chassisBeyBladeCommand},
     refSerialTransmitter);
 
 std::vector<HudIndicator *> hudIndicators = {
@@ -641,13 +624,13 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
     drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
+    drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     // drivers->commandMapper.addMap(&ctrlShiftZSong);
-    drivers->commandMapper.addMap(&qPressedNormDrive);
 }
 }  // namespace standard_control
 
