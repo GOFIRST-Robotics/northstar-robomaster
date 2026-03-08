@@ -474,11 +474,6 @@ ToggleCommandMapping rPressedOrientDrive(
     {&chassisOrientDriveCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
-ToggleCommandMapping qPressedNormDrive(
-    drivers(),
-    {&chassisDriveCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
-
 ToggleCommandMapping zPressedNotCtrlWiggle(
     drivers(),
     {&chassisWiggleCommand},
