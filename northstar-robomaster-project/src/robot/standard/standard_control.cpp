@@ -134,8 +134,7 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 
 // songs
 BuzzerSubsystem buzzerSubsystem(drivers());
-
-PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
 // PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
@@ -517,7 +516,8 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playStartupSongCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -600,6 +600,9 @@ void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 
 void startStandardCommands(Drivers *drivers)
 {
+    drivers->visionComms.attachOdometry(chassisOdometry);
+    drivers->visionComms.attachPitchMotor(&pitchMotor);
+
     drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
         0,
         0,
