@@ -503,7 +503,7 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
-void setDefaultSentryCommands(Drivers *drivers)
+void setDefaultSentryCommands([[maybe_unused]] Drivers *drivers)
 {
     // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     turret.setDefaultCommand(&turretUserControlCommand);

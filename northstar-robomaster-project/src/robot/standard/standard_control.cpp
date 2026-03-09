@@ -560,7 +560,7 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-void initializeSubsystems(Drivers *drivers)
+void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     dummySubsystem.initialize();
     chassisSubsystem.initialize();
@@ -583,7 +583,7 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret

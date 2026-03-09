@@ -47,5 +47,8 @@ void ChassisOrientDriveCommand::execute()
         rotationalValue);
 }
 
-void ChassisOrientDriveCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisOrientDriveCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 };  // namespace src::chassis

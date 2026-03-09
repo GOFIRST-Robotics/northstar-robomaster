@@ -107,6 +107,7 @@ bool VisionComms::decodeToTurretAimData(const ReceivedSerialMessage& message)
             }
         }
     }
+    return true;
 }
 
 bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)

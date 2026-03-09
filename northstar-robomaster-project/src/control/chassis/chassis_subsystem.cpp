@@ -82,7 +82,10 @@ float LBSpeed;
 float RFSpeed;
 float RBSpeed;
 
-inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
+inline float ChassisSubsystem::getTurretYaw()
+{
+    return yawMotor->getEncoder()->getPosition().getWrappedValue();
+}
 
 float ChassisSubsystem::getChassisZeroTurret()
 {
