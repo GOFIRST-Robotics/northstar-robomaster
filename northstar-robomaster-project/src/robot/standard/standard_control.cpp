@@ -16,10 +16,12 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// chassis
+#include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_drive_distance_command.hpp"
+#include "control/chassis/chassis_drive_to_point_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
@@ -54,8 +56,8 @@
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // hopper
 #include "control/hopper/hopper_subsystem.hpp"
@@ -84,6 +86,7 @@
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
 #include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/tuff_startup_noise.hpp"
 #include "control/buzzer/song/twinkle_twinkle.hpp"
 
 // HUD
@@ -142,22 +145,10 @@ PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 //     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(
-    drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
-    CAN_BUS,
-    tap::motor::RevMotor::PIDConfig{
-        .PIDSlot = 0,
-        .kP = FLYWHEEL_PID_KP,
-        .kI = FLYWHEEL_PID_KI,
-        .kD = FLYWHEEL_PID_KD,
-        .kF = FLYWHEEL_PID_KF,
-    });
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f, 90.0f);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -415,6 +406,13 @@ ToggleCommandMapping gPressed(
 //     RemoteMapState(RemoteMapState::MouseButton::LEFT),
 //     false);
 
+// chassis odometry
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -431,7 +429,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &yawMotor,
+    chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -441,21 +440,11 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI_2,
     true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
-    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -463,33 +452,12 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
-src::chassis::ChassisDriveDistanceCommand driveDist1(
+src::chassis::ChassisDriveToPointCommand driveToOneMeterForward(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    3,
+    chassisOdometry,
     0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist2(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    3,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist3(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    -3,
-    0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist4(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    -3,
-    0.2);
+    1,
+    0.02);
 
 // Chassis Governors
 
@@ -505,9 +473,14 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     false);
 
 // chassis Mappings
+PressCommandMapping lClickPressedDriveOneMeter(
+    drivers(),
+    {&driveToOneMeterForward},
+    RemoteMapState(RemoteMapState::MouseButton::LEFT));
+
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
 
 ToggleCommandMapping qPressedNormDrive(
@@ -528,7 +501,7 @@ ToggleCommandMapping zPressedNotCtrlWiggle(
 
 HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
     true);
 
@@ -555,8 +528,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem,
-    &playTwinkleCommand);
+    &chassisSubsystem);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -588,7 +560,7 @@ TextHudIndicators textHudIndicators(
     *drivers(),
     agitator,
     // imuCalibrateCommand,
-    {&chassisWiggleCommand, &chassisBeyBladeFastCommand},
+    {&chassisWiggleCommand, &chassisBeyBladeCommand},
     refSerialTransmitter);
 
 std::vector<HudIndicator *> hudIndicators = {
@@ -607,7 +579,7 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-void initializeSubsystems(Drivers *drivers)
+void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     dummySubsystem.initialize();
     chassisSubsystem.initialize();
@@ -630,19 +602,23 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
-    // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
-    // running
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
     clientDisplay.setDefaultCommand(&clientDisplayCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(-135),
+        modm::toRadian(-90)));
+
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 

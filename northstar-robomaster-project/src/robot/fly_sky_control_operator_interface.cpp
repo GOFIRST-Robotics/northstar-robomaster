@@ -229,11 +229,11 @@ float ControlOperatorInterface::getDrivetrainRotationalTranslation()
 {
     if (remote.getChannel(FlySky::Channel::SWITCH_C) == SwitchState::UP)
     {
-        return -0.3f;
+        return -0.16f;
     }
     else if (remote.getChannel(FlySky::Channel::SWITCH_C) == SwitchState::DOWN)
     {
-        return 0.3f;
+        return 0.16f;
     }
     else
     {

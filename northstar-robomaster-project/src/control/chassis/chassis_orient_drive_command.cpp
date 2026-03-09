@@ -30,7 +30,7 @@ void ChassisOrientDriveCommand::execute()
         return limitVal(raw, -1.0f, 1.0f) * MAX_CHASSIS_SPEED_MPS;
     };
 
-    float rotationFromPID = chassis->chassisSpeedRotationPID();
+    float rotationFromPID = chassis->chassisSpeedRotationPID(chassis->getChassisZeroTurret());
 
     float rotationalAlpha =
         std::max<float>(1.0f - abs(chassis->getChassisZeroTurret()) / M_PI, AUTO_ROTATION_ALPHA);
@@ -38,14 +38,17 @@ void ChassisOrientDriveCommand::execute()
     rotationalValue =
         tap::algorithms::lowPassFilter(rotationalValue, rotationFromPID, rotationalAlpha);
 
-    modm::Pair<float, float> normInput = getNormalizedInput(
+    modm::Pair<float, float> normInput = src::chassis::getNormalizedInput(
         operatorInterface->getDrivetrainVerticalTranslation(),
         operatorInterface->getDrivetrainHorizontalTranslation());
     chassis->setVelocityTurretDrive(
         scale(normInput.first),
         -scale(normInput.second),
-        scale(rotationalValue));
+        rotationalValue);
 }
 
-void ChassisOrientDriveCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisOrientDriveCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 };  // namespace src::chassis

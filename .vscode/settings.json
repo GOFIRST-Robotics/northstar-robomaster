@@ -77,7 +77,10 @@
         "ranges": "cpp",
         "span": "cpp",
         "stop_token": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "alignedvector3": "cpp",
+        "hash_map": "cpp",
+        "future": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled",
     "C_Cpp.default.includePath": [

@@ -115,8 +115,8 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
     drivers->commandMapper.addMap(&leftMousePressedShoot);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&qPressed10RPS);
-    drivers->commandMapper.addMap(&wPressed30RPS);
-    drivers->commandMapper.addMap(&ePressedFullAuto);
+    drivers->commandMapper.addMap(&ePressed20RPS);
+    drivers->commandMapper.addMap(&rPressedFullAuto);
 
 #endif
 #ifdef USING_FLYWHEEL

@@ -74,29 +74,28 @@ void SentryTurretCVControlCommand::execute()
     WrappedFloat yawSetpointBottom = Angle(0);
     WrappedFloat pitchSetpointTop = Angle(0);
 
-    if (visionComms.isAimDataUpdated(bottomID))
+    if (visionComms.isAimDataUpdated(1))
     {
         // up has positive error so up positive
         pitchSetpointBottom = Angle(
             pitchControllerBottom->getMeasurement().getUnwrappedValue() -
-            limitVal(visionComms.getLastAimData(bottomID).pitch, -0.1f, 0.1f));
+            limitVal(visionComms.getLastAimData(1).pitch, -0.1f, 0.1f));
         pitchControllerBottom->runController(dt, pitchSetpointBottom);
         // left neg right post
         yawSetpointBottom = Angle(
             -yawControllerBottom->getMeasurement().getUnwrappedValue() +
-            visionComms.getLastAimData(bottomID).yaw);
+            visionComms.getLastAimData(1).yaw);
 
         bottomWithinAimingTolerance =
-            (abs(visionComms.getLastAimData(bottomID).yaw) <
-                 visionComms.getLastAimData(bottomID).maxErrorYaw &&
-             abs(visionComms.getLastAimData(bottomID).pitch) <
-                 visionComms.getLastAimData(bottomID).maxErrorPitch);
+            (abs(visionComms.getLastAimData(1).yaw) < visionComms.getLastAimData(1).maxErrorYaw &&
+             abs(visionComms.getLastAimData(1).pitch) <
+                 visionComms.getLastAimData(1).maxErrorPitch);
 
         yawControllerBottom->runController(dt, yawSetpointBottom);
     }
     else
     {
-        if (visionComms.isAimDataUpdated(topID))
+        if (visionComms.isAimDataUpdated(0))
         {
             pitchControllerBottom->runController(
                 dt,
@@ -123,21 +122,20 @@ void SentryTurretCVControlCommand::execute()
         {
             pitchSetpointBottom =
                 pitchControllerBottom->getSetpoint() +
-                userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(bottomID);
+                userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(1);
             pitchControllerBottom->runController(dt, pitchSetpointBottom);
 
-            yawSetpointBottom =
-                yawControllerBottom->getSetpoint() +
-                userYawInputScalar * controlOperatorInterface.getTurretYawInput(bottomID);
+            yawSetpointBottom = yawControllerBottom->getSetpoint() +
+                                userYawInputScalar * controlOperatorInterface.getTurretYawInput(1);
             yawControllerBottom->runController(dt, yawSetpointBottom);
         }
         bottomWithinAimingTolerance = false;
     }
-    if (visionComms.isAimDataUpdated(topID))
+    if (visionComms.isAimDataUpdated(0))
     {
         pitchSetpointTop = Angle(
             pitchControllerTop->getMeasurement().getUnwrappedValue() -
-            limitVal(visionComms.getLastAimData(topID).pitch, -0.1f, 0.1f));
+            limitVal(visionComms.getLastAimData(0).pitch, -0.1f, 0.1f));
         pitchControllerTop->runController(dt, pitchSetpointTop);
 
         float bottomMeasurement = yawControllerBottom->getMeasurementMotor().getUnwrappedValue() -
@@ -146,8 +144,8 @@ void SentryTurretCVControlCommand::execute()
         float delta =
             -(yawControllerTop->getMeasurement().getUnwrappedValue() - topMeasurementOffset);
 
-        float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(topID) +
-                      visionComms.getLastAimData(topID).yaw;
+        float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(0) +
+                      visionComms.getLastAimData(0).yaw;
 
         if (delta <= -DELTA_MAX)
         {
@@ -180,16 +178,15 @@ void SentryTurretCVControlCommand::execute()
         }
 
         topWithinAimingTolerance =
-            (abs(visionComms.getLastAimData(topID).yaw) <
-                 visionComms.getLastAimData(topID).maxErrorYaw &&
-             abs(visionComms.getLastAimData(topID).pitch) <
-                 visionComms.getLastAimData(topID).maxErrorPitch);
+            (abs(visionComms.getLastAimData(0).yaw) < visionComms.getLastAimData(0).maxErrorYaw &&
+             abs(visionComms.getLastAimData(0).pitch) <
+                 visionComms.getLastAimData(0).maxErrorPitch);
 
         yawControllerTop->runController(dt, Angle(yawSetpointTop));
     }
     else
     {
-        if (visionComms.isAimDataUpdated(bottomID))
+        if (visionComms.isAimDataUpdated(1))
         {
             pitchControllerTop->runController(
                 dt,
@@ -209,7 +206,7 @@ void SentryTurretCVControlCommand::execute()
         {
             pitchSetpointTop =
                 pitchControllerTop->getSetpoint() +
-                userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(topID);
+                userPitchInputScalar * controlOperatorInterface.getTurretPitchInput(0);
             pitchControllerTop->runController(dt, pitchSetpointTop);
 
             float bottomMeasurement =
@@ -219,7 +216,7 @@ void SentryTurretCVControlCommand::execute()
             float delta =
                 -(yawControllerTop->getMeasurement().getUnwrappedValue() - topMeasurementOffset);
 
-            float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(topID);
+            float input = userPitchInputScalar * controlOperatorInterface.getTurretYawInput(0);
 
             if (delta <= -DELTA_MAX)
             {

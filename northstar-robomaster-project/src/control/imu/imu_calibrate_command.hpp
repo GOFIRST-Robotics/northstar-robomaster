@@ -159,6 +159,8 @@ protected:
      */
     static constexpr uint32_t MAX_CALIBRATION_WAITTIME_MS = 20000;
 
+    static bool COMMAND_IS_RUNNING;
+
     tap::Drivers *drivers;
     std::vector<TurretIMUCalibrationConfig> turretsAndControllers;
     chassis::ChassisSubsystem *chassis;
@@ -200,6 +202,9 @@ protected:
                                 (turret->pitchMotor.getChassisFrameMeasuredAngle().minDifference(
                                      0) < positionZeroThreshold)));
     }
+
+public:
+    static bool GetIsComandRunning() { return COMMAND_IS_RUNNING; }
 };
 }  // namespace src::control::imu
 
