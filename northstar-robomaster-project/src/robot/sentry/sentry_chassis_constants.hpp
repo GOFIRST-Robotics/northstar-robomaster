@@ -1,5 +1,5 @@
-#ifndef STANDARD_CHASSIS_CONSTANTS_HPP_
-#define STANDARD_CHASSIS_CONSTANTS_HPP_
+#ifndef SENTRY_CHASSIS_CONSTANTS_HPP_
+#define SENTRY_CHASSIS_CONSTANTS_HPP_
 
 #include "tap/motor/dji_motor.hpp"
 
@@ -21,9 +21,9 @@ static constexpr float VELOCITY_PID_MAX_ERROR_SUM = 16'000.0f;  // 0.0f;
 static constexpr float VELOCITY_PID_KV = 0.0f;                  // 0.057f;
 static constexpr float VELOCITY_PID_KS = 0.0f;                  // 350.0f;
 static constexpr float VELOCITY_PID_MAX_OUTPUT = DjiMotor::MAX_OUTPUT_C620;
-static constexpr float CHASSIS_ROTATION_P = 0.9f;
+static constexpr float CHASSIS_ROTATION_P = 4.0f;
 static constexpr float CHASSIS_ROTATION_D = 0.01f;
-static constexpr float CHASSIS_ROTATION_MAX_VEL = 4.0f;
+static constexpr float CHASSIS_ROTATION_MAX_VEL = M_TWOPI;
 static constexpr float AUTO_ROTATION_ALPHA = 0.01f;
 
 static constexpr float CHASSIS_GEAR_RATIO = (187.0f / 3591.0f);
@@ -32,48 +32,30 @@ static const float DIST_TO_CENTER = .30825f;  // from wheel to center
 static const float WHEEL_DIAMETER_M = 0.118f;
 static const float RAMP_UP_RPM_INCREMENT_MPS = 0.01f;
 
-static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
+static constexpr float MAX_CHASSIS_SPEED_MPS = 8.0f;
 
 static constexpr float MAX_CHASSIS_WHEEL_SPEED = 9000.0f;
 
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
-    {50, 4'500},
-    {60, 5'700},
-    {70, 6'400},
-    {80, 6'700},
-    {100, 7'000},
-    {120, 8'000},
-};
+    /*
+    Hero - 100W
+    Power Prio Standard - 90W
+    HP priority Standard - 75W
+    Sentry - 100W
+    1v1 Standard - 120W
+    */
+    {50, 3'000},
+    {80, 4'400},
+    {100, 5'200},
+    {125, 6'000}};
+// At 9000 rpm the beyblade was around 130, Its over
 
-// rpm per 2ms
-static constexpr float ACCEL_MULT = 0.016f;
-
-static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_ACCEL_LUT[] = {
-    {50, ACCEL_MULT},
-    {60, ACCEL_MULT},
-    {70, ACCEL_MULT},
-    {80, ACCEL_MULT},
-    {100, ACCEL_MULT},
-    {120, ACCEL_MULT},
-};
-
-static constexpr modm::Pair<int, float> CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[] = {
-    {100, 1.0},
-    {130, 1.3}};
-
-static constexpr float CHASSIS_DECCEL_VALUE = 0.04f;
+static constexpr float CHASSIS_ACCEL_VALUE = 0.015f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
     CHASSIS_POWER_TO_MAX_SPEED_LUT,
     MODM_ARRAY_SIZE(CHASSIS_POWER_TO_MAX_SPEED_LUT));
 
-static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_ACCEL_INTERPOLATOR(
-    CHASSIS_POWER_TO_MAX_ACCEL_LUT,
-    MODM_ARRAY_SIZE(CHASSIS_POWER_TO_MAX_ACCEL_LUT));
-
-static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_TORQUE_LIMIT_FROM_POWER(
-    CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT,
-    MODM_ARRAY_SIZE(CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT));
 }  // namespace src::chassis
 
-#endif
+#endif  // SENTRY_CHASSIS_CONSTANTS_HPP_

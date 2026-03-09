@@ -85,16 +85,11 @@ public:
 
     float getChassisPowerLimit()
     {
+        // return 120.0f;
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
     float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getVoltageReductionFactorFromTorque(float chassisPowerLimit);
 
     void refresh() override;
 
@@ -145,5 +140,4 @@ private:
 protected:
     std::array<Motor, static_cast<uint8_t>(MotorId::NUM_MOTORS)> motors;
 };  // class ChassisSubsystem
-
 }  // namespace src::chassis
