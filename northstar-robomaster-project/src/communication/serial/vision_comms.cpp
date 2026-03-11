@@ -219,6 +219,8 @@ void VisionComms::sendRobotOdometry()
         modm::Vector2f global_pos = chassisOdometry->getPositionGlobal();
         modm::Vector2f global_vel = chassisOdometry->getVelocityGlobal();
 
+        data->timestamp = tap::arch::clock::getTimeMicroseconds();
+
         // Chassis data
         data->chassis_data.pos_x = global_pos.x;  // meters
         data->chassis_data.pos_y = global_pos.y;  // meters

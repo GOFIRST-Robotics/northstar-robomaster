@@ -125,6 +125,7 @@ public:
 
     struct OdometryData
     {
+        uint32_t timestamp;
         ChassisOdometryData chassis_data;
         TurretOdometryData turret_data;
     } modm_packed;
