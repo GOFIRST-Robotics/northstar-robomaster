@@ -43,7 +43,10 @@ void ChassisWiggleCommand::execute()
         calculateWiggle(dt));
 }
 
-void ChassisWiggleCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisWiggleCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 
 float ChassisWiggleCommand::calculateWiggle(uint32_t dt)
 {

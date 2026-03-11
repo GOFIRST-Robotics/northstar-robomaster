@@ -43,6 +43,7 @@
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/test/turret_test_command.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -133,8 +134,7 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 
 // songs
 BuzzerSubsystem buzzerSubsystem(drivers());
-
-PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
 // PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
@@ -262,6 +262,13 @@ cv::TurretCVControlCommand turretCVControlCommand(
     &worldFramePitchChassisImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
+
+user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
+
+PressCommandMapping ePressed180(
+    drivers(),
+    {&turret180TurnCommand},
+    RemoteMapState({Remote::Key::Q}));
 
 ToggleCommandMapping xCtrlPressedCvControl(
     drivers(),
@@ -509,7 +516,8 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playStartupSongCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -560,7 +568,7 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-void initializeSubsystems(Drivers *drivers)
+void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     dummySubsystem.initialize();
     chassisSubsystem.initialize();
@@ -583,18 +591,18 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //
-    // chassisOrientDriveCommand);
-    // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
-    // running
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
     clientDisplay.setDefaultCommand(&clientDisplayCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
 {
+    drivers->visionComms.attachOdometry(chassisOdometry);
+    drivers->visionComms.attachPitchMotor(&pitchMotor);
+
     drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
         0,
         0,
@@ -626,6 +634,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     // drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&ePressed180);
 }
 }  // namespace standard_control
 

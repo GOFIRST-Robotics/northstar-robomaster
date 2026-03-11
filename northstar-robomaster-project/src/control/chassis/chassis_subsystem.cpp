@@ -17,8 +17,6 @@ using tap::algorithms::limitVal;
 namespace src::chassis
 {
 modm::Pair<int, float> lastComputedMaxWheelSpeed = CHASSIS_POWER_TO_MAX_SPEED_LUT[0];
-modm::Pair<int, float> lastComputedMaxAccelSpeed = CHASSIS_POWER_TO_MAX_ACCEL_LUT[0];
-modm::Pair<int, float> lastComputerMaxTorque = CHASSIS_TORQUE_LIMIT_FROM_POWER_LUT[0];
 
 ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
@@ -84,7 +82,10 @@ float LBSpeed;
 float RFSpeed;
 float RBSpeed;
 
-inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
+inline float ChassisSubsystem::getTurretYaw()
+{
+    return yawMotor->getEncoder()->getPosition().getWrappedValue();
+}
 
 float ChassisSubsystem::getChassisZeroTurret()
 {
@@ -99,18 +100,17 @@ float ChassisSubsystem::getChassisRotationSpeed()
     {
         motorSum += i.getEncoder()->getVelocity();
     }
-    return (WHEEL_DIAMETER_M / (2 * DIST_TO_CENTER)) * motorSum;
+
+    return (motorSum * WHEEL_DIAMETER_M / 2.0f) / (4 * DIST_TO_CENTER);
 }
 
 float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 {
     float maxWheelSpeed =
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
-    float allowedwheelSpeed = maxWheelSpeed - mpsToRpm(modm::Vector2f(vert, hor).getLength());
-    // float allowedwheelSpeed =
-    //     (maxWheelSpeed -
-    //      ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) *
-    //      maxWheelSpeed));
+    float allowedwheelSpeed =
+        (maxWheelSpeed -
+         ((abs(vert / MAX_CHASSIS_SPEED_MPS) + abs(hor / MAX_CHASSIS_SPEED_MPS)) * maxWheelSpeed));
     if (allowedwheelSpeed < 0.0f)
     {
         allowedwheelSpeed = 0.0f;
@@ -121,7 +121,16 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
+    // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
+    if (turretRot > M_TWOPI)
+    {
+        turretRot -= M_TWOPI;
+    }
+    else if (turretRot < 0.0f)
+    {
+        turretRot += M_TWOPI;
+    }
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
@@ -135,15 +144,30 @@ float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
     // P
     float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
-    currRotationPidP =
-        limitVal<float>(currRotationPidP, -CHASSIS_ROTATION_MAX_VEL, CHASSIS_ROTATION_MAX_VEL);
 
     // D
-    float currentRotationPidD = -(drivers->bmi088.getGz()) * CHASSIS_ROTATION_D;  // D
+    float currentRotationPidD = -drivers->bmi088.getGz() * CHASSIS_ROTATION_D;  // D
 
-    currentRotationPidD = limitVal<float>(currentRotationPidD, -1, 1);
+    float chassisRotationSpeed = limitVal<float>(
+        currRotationPidP + currentRotationPidD,
+        -CHASSIS_ROTATION_MAX_VEL,
+        CHASSIS_ROTATION_MAX_VEL);
 
-    float chassisRotationSpeed = limitVal<float>(currRotationPidP + currentRotationPidD, -1, 1);
+    return chassisRotationSpeed;
+}
+
+float ChassisSubsystem::chassisSpeedRotationAutoDrivePID(float angleOffset)
+{
+    // P
+    float currentRotationPidP = angleOffset * 5;  // P
+
+    // D
+    float currentRotationPidD = -getChassisRotationSpeed() * 0.05f;  // D
+
+    float chassisRotationSpeed = limitVal<float>(
+        currentRotationPidP + currentRotationPidD,
+        -CHASSIS_ROTATION_MAX_VEL,
+        CHASSIS_ROTATION_MAX_VEL);
 
     return chassisRotationSpeed;
 }
@@ -168,80 +192,33 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxWheelSpeed.second;
 }
 
-float ChassisSubsystem::getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit)
-{
-    if (!refSerialOnline)
-    {
-        chassisPowerLimit = 80;
-    }
-
-    // only re-interpolate when needed (since this function is called a lot and the chassis
-    // power limit rarely changes, this helps cut down on unnecessary array
-    // searching/interpolation)
-    if (lastComputedMaxAccelSpeed.first != (int)chassisPowerLimit)
-    {
-        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
-        lastComputedMaxAccelSpeed.second =
-            CHASSIS_POWER_TO_ACCEL_INTERPOLATOR.interpolate(chassisPowerLimit);
-    }
-
-    return lastComputedMaxAccelSpeed.second;
-}
-
-float ChassisSubsystem::getVoltageReductionFactorFromTorque(float chassisPowerLimit)
-{
-    float torqueSum = 0.0f;
-    for (Motor& i : motors)
-    {
-        torqueSum += i.getTorque();
-    }
-    if (lastComputerMaxTorque.first != (int)chassisPowerLimit)
-    {
-        lastComputedMaxAccelSpeed.first = (int)chassisPowerLimit;
-        lastComputedMaxAccelSpeed.second =
-            CHASSIS_TORQUE_LIMIT_FROM_POWER.interpolate(chassisPowerLimit);
-    }
-    if (torqueSum <= lastComputedMaxAccelSpeed.second)
-    {
-        return 1.0f;
-    }
-    else
-    {
-        return lastComputedMaxAccelSpeed.second / torqueSum;
-    }
-}
-
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
     float rotational,
     float heading)
 {
-    float maxAccelSpeed =
-        getMaxAccelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
     rampControllers[0].setTarget(forward);
-    rampControllers[0].update(
-        abs(forward) < abs(rampControllers[0].getValue()) ? CHASSIS_DECCEL_VALUE : maxAccelSpeed);
+    rampControllers[0].update(CHASSIS_ACCEL_VALUE);
     float rampedForward = rampControllers[0].getValue();
     rampControllers[1].setTarget(sideways);
-    rampControllers[1].update(
-        abs(sideways) < abs(rampControllers[1].getValue()) ? CHASSIS_DECCEL_VALUE : maxAccelSpeed);
+    rampControllers[1].update(CHASSIS_ACCEL_VALUE);
     float rampedSideways = rampControllers[1].getValue();
     float cos_theta = cos(heading);
     float sin_theta = sin(heading);
     float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
     float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
     LFSpeed = mpsToRpm(
-        (vy_local + vx_local) / M_SQRT2 +
+        (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vy_local + vx_local) / M_SQRT2 +
+        (-vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vy_local - vx_local) / M_SQRT2 +
+        (-vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vy_local - vx_local) / M_SQRT2 +
+        (vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
@@ -256,16 +233,6 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
-
-float xPosOdometry;
-float yPosOdometry;
-float xVelOdometry;
-float yVelOdometry;
-float xVelGlobOdometry;
-float yVelGlobOdometry;
-float rotationOdometry;
-float rotationOdometryDegrees;
-float xl;
 
 void ChassisSubsystem::refresh()
 {
@@ -286,15 +253,5 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
-
-    xPosOdometry = chassisOdometry->getPositionGlobal().x;
-    yPosOdometry = chassisOdometry->getPositionGlobal().y;
-    xVelOdometry = chassisOdometry->getVelocityGlobal().x;
-    yVelOdometry = chassisOdometry->getVelocityGlobal().y;
-    xl = chassisOdometry->getVelocityLocal().x;
-    xVelGlobOdometry = chassisOdometry->getVelocityProjectedGlobal().x;
-    yVelGlobOdometry = chassisOdometry->getVelocityProjectedGlobal().y;
-    rotationOdometry = chassisOdometry->getRotation();
-    rotationOdometryDegrees = modm::toDegree(rotationOdometry);
 }
 }  // namespace src::chassis

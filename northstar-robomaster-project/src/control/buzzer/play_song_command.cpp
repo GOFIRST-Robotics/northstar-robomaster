@@ -58,7 +58,7 @@ bool PlaySongCommand::isFinished() const
 }
 
 // Called once when the command ends (either by finishing or being interrupted).
-void PlaySongCommand::end(bool interrupted)
+void PlaySongCommand::end([[maybe_unused]] bool interrupted)
 {
     // Always stop the buzzer when the command is over to ensure silence.
     buzzer->stop();

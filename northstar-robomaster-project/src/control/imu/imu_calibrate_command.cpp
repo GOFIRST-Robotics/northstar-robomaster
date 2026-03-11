@@ -28,6 +28,7 @@ using namespace tap::communication::sensors::imu::bmi088;
 
 namespace src::control::imu
 {
+bool ImuCalibrateCommand::COMMAND_IS_RUNNING = false;
 ImuCalibrateCommand::ImuCalibrateCommand(
     tap::Drivers *drivers,
     const std::vector<TurretIMUCalibrationConfig> &turretsAndControllers,
@@ -80,6 +81,8 @@ void ImuCalibrateCommand::initialize()
     calibrationLongTimeout.stop();
     calibrationTimer.stop();
     prevTime = tap::arch::clock::getTimeMilliseconds();
+
+    COMMAND_IS_RUNNING = true;
 }
 
 void ImuCalibrateCommand::execute()
@@ -123,10 +126,12 @@ void ImuCalibrateCommand::execute()
                 // enter calibration phase
                 calibrationTimer.stop();
 
-                for (auto &config : turretsAndControllers)
-                {
-                    // config.turretMCBCanComm->sendImuCalibrationRequest();
-                }
+                /*
+                 *for (auto &config : turretsAndControllers)
+                 *{
+                 *    config.turretMCBCanComm->sendImuCalibrationRequest();
+                 *}
+                 */
 
                 drivers->bmi088.requestCalibration();
                 calibrationState = CalibrationState::CALIBRATING_IMU;
@@ -141,13 +146,17 @@ void ImuCalibrateCommand::execute()
                 // plus 1 second extra to handle sending the request and processing it
                 // TODO to handle the case where the turret MCB doesn't receive information,
                 // potentially add ACK sequence to turret MCB CAN comm class.
-                // calibrationTimer.restart(TURRET_IMU_EXTRA_WAIT_CALIBRATE_MS);
+                // start the short wait once when calibration completes so the timer
+                // can actually expire instead of being restarted every loop.
+                calibrationTimer.restart(200);
                 calibrationState = CalibrationState::WAITING_CALIBRATION_COMPLETE;
             }
-            calibrationTimer.restart(200);
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
             drivers->commandScheduler.addCommand(song);
+            break;
+
+        default:
             break;
     }
 
@@ -175,13 +184,21 @@ void ImuCalibrateCommand::end(bool)
         config.turret->yawMotor.setMotorOutput(0);
         config.turret->pitchMotor.setMotorOutput(0);
     }
+
+    COMMAND_IS_RUNNING = false;
 }
 
 bool ImuCalibrateCommand::isFinished() const
 {
-    return (calibrationState == CalibrationState::WAITING_CALIBRATION_COMPLETE &&
-            calibrationTimer.isExpired()) ||
-           calibrationLongTimeout.isExpired();
+    if ((calibrationState == CalibrationState::WAITING_CALIBRATION_COMPLETE &&
+         calibrationTimer.isExpired()) ||
+        calibrationLongTimeout.isExpired())
+    {
+        COMMAND_IS_RUNNING = false;
+        return true;
+    }
+
+    return false;
 }
 
 }  // namespace src::control::imu

@@ -51,7 +51,7 @@ void ChassisDriveDistanceCommand::execute()
     chassis->setVelocityFieldDrive(velocityToTarget.y, velocityToTarget.x, 0);
 }
 
-void ChassisDriveDistanceCommand::end(bool interrupted)
+void ChassisDriveDistanceCommand::end([[maybe_unused]] bool interrupted)
 {
     chassis->setVelocityTurretDrive(0, 0, 0);
 }

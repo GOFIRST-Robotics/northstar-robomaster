@@ -1,4 +1,8 @@
 //#define FLY_SKY
+#include "tap/algorithms/math_user_utils.hpp"
+
+#include "control/chassis/constants/chassis_constants.hpp"
+
 #include "state_machine_subsytem.hpp"
 
 namespace src::stateMachine
@@ -17,7 +21,6 @@ StateMachineSubsystem::StateMachineSubsystem(
 void StateMachineSubsystem::initialize() {}
 
 bool beyblade = false;
-float t = 0;
 
 void StateMachineSubsystem::refresh()
 {
@@ -33,7 +36,7 @@ void StateMachineSubsystem::refresh()
 
         return;
     }
-    if (t > 1)
+    if (!chassisAutoDrive->hasValidPath())
     {
         chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
         return;
@@ -41,24 +44,12 @@ void StateMachineSubsystem::refresh()
 
     chassisAutoDrive->updateAutoDrive();
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
-    float desiredRadiansPerSecond = 0.0f;
-    if (beyblade)
-    {
-        desiredRadiansPerSecond = chassisSubsystem->calculateMaxRotationSpeed(
-            desiredGlobalVelocity.y,
-            desiredGlobalVelocity.x);
-    }
-    else
-    {
-        desiredRadiansPerSecond =
-            chassisAutoDrive
-                ->getDesiredRotation();  // use chassisSpeedRotationPID with heading passed in
-    }
+    float desiredRotation = chassisAutoDrive->getDesiredRotation();
 
     chassisSubsystem->setVelocityFieldDrive(
         desiredGlobalVelocity.y,
         desiredGlobalVelocity.x,
-        0.5f);  // desiredRadiansPerSecond
+        desiredRotation);
 }  // namespace src::stateMachine
 
 }  // namespace src::stateMachine

@@ -30,8 +30,11 @@ void ChassisAutoDrive::addCurveToPath(CubicBezier newPoint)
     }
 }
 
-float xDir;
-float yDir;
+float globVelX = 0;
+float globVelY = 0;
+float ldX = 0;
+float ldY = 0;
+float d = 0;
 
 void ChassisAutoDrive::updateAutoDrive()
 {
@@ -45,41 +48,50 @@ void ChassisAutoDrive::updateAutoDrive()
     modm::Vector<float, 2> dirToTarget = getDirectionToCurve(currentT);
     float distanceToTarget = dirToTarget.getLength();
 
-    if (distanceToTarget < 0.0025)
+    if (distanceToTarget < T_CHECK)
     {
-        // currentT += path.front().evaluateDerivative(currentT).getLength() * 0.005f;
-        currentT += 0.008f;
+        currentT += T_INCREASE;
         return;
     }
-
-    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, 0.05);
-    // float desiredFacingRadians = atan2(lookaheadDerivative.x, lookaheadDerivative.y);
-    // float d = tap::algorithms::Angle(desiredFacingRadians).minDifference(getOdometryRotation());
-    // desiredRotation = d * -2.0f;
-    desiredRotation = 0;
 
     float distanceToEnd = approximateDistanceToEndOfCurve();
     float slowdownMult = 1;
 
-    if (distanceToEnd < 0.5f)
+    if (distanceToEnd < SLOWDOWN_DISTANCE)
     {
-        slowdownMult = distanceToEnd / 0.5f;
-
-        if (slowdownMult < 0.1f)
-        {
-            slowdownMult = 0.1f;
-        }
+        slowdownMult = distanceToEnd / SLOWDOWN_DISTANCE;
+        slowdownMult = tap::algorithms::limitVal(slowdownMult, 0.2f, 1.0f);
     }
 
-    desiredGlobalVelocity = clampMagnitude(
-        ((dirToTarget / distanceToTarget) * lookaheadDerivative.getLength() /
-         lengthOfCurrentCurve()) *
-            1.5f * slowdownMult,
-        0.4f,
-        0.5f);
+    modm::Vector<float, 2> lookaheadDerivative = getLookaheadDeriv(currentT, T_LOOKAHEAD);
+    modm::Vector<float, 2> lookaheadDirection = getDirectionToLookaheadPoint(currentT, T_LOOKAHEAD);
+    modm::Vector<float, 2> globalVelocity = chassisOdometry->getVelocityGlobal();
 
-    xDir = desiredGlobalVelocity.x;
-    yDir = desiredGlobalVelocity.y;
+    float globalSpeed = globalVelocity.getLength();
+    if (globalSpeed < 0.01f)
+    {
+        globalSpeed = 0.01f;
+    }
+
+    float dot =
+        lookaheadDirection.dot(globalVelocity) / (lookaheadDirection.getLength() * globalSpeed);
+    dot *= 0.5f;
+    dot = tap::algorithms::limitVal(dot, 0.5f, 1.0f);
+
+    globVelX = globalVelocity.x;
+    globVelY = globalVelocity.y;
+    ldX = lookaheadDirection.x;
+    ldY = lookaheadDirection.y;
+    d = dot;
+
+    desiredGlobalVelocity = clampMagnitude(
+        ((dirToTarget / distanceToTarget) *
+         (lookaheadDerivative.getLength() / lengthOfCurrentCurve())) *
+            (slowdownMult * dot),
+        MINIMUM_MPS,
+        MAXIMUM_MPS);
+
+    calculateRotationToFacePoint(lookaheadDirection);
 }
 
 };  // namespace src::chassis

@@ -108,7 +108,7 @@ float RevThreeFlywheelSubsystem::launchSpeedToFlywheelRpm(float launchSpeed) con
 {
     modm::interpolation::Linear<modm::Pair<float, float>> MPSToRPMInterpolator = {
         spinToRPMMap.at(desiredSpin).data(),
-        spinToRPMMap.at(desiredSpin).size()};
+        static_cast<uint8_t>(spinToRPMMap.at(desiredSpin).size())};
     return MPSToRPMInterpolator.interpolate(launchSpeed);
 }
 
