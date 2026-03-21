@@ -38,17 +38,14 @@
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
+#include "control/turret/user/neo_turret_user_control_command.hpp"
 // #include "control/turret/user/turret_quick_turn_command.hpp"
-#include "control/turret/algorithms/world_frame_pitch_chassis_imu_comp_turret_controller.hpp"
-#include "robot/sentry/sentry_turret_subsystem.hpp"
-#include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
+#include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/user/neo_turret_user_control_command.hpp"
 
 // cv
 #include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "control/governor/cv_on_target_governor.hpp"
-#include "robot/sentry/sentry_cv_manager_command.hpp"
-#include "robot/sentry/sentry_scan_command.hpp"
-#include "robot/sentry/sentry_turret_cv_control_command.hpp"
 
 // flywheel
 #include "control/flywheel/flywheel_constants.hpp"
@@ -56,7 +53,7 @@
 #include "control/flywheel/flywheel_subsystem.hpp"
 
 // imu
-#include "robot/sentry/sentry_imu_calibrate_command.hpp"
+#include "control/imu/imu_calibrate_command.hpp"
 
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
@@ -73,6 +70,14 @@
 // safe disconnect
 #include "control/safe_disconnect.hpp"
 
+// Buzzer
+#include "control/buzzer/buzzer_subsystem.hpp"
+#include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/twinkle_twinkle.hpp"
+
+// Rev
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::motor::MotorId;
@@ -88,6 +93,8 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
+using namespace src::control::buzzer;
+using namespace tap::motor;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -96,6 +103,10 @@ namespace sentry_control
 DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
+
+BuzzerSubsystem buzzerSubsystem(drivers());
+
+PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
 
 // flywheel
 FlywheelSubsystem flywheelBottom(
@@ -141,94 +152,39 @@ ToggleCommandMapping fCtrlPressed(
     RemoteMapState({Remote::Key::F, Remote::Key::CTRL}));
 
 // turret subsystem
-tap::motor::DjiMotor pitchMotorBottom(
+tap::motor::DjiMotor pitchMotor(
     drivers(),
-    PITCH_MOTOR_BOTTOM_ID,
+    PITCH_MOTOR_ID,
     CAN_BUS_MOTORS,
     true,
-    "Pitch Motor Bottom",
+    "PitchMotor",
     false,
     1,
-    PITCH_MOTOR_CONFIG_BOTTOM.startEncoderValue);
+    PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotorBottom(
+src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
+
+tap::motor::RevMotor yawMotor1(
     drivers(),
-    YAW_MOTOR_BOTTOM_ID,
-    CAN_BUS_MOTORS,
-    true,
-    "Yaw Motor Bottom",
+    REV_MOTOR1,
+    CanBus::CAN_BUS1,
+    RevMotor::ControlMode::DUTY_CYCLE,
     false,
-    1,
-    YAW_MOTOR_CONFIG_BOTTOM.startEncoderValue);
+    "YawMotor1",
+    18.0f / 120.0f);  // gear ratio
 
-tap::motor::DjiMotor pitchMotorTop(
+tap::motor::RevMotor yawMotor2(
     drivers(),
-    PITCH_MOTOR_TOP_ID,
-    CAN_BUS_MOTORS,
-    true,
-    "Pitch Motor Top",
+    REV_MOTOR2,
+    CanBus::CAN_BUS1,
+    RevMotor::ControlMode::DUTY_CYCLE,
     false,
-    1,
-    PITCH_MOTOR_CONFIG_TOP.startEncoderValue);
+    "YawMotor2",
+    18.0f / 120.0f);  // gear ratio
 
-tap::motor::DjiMotor yawMotorTop(
-    drivers(),
-    YAW_MOTOR_TOP_ID,
-    CAN_BUS_MOTORS,
-    true,
-    "Yaw Motor Top",
-    false,
-    1,
-    YAW_MOTOR_CONFIG_TOP.startEncoderValue);
+TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_REV_CONFIG);
 
-SentryTurretSubsystem sentryTurrets(
-    drivers(),
-    &pitchMotorBottom,
-    &yawMotorBottom,
-    &pitchMotorTop,
-    &yawMotorTop,
-    PITCH_MOTOR_CONFIG_BOTTOM,
-    YAW_MOTOR_CONFIG_BOTTOM,
-    PITCH_MOTOR_CONFIG_TOP,
-    YAW_MOTOR_CONFIG_TOP,
-    &getTurretMCBCanComm());
-
-// turret controlers
-algorithms::ChassisFramePitchTurretController chassisFramePitchTurretControllerBottom(
-    sentryTurrets.pitchMotorBottom,
-    chassis_rel::PITCH_PID_CONFIG);
-
-algorithms::ChassisFramePitchTurretController chassisFramePitchTurretControllerTop(
-    sentryTurrets.pitchMotorTop,
-    chassis_rel::PITCH_PID_CONFIG);
-
-algorithms::ChassisFrameYawTurretController chassisFrameYawTurretControllerBottom(
-    sentryTurrets.yawMotorBottom,
-    chassis_rel::YAW_PID_CONFIG);
-
-algorithms::ChassisFrameYawTurretController chassisFrameYawTurretControllerTop(
-    sentryTurrets.yawMotorTop,
-    chassis_rel::YAW_PID_CONFIG);
-
-algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuControllerBottom(
-    *drivers(),
-    sentryTurrets.yawMotorBottom,
-    world_rel_chassis_imu::YAW_PID_CONFIG);
-
-algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuControllerTop(
-    *drivers(),
-    sentryTurrets.yawMotorTop,
-    world_rel_chassis_imu::YAW_PID_CONFIG);
-
-algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuControllerBottom(
-    *drivers(),
-    sentryTurrets.pitchMotorBottom,
-    world_rel_chassis_imu::PITCH_PID_CONFIG);
-
-algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuControllerTop(
-    *drivers(),
-    sentryTurrets.pitchMotorTop,
-    world_rel_chassis_imu::PITCH_PID_CONFIG);
+TurretSubsystem turret(drivers(), &pitchTurretMotor, &yawTurretMotor, &getTurretMCBCanComm());
 
 tap::algorithms::SmoothPid worldFramePitchTurretImuPosPidBottom(
     world_rel_turret_imu::PITCH_POS_PID_CONFIG_BOTTOM);
@@ -236,37 +192,11 @@ tap::algorithms::SmoothPid worldFramePitchTurretImuPosPidBottom(
 tap::algorithms::SmoothPid worldFramePitchTurretImuVelPidBottom(
     world_rel_turret_imu::PITCH_VEL_PID_CONFIG_BOTTOM);
 
-algorithms::
-    WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerBottom(
-        *drivers(),
-        sentryTurrets.pitchMotorBottom,
-        worldFramePitchTurretImuPosPidBottom,
-        worldFramePitchTurretImuVelPidBottom);
-
-tap::algorithms::SmoothPid worldFramePitchTurretImuPosPidTop(
-    world_rel_turret_imu::PITCH_POS_PID_CONFIG_TOP);
-
-tap::algorithms::SmoothPid worldFramePitchTurretImuVelPidTop(
-    world_rel_turret_imu::PITCH_VEL_PID_CONFIG_TOP);
-
-algorithms::
-    WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuControllerTop(
-        *drivers(),
-        sentryTurrets.pitchMotorTop,
-        worldFramePitchTurretImuPosPidTop,
-        worldFramePitchTurretImuVelPidTop);
-
 tap::algorithms::SmoothPid worldFrameYawTurretImuPosPidBottom(
     world_rel_turret_imu::YAW_POS_PID_CONFIG_BOTTOM);
 
 tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidBottom(
     world_rel_turret_imu::YAW_VEL_PID_CONFIG_BOTTOM);
-
-algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerBottom(
-    *drivers(),
-    sentryTurrets.yawMotorBottom,
-    worldFrameYawTurretImuPosPidBottom,
-    worldFrameYawTurretImuVelPidBottom);
 
 tap::algorithms::SmoothPid worldFrameYawTurretImuPosPidTop(
     world_rel_turret_imu::YAW_POS_PID_CONFIG_TOP);
@@ -274,76 +204,87 @@ tap::algorithms::SmoothPid worldFrameYawTurretImuPosPidTop(
 tap::algorithms::SmoothPid worldFrameYawTurretImuVelPidTop(
     world_rel_turret_imu::YAW_VEL_PID_CONFIG_TOP);
 
-algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuControllerTop(
-    *drivers(),
-    sentryTurrets.yawMotorTop,
-    worldFrameYawTurretImuPosPidTop,
-    worldFrameYawTurretImuVelPidTop);
+// turret controlers
 
-algorithms::
-    WorldFramePitchChassisImuCompTurretController worldFramePitchChassisImuCompControllerTop(
-        *drivers(),
-        sentryTurrets.pitchMotorTop,
-        world_rel_chassis_imu::PITCH_PID_CONFIG,
-        &sentryTurrets);
+algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
+    sentryTurrets.pitchMotor,
+    chassis_rel::PITCH_PID_CONFIG);
+
+algorithms::ChassisFrameYawTurretController chassisFrameYawTurretController(
+    revTurret.yawMotor,
+    chassis_rel::YAW_PID_CONFIG);
+
+algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuController(
+    *drivers(),
+    revTurret.yawMotor,
+    world_rel_chassis_imu::YAW_PID_CONFIG);
+
+algorithms::WorldFramePitchChassisImuTurretController worldFramePitchChassisImuController(
+    *drivers(),
+    revTurret.pitchMotor,
+    world_rel_chassis_imu::PITCH_PID_CONFIG);
+
+algorithms::WorldFrameYawTurretImuCascadePidTurretController worldFrameYawTurretImuController(
+    *drivers(),
+    revTurret.yawMotor,
+    worldFrameYawTurretImuPosPidBottom,
+    worldFrameYawTurretImuVelPidBottom);
+
+algorithms::WorldFramePitchTurretImuCascadePidTurretController worldFramePitchTurretImuController(
+    *drivers(),
+    revTurret.pitchMotor,
+    worldFramePitchTurretImuPosPidBottom,
+    worldFramePitchTurretImuVelPidBottom);
 
 // turret commands
-user::SentryTurretUserControlCommand turretUserControlCommand(
+user::NeoTurretUserControlCommand turretUserControlCommand(
     drivers(),
     drivers()->controlOperatorInterface,
-    &sentryTurrets,
-    &worldFrameYawTurretImuControllerBottom,
-    &worldFramePitchChassisImuControllerBottom,
-    &worldFrameYawChassisImuControllerTop,        // controler for top turret
-    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
+    &revTurret,
+    &worldFrameYawTurretImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR,
     M_TWOPI);  // +- offset max rads
 
-cv::SentryTurretCVControlCommand turretCVControlCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    drivers()->visionComms,
-    &sentryTurrets,
-    &worldFrameYawTurretImuControllerBottom,
-    &worldFramePitchChassisImuControllerBottom,
-    &worldFrameYawChassisImuControllerTop,        // controler for top turret
-    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR,
-    .01,       // max error
-    M_TWOPI);  // +- offset max rads
+// cv::SentryTurretCVControlCommand turretCVControlCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     drivers()->visionComms,
+//     &revTurret,
+//     &worldFrameYawTurretImuController,
+//     &worldFramePitchTurretImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR,
+//     .01,       // max error
+//     M_TWOPI);  // +- offset max rads
 
-cv::SentryScanCommand turretScanCommand(
-    drivers(),
-    &sentryTurrets,
-    &worldFrameYawTurretImuControllerBottom,
-    &worldFramePitchChassisImuControllerBottom,
-    &worldFrameYawChassisImuControllerTop,        // controler for top turret
-    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
-    M_TWOPI,
-    .01,  // max error
-    .0016);
+// cv::SentryScanCommand turretScanCommand(
+//     drivers(),
+//     &revTurret,
+//     &worldFrameYawTurretImuController,
+//     &worldFramePitchTurretImuController,
+//     M_TWOPI,
+//     .01,  // max error
+//     .0016);
 
-cv::SentryCvManagerCommand cvManagerCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    drivers()->visionComms,
-    &sentryTurrets,
-    &worldFrameYawTurretImuControllerBottom,
-    &worldFramePitchChassisImuControllerBottom,
-    &worldFrameYawChassisImuControllerTop,        // controler for top turret
-    &worldFramePitchChassisImuCompControllerTop,  // worldFramePitchChassisImuControllerTop,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR,
-    M_TWOPI,
-    .01,  // max error
-    .0016);
+// cv::SentryCvManagerCommand cvManagerCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     drivers()->visionComms,
+//     &revTurret,
+//     &worldFrameYawTurretImuController,
+//     &worldFramePitchTurretImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR,
+//     M_TWOPI,
+//     .01,  // max error
+//     .0016);
 
 // user::SentryTurretUserWorldRelativeCommand turretsUserWorldRelativeCommand(
 //     drivers(),
 //     drivers()->controlOperatorInterface,
-//     &sentryTurrets,
+//     &revTurret,
 //     &worldFrameYawChassisImuControllerBottom,
 //     &worldFramePitchChassisImuControllerBottom,
 //     &worldFrameYawTurretImuControllerBottom,
@@ -632,18 +573,16 @@ ToggleCommandMapping orientDrive(
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
 
 // imu commands
-imu::SentryImuCalibrateCommand imuCalibrateCommand(
+imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
-        &sentryTurrets,
-        &chassisFrameYawTurretControllerTop,
-        &chassisFramePitchTurretControllerTop,
-        &chassisFrameYawTurretControllerBottom,
-        &chassisFramePitchTurretControllerBottom,
-        false,
-        false,
+        &turret,
+        &chassisFrameYawTurretController,
+        &chassisFramePitchTurretController,
+        true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playTwinkleCommand);
 
 MatchRunningGovernor matchRunning(drivers()->refSerial);
 
@@ -701,7 +640,7 @@ void initializeSubsystems(Drivers *drivers)
     agitatorBottom.initialize();
     flywheelTop.initialize();
     flywheelBottom.initialize();
-    sentryTurrets.initialize();
+    revTurret.initialize();
 }
 
 void registerSentrySubsystems(Drivers *drivers)
@@ -711,13 +650,13 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&agitatorBottom);
     drivers->commandScheduler.registerSubsystem(&flywheelTop);
     drivers->commandScheduler.registerSubsystem(&flywheelBottom);
-    drivers->commandScheduler.registerSubsystem(&sentryTurrets);
+    drivers->commandScheduler.registerSubsystem(&revTurret);
 }
 
 void setDefaultSentryCommands(Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
-    sentryTurrets.setDefaultCommand(&turretUserControlCommand);
+    revTurret.setDefaultCommand(&turretUserControlCommand);
 }
 
 void startSentryCommands(Drivers *drivers)

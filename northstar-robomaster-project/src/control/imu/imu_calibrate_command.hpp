@@ -189,15 +189,15 @@ protected:
     {
         return compareFloatClose(
                    0.0f,
-                   turret->yawMotor.getChassisFrameVelocity(),
+                   turret->yawMotor->getChassisFrameVelocity(),
                    velocityZeroThreshold) &&
-               (turret->yawMotor.getChassisFrameMeasuredAngle().minDifference(0) <
+               (turret->yawMotor->getChassisFrameMeasuredAngle().minDifference(0) <
                 positionZeroThreshold) &&
                (ignorePitch || (compareFloatClose(
                                     0.0f,
-                                    turret->pitchMotor.getChassisFrameVelocity(),
+                                    turret->pitchMotor->getChassisFrameVelocity(),
                                     velocityZeroThreshold) &&
-                                (turret->pitchMotor.getChassisFrameMeasuredAngle().minDifference(
+                                (turret->pitchMotor->getChassisFrameMeasuredAngle().minDifference(
                                      0) < positionZeroThreshold)));
     }
 };

@@ -58,12 +58,11 @@ static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = 0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS2;
-static constexpr tap::motor::MotorId PITCH_MOTOR_BOTTOM_ID = tap::motor::MOTOR5;  // 1
-static constexpr tap::motor::MotorId YAW_MOTOR_BOTTOM_ID = tap::motor::MOTOR6;    // 2
-static constexpr tap::motor::MotorId PITCH_MOTOR_TOP_ID = tap::motor::MOTOR7;     // 3
-static constexpr tap::motor::MotorId YAW_MOTOR_TOP_ID = tap::motor::MOTOR8;       // 4
+static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR5;  // 1
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_1 = tap::motor::MOTOR6;  // 2
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_2 = tap::motor::MOTOR7;  // 2
 
-static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_BOTTOM = {
+static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
     .startEncoderValue = 450,  // enc res 8191
     .minAngle = 0,
@@ -71,28 +70,21 @@ static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_BOTTOM = {
     .limitMotorAngles = false,
 };
 
-static constexpr TurretMotorConfig YAW_MOTOR_CONFIG_TOP = {
+static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
+    // PITCH MOTOR CONFIG WE USE
+    .startAngle = modm::toRadian(90),  // 7.45
+    .startEncoderValue = 5450,
+    .minAngle = modm::toRadian(45),
+    .maxAngle = modm::toRadian(115),
+    .limitMotorAngles = true,
+};
+
+static constexpr TurretMotorConfig YAW_MOTOR_REV_CONFIG = {
     .startAngle = 0,
-    .startEncoderValue = 4550,  // enc res 8191
-    .minAngle = -modm::toRadian(180),
-    .maxAngle = modm::toRadian(180),
+    .startEncoderValue = 0,  // enc res 8191
+    .minAngle = 0,
+    .maxAngle = 0,
     .limitMotorAngles = false,
-};
-
-static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG_BOTTOM = {
-    .startAngle = modm::toRadian(90),  // 7.45
-    .startEncoderValue = 5450,
-    .minAngle = modm::toRadian(45),
-    .maxAngle = modm::toRadian(115),
-    .limitMotorAngles = true,
-};
-
-static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG_TOP = {
-    .startAngle = modm::toRadian(90),  // 7.45
-    .startEncoderValue = 5450,
-    .minAngle = modm::toRadian(45),
-    .maxAngle = modm::toRadian(115),
-    .limitMotorAngles = true,
 };
 
 static constexpr float TURRET_CG_X = 80.0f;                 // 30.17;

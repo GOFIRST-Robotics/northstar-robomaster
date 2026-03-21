@@ -35,14 +35,12 @@ namespace src::control::turret
 {
 TurretSubsystem::TurretSubsystem(
     tap::Drivers *drivers,
-    MotorInterface *pitchMotor,
-    MotorInterface *yawMotor,
-    const TurretMotorConfig &pitchMotorConfig,
-    const TurretMotorConfig &yawMotorConfig,
+    TurretMotorGM6020 *pitchMotor,
+    TurretDoubleMotorRev *yawMotor,
     const src::can::TurretMCBCanComm *turretMCB)
     : tap::control::Subsystem(drivers),
-      pitchMotor(pitchMotor, pitchMotorConfig),
-      yawMotor(yawMotor, yawMotorConfig),
+      pitchMotor(pitchMotor),
+      yawMotor(yawMotor),
       turretMCB(turretMCB)
 {
     assert(drivers != nullptr);
@@ -52,13 +50,13 @@ TurretSubsystem::TurretSubsystem(
 
 void TurretSubsystem::initialize()
 {
-    yawMotor.initialize();
-    pitchMotor.initialize();
+    yawMotor->initialize();
+    pitchMotor->initialize();
 }
 
 void TurretSubsystem::refresh()
 {
-    yawMotor.updateMotorAngle();
-    pitchMotor.updateMotorAngle();
+    yawMotor->updateMotorAngle();
+    pitchMotor->updateMotorAngle();
 }
 }  // namespace src::control::turret
