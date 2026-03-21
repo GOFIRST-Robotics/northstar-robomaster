@@ -30,8 +30,11 @@ void ChassisDriveCommand::execute()
     chassis->setVelocityTurretDrive(
         scale(normInput.first),
         -scale(normInput.second),
-        scale(operatorInterface->getDrivetrainRotationalTranslation()));
+        operatorInterface->getDrivetrainRotationalTranslation());
 }
 
-void ChassisDriveCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisDriveCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 };  // namespace src::chassis

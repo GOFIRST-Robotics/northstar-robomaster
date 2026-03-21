@@ -2,6 +2,7 @@
 #define SENTRY_FLYWHEEL_CONSTANTS_HPP_
 #include <modm/container/pair.hpp>
 
+#include "tap/motor/dji_motor.hpp"
 #include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "modm/math/filter/pid.hpp"
@@ -9,18 +10,31 @@
 namespace src::control::flywheel
 {
 static constexpr float FRICTION_WHEEL_RAMP_SPEED = 8.0f;
+
 static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID = tap::motor::REV_MOTOR1;
 static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID = tap::motor::REV_MOTOR3;
 static constexpr tap::motor::REVMotorId UP_MOTOR_ID = tap::motor::REV_MOTOR2;
 
-static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
+static constexpr tap::motor::MotorId LEFT_MOTOR_ID_DJI = tap::motor::MOTOR1;
+static constexpr tap::motor::MotorId RIGHT_MOTOR_ID_DJI = tap::motor::MOTOR2;
 
-static constexpr float FLYWHEEL_PID_KP = 0.0f;
-static constexpr float FLYWHEEL_PID_KI = 0.0f;
-static constexpr float FLYWHEEL_PID_KD = 0.0f;
-static constexpr float FLYWHEEL_PID_KF = 0.00009f;
-static constexpr float FLYWHEEL_PID_K_MIN_OUT = -1.0f;
-static constexpr float FLYWHEEL_PID_K_MAX_OUT = 1.0f;
+static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
+// rev constants
+static constexpr float FLYWHEEL_PID_KP_REV = 0.0f;
+static constexpr float FLYWHEEL_PID_KI_REV = 0.0f;
+static constexpr float FLYWHEEL_PID_KD_REV = 0.0f;
+static constexpr float FLYWHEEL_PID_KF_REV = 0.00009f;
+static constexpr float FLYWHEEL_PID_K_MIN_OUT_REV = -1.0f;
+static constexpr float FLYWHEEL_PID_K_MAX_OUT_REV = 1.0f;
+
+// dji constants
+static constexpr float FLYWHEEL_PID_KP_DJI = 0.0f;
+static constexpr float FLYWHEEL_PID_KI_DJI = 0.0f;
+static constexpr float FLYWHEEL_PID_KD_DJI = 0.0f;
+static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM_DJI = 0.0f;
+static constexpr float FLYWHEEL_PID_MAX_OUTPUT_DJI = 25'000.0f;
+
+static constexpr float MAX_DESIRED_LAUNCH_SPEED_RPM = 8000;
 
 // TODO make these correct
 enum Spin : u_int8_t
@@ -32,11 +46,36 @@ enum Spin : u_int8_t
     SPIN_COUNT
 };
 
-static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
+[[maybe_unused]] static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
     SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
         {{{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}},    // SPIN_90
          {{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}},    // SPIN_100
-         {{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}}}};  // SPIN_110
+         {{{0.0f, 0.0f}, {15.0f, 4714.0f}, {18.0f, 5621.0f}, {24.5f, 7700.0f}}}}};  // SPIN_110\
+
+static constexpr modm::Pair<float, float> MPS_TO_RPM[] = {
+    {0.0f, 0.0f},
+    {15.0f, 4714.0f},
+    {18.0f, 5621.0f},
+    {24.5f, 7700.0f}};
+
+// SPIN_TO_INTERPOLATABLE_MPS_TO_RPM = {
+//     {{{{0.0f, 0.0f},
+//        {15.0f, 4'500.0f},
+//        {18.0f, 5'700.0f},
+//        {30.0f, 6'400.0f},
+//        {32.0f, 7'000.0f}}},  // SPIN_90
+//      {{{0.0f, 0.0f},
+//        {15.0f, 4'500.0f},
+//        {18.0f, 5'700.0f},
+//        {30.0f, 6'400.0f},
+//        {32.0f, 7'000.0f}}},  // SPIN_100
+//      {{
+//          {0.0f, 0.0f},
+//          {15.0f, 4'500.0f},
+//          {18.0f, 5'700.0f},
+//          {30.0f, 6'400.0f},
+//          {32.0f, 7'000.0f}  // SPIN_110
+//      }}}};
 
 inline std::optional<Spin> toSpinPreset(int value)
 {

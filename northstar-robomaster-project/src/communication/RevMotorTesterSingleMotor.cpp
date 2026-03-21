@@ -44,8 +44,5 @@ void RevMotorTesterSingleMotor::refresh()
     // debugVelo = singularMotor.getEncoder()->getVelocity() * 60 / M_TWOPI;
     // debugPos = singularMotor.getEncoder()->getPosition().getUnwrappedValue();
     // debugCurrent = singularMotor.getCurrent();
-    float targetVoltage =
-        drivers->remote.getChannel(tap::communication::serial::Remote::Channel::LEFT_VERTICAL);
-    singularMotor.setControlValue(targetVoltage);
 }
 }  // namespace Communications::Rev

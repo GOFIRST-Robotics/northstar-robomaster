@@ -13,15 +13,11 @@ namespace src::chassis
 ChassisBeybladeCommand::ChassisBeybladeCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface,
-    float distScaleFactor,
     short direction,
-    float spinVel,
     bool isVariable)
     : chassis(chassis),
       operatorInterface(operatorInterface),
-      distScaleFactor(distScaleFactor),
       direction(direction),
-      spinVel(spinVel),
       isVariable(isVariable)
 {
     addSubsystemRequirement(chassis);
@@ -48,14 +44,17 @@ void ChassisBeybladeCommand::execute()
         operatorInterface->getDrivetrainVerticalTranslation(),
         operatorInterface->getDrivetrainHorizontalTranslation());
     float verticalSpeed = scale(normInput.first);
-    float horizontalSpeed = -scale(normInput.second);
+    float horizontalSpeed = scale(normInput.second);
     calcedRot = calculateBeyBladeRotationSpeed(
         chassis->calculateMaxRotationSpeed(verticalSpeed, horizontalSpeed),
         dt);
     chassis->setVelocityTurretDrive(verticalSpeed, horizontalSpeed, calcedRot);
 }
 
-void ChassisBeybladeCommand::end(bool interrupted) { chassis->setVelocityTurretDrive(0, 0, 0); }
+void ChassisBeybladeCommand::end([[maybe_unused]] bool interrupted)
+{
+    chassis->setVelocityTurretDrive(0, 0, 0);
+}
 
 float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uint32_t dt)
 {
@@ -72,7 +71,7 @@ float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uin
         if (RandomNumberGenerator::isReady())
         {
             calcSpeed = limitVal<float>(
-                0.1 * sin(RandomNumberGenerator::getValue()) + calcSpeed,
+                0.1f * static_cast<float>(sin(RandomNumberGenerator::getValue())) + calcSpeed,
                 -1.0f,
                 1.0f);
         }
