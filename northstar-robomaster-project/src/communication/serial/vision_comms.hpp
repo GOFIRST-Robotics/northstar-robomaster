@@ -17,7 +17,7 @@ namespace src::serial
 class VisionComms : public tap::communication::serial::DJISerial
 {
 public:
-    static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
+    static constexpr size_t VISION_COMMS_BAUD_RATE = 115'200;
 
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_TX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
@@ -105,21 +105,21 @@ public:
         float yaw;
         float roll;
 
-        float pitch_vel;
-        float yaw_vel;
-        float roll_vel;
+        // float pitch_vel;
+        // float yaw_vel;
+        // float roll_vel;
 
     } modm_packed;
 
     struct ChassisOdometryData
     {
-        float pos_x;
-        float pos_y;
-        float pos_z;
+        // float pos_x;
+        // float pos_y;
+        // float pos_z;
 
         float vel_x;
         float vel_y;
-        float vel_z;
+        // float vel_z;
 
     } modm_packed;
 
