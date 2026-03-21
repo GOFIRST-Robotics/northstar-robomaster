@@ -9,13 +9,9 @@
 namespace src::control::flywheel
 {
 static constexpr float FRICTION_WHEEL_RAMP_SPEED = 8.0f;
-
-static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR1;
-static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR3;
-static constexpr tap::motor::REVMotorId UP_MOTOR_ID_BOTTOM = tap::motor::REV_MOTOR2;
-static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID_TOP = tap::motor::REV_MOTOR4;
-static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID_TOP = tap::motor::REV_MOTOR6;
-static constexpr tap::motor::REVMotorId UP_MOTOR_ID_TOP = tap::motor::REV_MOTOR5;
+static constexpr tap::motor::REVMotorId LEFT_MOTOR_ID = tap::motor::REV_MOTOR1;
+static constexpr tap::motor::REVMotorId RIGHT_MOTOR_ID = tap::motor::REV_MOTOR3;
+static constexpr tap::motor::REVMotorId UP_MOTOR_ID = tap::motor::REV_MOTOR2;
 
 static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
 

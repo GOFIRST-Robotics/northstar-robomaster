@@ -1,95 +1,60 @@
-// #include "sentry_scan_command.hpp"
+#include "sentry_scan_command.hpp"
 
-// namespace src::control::turret::cv
-// {
-// SentryScanCommand::SentryScanCommand(
-//     tap::Drivers *drivers,
-//     SentryTurretSubsystem *turretSubsystem,
-//     algorithms::TurretYawControllerInterface *yawControllerBottom,
-//     algorithms::TurretPitchControllerInterface *pitchControllerBottom,
-//     algorithms::TurretYawControllerInterface *yawControllerTop,
-//     algorithms::TurretPitchControllerInterface *pitchControllerTop,
-//     float DELTA_MAX,
-//     float MAX_ERROR,
-//     float ROT_SPEED)
-//     : drivers(drivers),
-//       turretSubsystem(turretSubsystem),
-//       yawControllerBottom(yawControllerBottom),
-//       pitchControllerBottom(pitchControllerBottom),
-//       yawControllerTop(yawControllerTop),
-//       pitchControllerTop(pitchControllerTop),
-//       DELTA_MAX(DELTA_MAX),
-//       MAX_ERROR(MAX_ERROR),
-//       ROT_SPEED(ROT_SPEED)
-// {
-//     addSubsystemRequirement(turretSubsystem);
-// }
+namespace src::control::turret::cv
+{
+SentryScanCommand::SentryScanCommand(
+    tap::Drivers *drivers,
+    TurretSubsystem *turretSubsystem,
+    algorithms::TurretYawControllerInterface *yawController,
+    algorithms::TurretPitchControllerInterface *pitchController,
+    float DELTA_MAX,
+    float MAX_ERROR,
+    float ROT_SPEED)
+    : drivers(drivers),
+      turretSubsystem(turretSubsystem),
+      yawController(yawController),
+      pitchController(pitchController),
+      DELTA_MAX(DELTA_MAX),
+      MAX_ERROR(MAX_ERROR),
+      ROT_SPEED(ROT_SPEED)
+{
+    addSubsystemRequirement(turretSubsystem);
+}
 
-// bool SentryScanCommand::isReady() { return !isFinished(); }
+bool SentryScanCommand::isReady() { return !isFinished(); }
 
-// void SentryScanCommand::initialize()
-// {
-//     yawControllerBottom->initialize();
-//     pitchControllerBottom->initialize();
-//     yawControllerTop->initialize();
-//     pitchControllerTop->initialize();
-//     prevTime = tap::arch::clock::getTimeMilliseconds();
-//     if (!turretSubsystem->offsets)
-//     {
-//         turretSubsystem->setOffsets(
-//             yawControllerBottom->getSetpoint().getUnwrappedValue(),
-//             yawControllerBottom->getMeasurement().getUnwrappedValue(),
-//             yawControllerTop->getMeasurement().getUnwrappedValue());
-//     }
-// }
-// float debugbottomSetPoint = 0;
-// void SentryScanCommand::execute()
-// {
-//     uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
-//     uint32_t dt = currTime - prevTime;
-//     prevTime = currTime;
+void SentryScanCommand::initialize()
+{
+    yawController->initialize();
+    pitchController->initialize();
+    prevTime = tap::arch::clock::getTimeMilliseconds();
+    // used to use offsets
+}
+float debugSetPoint = 0;
+void SentryScanCommand::execute()
+{
+    uint32_t currTime = tap::arch::clock::getTimeMilliseconds();
+    uint32_t dt = currTime - prevTime;
+    prevTime = currTime;
 
-//     float bottomMeasurement = yawControllerBottom->getMeasurement().getUnwrappedValue() -
-//                               turretSubsystem->bottomMeasurementOffset;
-//     float topMeasurement = yawControllerTop->getMeasurement().getUnwrappedValue() -
-//                            turretSubsystem->topMeasurementOffset;
-//     float bottomSetPoint = yawControllerBottom->getSetpoint().getUnwrappedValue();
-//     debugbottomSetPoint = bottomSetPoint;
-//     float topSetPoint = yawControllerTop->getSetpoint().getUnwrappedValue();
+    float Measurement = yawController->getMeasurement().getUnwrappedValue();
+    float SetPoint = yawController->getSetpoint().getUnwrappedValue();
+    debugSetPoint = SetPoint;
 
-//     yawControllerBottom->runController(dt, Angle(bottomSetPoint + ROT_SPEED));
+    yawController->runController(dt, Angle(SetPoint + ROT_SPEED));
 
-//     pitchControllerBottom->runController(
-//         dt,
-//         Angle(turretSubsystem->pitchMotorBottom.getConfig().startAngle));
+    pitchController->runController(dt, Angle(turretSubsystem->pitchMotor.getConfig().startAngle));
+}
 
-//     float error = limitVal(float(M_PI - topSetPoint), -MAX_ERROR, MAX_ERROR);
-//     if (topSetPoint > M_PI - .01 && topSetPoint < M_PI + .01)
-//     {
-//         error = M_PI - topSetPoint;
-//     }
+bool SentryScanCommand::isFinished() const
+{
+    return !pitchController->isOnline() && !yawController->isOnline();
+}
 
-//     yawControllerTop->runController(dt, Angle(topSetPoint + error));
+void SentryScanCommand::end(bool)
+{
+    turretSubsystem->yawMotor.setMotorOutput(0);
+    turretSubsystem->pitchMotor.setMotorOutput(0);
+}
 
-//     pitchControllerTop->runController(
-//         dt,
-//         Angle(turretSubsystem->pitchMotorTop.getConfig().startAngle));
-// }
-
-// bool SentryScanCommand::isFinished() const
-// {
-//     return !pitchControllerBottom->isOnline() && !yawControllerBottom->isOnline() &&
-//            !pitchControllerTop->isOnline() && !yawControllerTop->isOnline();
-// }
-
-// void SentryScanCommand::end(bool)
-// {
-//     turretSubsystem->yawMotorBottom.setMotorOutput(0);
-//     turretSubsystem->pitchMotorBottom.setMotorOutput(0);
-//     turretSubsystem->yawMotorTop.setMotorOutput(0);
-//     turretSubsystem->pitchMotorTop.setMotorOutput(0);
-// }
-
-// }  // namespace src::control::turret::cv
-
-// TODO: Needs to be changed in the future to work with the standard turret subsystem.
+}  // namespace src::control::turret::cv

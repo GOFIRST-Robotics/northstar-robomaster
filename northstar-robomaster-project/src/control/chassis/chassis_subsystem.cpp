@@ -16,7 +16,7 @@ ChassisSubsystem::ChassisSubsystem(
     tap::Drivers* drivers,
     const ChassisConfig& config,
     src::can::TurretMCBCanComm* turretMcbCanComm,
-    tap::motor::DjiMotor* yawMotor)
+    src::control::turret::TurretMotor* yawMotor)
     : Subsystem(drivers),
       desiredOutput{},
       pidControllers{
@@ -78,7 +78,10 @@ float topheading;
 float bottomheading;
 float difference;
 
-inline float ChassisSubsystem::getTurretYaw() { return yawMotor->getPositionWrapped(); }
+inline float ChassisSubsystem::getTurretYaw()
+{
+    return yawMotor->getChassisFrameMeasuredAngle().getWrappedValue();
+}
 
 float ChassisSubsystem::getChassisZeroTurret()
 {

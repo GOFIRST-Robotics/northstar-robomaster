@@ -18,7 +18,7 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
 #else
-#include "tap/motor/dji_motor.hpp"
+#include "control/turret/turret_motor.hpp"
 #endif
 
 namespace src::chassis
@@ -59,7 +59,7 @@ public:
         tap::Drivers* drivers,
         const ChassisConfig& config,
         src::can::TurretMCBCanComm* turretMCBCanComm,
-        tap::motor::DjiMotor* yawMotor);
+        src::control::turret::TurretMotor* yawMotor);
 
     void initialize() override;
 
@@ -112,7 +112,7 @@ private:
 
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
-    tap::motor::DjiMotor* yawMotor;
+    src::control::turret::TurretMotor* yawMotor;
 
     float beyBladeRotationSpeed = 0.0f;
 

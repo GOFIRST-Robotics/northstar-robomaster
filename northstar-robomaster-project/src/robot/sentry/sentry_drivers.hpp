@@ -27,6 +27,7 @@
 
 //  #include "src/mock/turret_mcb_can_comm_mock.hpp"
 #else
+#include "tap/communication/sensors/encoder/pwm_encoder.hpp"
 #include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
 
 #include "../../src/communication/can/turret/turret_mcb_can_comm.hpp"
@@ -48,7 +49,8 @@ public:
         : tap::Drivers(),
           controlOperatorInterface(this),
           visionComms(this),
-          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2)
+          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2),
+          encoder(false, 1.0f)
     //   revMotorTxHandler(this)
     {
     }
@@ -61,6 +63,7 @@ public:
     control::ControlOperatorInterface controlOperatorInterface;
     serial::VisionComms visionComms;
     can::TurretMCBCanComm turretMCBCanCommBus2;
+    tap::encoder::PwmEncoder encoder;
     // tap::motor::RevMotorTxHandler revMotorTxHandler;
 #endif
 };  // class src::SentryDrivers

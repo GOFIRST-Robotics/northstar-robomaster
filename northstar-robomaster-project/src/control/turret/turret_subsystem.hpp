@@ -74,8 +74,8 @@ public:
      */
     explicit TurretSubsystem(
         tap::Drivers* drivers,
-        TurretMotorGM6020* pitchMotor,
-        TurretDoubleMotorRev* yawMotor,
+        TurretMotorGM6020& pitchMotor,
+        TurretDoubleMotorRev& yawMotor,
         const src::can::TurretMCBCanComm* turretMCB);
 
     void initialize() override;
@@ -84,13 +84,13 @@ public:
 
     void refreshSafeDisconnect() override
     {
-        yawMotor->setMotorOutput(0);
-        pitchMotor->setMotorOutput(0);
+        yawMotor.setMotorOutput(0);
+        pitchMotor.setMotorOutput(0);
     }
 
     const char* getName() const override { return "Turret"; }
 
-    mockable inline bool isOnline() const { return pitchMotor->isOnline() && yawMotor->isOnline(); }
+    mockable inline bool isOnline() const { return pitchMotor.isOnline() && yawMotor.isOnline(); }
 
     const inline src::can::TurretMCBCanComm* getTurretMCB() const { return turretMCB; }
 
@@ -99,9 +99,9 @@ public:
     testing::NiceMock<mock::TurretMotorMock> yawMotor;
 #else
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotorGM6020* pitchMotor;
+    TurretMotorGM6020 pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretDoubleMotorRev* yawMotor;
+    TurretDoubleMotorRev yawMotor;
 #endif
 
 protected:

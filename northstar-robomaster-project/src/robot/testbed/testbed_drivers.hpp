@@ -32,7 +32,8 @@ public:
         : tap::Drivers(),
           controlOperatorInterface(this),
           visionComms(this),
-          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2)
+          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2),
+          encoder(false, 1.0f)
     {
     }
 
@@ -44,7 +45,7 @@ public:
     control::ControlOperatorInterface controlOperatorInterface;
     serial::VisionComms visionComms;
     can::TurretMCBCanComm turretMCBCanCommBus2;
-    tap::encoder::PwmEncoder encoder{false, 1.0f};
+    tap::encoder::PwmEncoder encoder;
 #endif
 };  // class src::testbedDrivers
 }  // namespace src::testbed
