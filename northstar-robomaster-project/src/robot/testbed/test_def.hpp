@@ -1,7 +1,7 @@
 #ifndef TEST_DEF_HPP_
 #define TEST_DEF_HPP_
 
-// #define USING_CHASSIS
+#define USING_CHASSIS
 #define USING_TURRET
 // #define USING_AGITATOR
 // #define USING_FLYWHEEL
@@ -34,15 +34,14 @@ DummySubsystem dummySubsystem(drivers());
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
-// standard turret
+// turret
 #include "control/turret/CV/turret_cv_control_command.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
+#include "control/turret/turret_subsystem.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "robot/standard/standard_turret_subsystem.hpp"
-// sentry turret
-#include "robot/sentry/sentry_turret_subsystem.hpp"
-#include "robot/sentry/sentry_turret_user_world_relative_command.hpp"
+
 // testbed turret
 #include "control/turret/test/turret_test_command.hpp"
 

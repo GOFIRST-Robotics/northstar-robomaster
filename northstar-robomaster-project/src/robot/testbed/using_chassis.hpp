@@ -15,6 +15,41 @@ using namespace tap::control;
 using namespace src::control::turret;
 using namespace src::chassis;
 
+#ifdef USING_TURRET
+
+extern src::control::turret::TurretSubsystem turretSubsystem;
+
+src::control::turret::TurretMotor* yawMotor = &turretSubsystem.yawMotor;
+
+#else
+
+tap::motor::RevMotor yawMotor1(
+    drivers(),
+    YAW_MOTOR_ID_1,
+    CAN_BUS_MOTORS,
+    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
+    true,
+    "YawMotor1",
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
+
+tap::motor::RevMotor yawMotor2(
+    drivers(),
+    YAW_MOTOR_ID_2,
+    CAN_BUS_MOTORS,
+    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
+    false,
+    "YawMotor2",
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue);
+
+src::control::turret::TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_CONFIG);
+
+src::control::turret::TurretMotor* yawMotor = &yawTurretMotor;
+
+#endif
+
 #ifdef USING_CHASSIS
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
@@ -44,15 +79,11 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     }},
 //     &chassisSubsystem);
 
-tap::motor::DjiMotor yawMotor(
-    drivers(),
-    YAW_MOTOR_ID,
-    CAN_BUS_MOTORS,
-    true,
-    "YawMotor",
-    false,
-    1,
-    YAW_MOTOR_CONFIG.startEncoderValue);
+src::chassis::ChassisOdometry* chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
 
 ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -69,7 +100,8 @@ ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    yawMotor,
+    chassisOdometry);
 
 ChassisDriveCommand chassisDriveCommand(&chassisSubsystem, &drivers()->controlOperatorInterface);
 
@@ -77,26 +109,16 @@ ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
     1,
-    -1,
-    1,
-    true);
-
-ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_TWOPI,
     true);
 
 // chassis Mappings
 ToggleCommandMapping bPressed(
     drivers(),
-    {&chassisBeyBladeFastCommand},
+    {&chassisBeyBladeCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::B})));
 
 #endif

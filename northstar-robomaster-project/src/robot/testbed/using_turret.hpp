@@ -24,22 +24,35 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotor(
+src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
+
+tap::motor::RevMotor yawMotor1(
     drivers(),
-    YAW_MOTOR_ID,
+    YAW_MOTOR_ID_1,
     CAN_BUS_MOTORS,
+    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
     true,
-    "YawMotor",
+    "YawMotor1",
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
+
+tap::motor::RevMotor yawMotor2(
+    drivers(),
+    YAW_MOTOR_ID_2,
+    CAN_BUS_MOTORS,
+    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
     false,
+    "YawMotor2",
     1,
     YAW_MOTOR_CONFIG.startEncoderValue);
 
-StandardTurretSubsystem turretSubsystem(
+src::control::turret::TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_CONFIG);
+
+TurretSubsystem turretSubsystem(
     drivers(),
-    &pitchMotor,
-    &yawMotor,
-    PITCH_MOTOR_CONFIG,
-    YAW_MOTOR_CONFIG,
+    pitchTurretMotor,
+    yawTurretMotor,
     &getTurretMCBCanComm());
 
 // turret controlers
