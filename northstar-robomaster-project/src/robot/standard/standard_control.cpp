@@ -171,23 +171,32 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotor(
+src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
+
+tap::motor::RevMotor yawMotor1(
     drivers(),
-    YAW_MOTOR_ID,
+    YAW_MOTOR_ID_1,
     CAN_BUS_MOTORS,
+    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
     true,
-    "YawMotor",
+    "YawMotor1",
+    1,
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
+
+tap::motor::RevMotor yawMotor2(
+    drivers(),
+    YAW_MOTOR_ID_2,
+    CAN_BUS_MOTORS,
+    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
     false,
+    "YawMotor2",
     1,
     YAW_MOTOR_CONFIG.startEncoderValue);
 
-StandardTurretSubsystem turret(
-    drivers(),
-    &pitchMotor,
-    &yawMotor,
-    PITCH_MOTOR_CONFIG,
-    YAW_MOTOR_CONFIG,
-    &getTurretMCBCanComm());
+src::control::turret::TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_CONFIG);
+
+TurretSubsystem turret(drivers(), pitchTurretMotor, yawTurretMotor, &getTurretMCBCanComm());
 
 // turret controlers
 algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
@@ -397,7 +406,7 @@ ToggleCommandMapping gPressed(
 // chassis odometry
 src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
     &drivers()->bmi088,
-    &yawMotor,
+    &turret.yawMotor,
     src::chassis::DIST_TO_CENTER,
     src::chassis::WHEEL_DIAMETER_M);
 
@@ -417,7 +426,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor,
+    &turret.yawMotor,
     chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(

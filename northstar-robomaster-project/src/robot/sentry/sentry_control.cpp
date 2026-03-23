@@ -161,7 +161,8 @@ tap::motor::RevMotor yawMotor1(
     true,
     "YawMotor1",
     1,
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
 tap::motor::RevMotor yawMotor2(
     drivers(),
@@ -361,7 +362,7 @@ ToggleCommandMapping gPressed(
 // chassis odometry
 src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
     &drivers()->bmi088,
-    &yawTurretMotor,
+    &turret->yawMotor,
     src::chassis::DIST_TO_CENTER,
     src::chassis::WHEEL_DIAMETER_M);
 
@@ -381,7 +382,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawTurretMotor,
+    &turret.yawMotor,
     chassisOdometry);
 
 // chassis auto drive
