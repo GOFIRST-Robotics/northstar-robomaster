@@ -1,5 +1,6 @@
 #ifdef TARGET_HERO
 
+#include "tap/control/concurrent_command.hpp"
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/press_command_mapping.hpp"
@@ -148,6 +149,10 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     rotateAgitator,
     unjamAgitator);
 
+ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
+    {&rotateAndUnjamAgitator, &rotateKicker},
+    "Rotate and Unjam Agitator with Kicker");
+
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
     *drivers(),
@@ -175,6 +180,15 @@ GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
      &flywheelOnGovernor,
      &heatLimitGovernor});
 
+GovernorLimitedCommand<4>
+    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
+        {&agitator},
+        rotateAndUnjamAgitatorWithKicker,
+        {&refSystemProjectileLaunchedGovernor,
+         &fireRateLimitGovernor,
+         &flywheelOnGovernor,
+         &heatLimitGovernor});
+
 // agitator mappings
 ToggleCommandMapping vPressed(
     drivers(),
@@ -188,13 +202,13 @@ ToggleCommandMapping gPressedChangeFireRate(
 
 HoldRepeatCommandMapping leftMousePressedShoot(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
 ToggleCommandMapping leftSwitchDownPressedShoot(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker},  // TODO
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 ToggleCommandMapping rightSwitchUpRunKicker(
