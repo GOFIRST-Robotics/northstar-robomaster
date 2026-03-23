@@ -34,7 +34,7 @@ public:
      * @param[in] drivers pointer to src drivers struct
      * @param[in] pidParams Position PID configuration struct for the kicker motor controller.
      * @param[in] kickerSubsystemConfig Kicker configuration struct that contains
-     * kicker-specific parameters including motor ID and unjam parameters.
+     * kicker-specific parameters.
      */
     KickerSubsystem(
         tap::Drivers* drivers,
