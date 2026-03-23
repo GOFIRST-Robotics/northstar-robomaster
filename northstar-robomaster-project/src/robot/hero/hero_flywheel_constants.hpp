@@ -13,9 +13,8 @@ namespace src::control::flywheel
 {
 static constexpr float FRICTION_WHEEL_RAMP_SPEED = 4.0f;
 
-static constexpr tap::motor::MotorId LEFT_MOTOR_ID = tap::motor::MOTOR3;
-static constexpr tap::motor::MotorId RIGHT_MOTOR_ID = tap::motor::MOTOR2;
-static constexpr tap::motor::MotorId DOWN_MOTOR_ID = tap::motor::MOTOR1;
+static constexpr tap::motor::MotorId LEFT_MOTOR_ID = tap::motor::MOTOR2;
+static constexpr tap::motor::MotorId RIGHT_MOTOR_ID = tap::motor::MOTOR1;
 
 static constexpr tap::motor::MotorId LEFT_MOTOR_ID_DJI = tap::motor::MOTOR1;
 static constexpr tap::motor::MotorId RIGHT_MOTOR_ID_DJI = tap::motor::MOTOR2;
@@ -64,8 +63,8 @@ static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
 
 static constexpr modm::Pair<float, float> MPS_TO_RPM[] = {
     {0.0f, 0.0f},
-    {15.0f, 4714.0f},
-    {18.0f, 5621.0f},
+    {15.0f, 5500.0f},
+    {18.0f, 7000.0f},
     {24.5f, 7700.0f}};
 
 inline std::optional<Spin> toSpinPreset(int value)

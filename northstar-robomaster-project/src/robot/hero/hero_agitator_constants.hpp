@@ -18,11 +18,11 @@ static constexpr uint16_t HEAT_LIMIT_BUFFER = 25;
 // position PID terms
 // PID terms for hero
 static constexpr tap::algorithms::SmoothPidConfig AGITATOR_PID_CONFIG = {
-    .kp = 3500.0f,
+    .kp = 12.0f,
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
-    .maxOutput = 25000.0f,
+    .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_GM6020,
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
 };
@@ -32,8 +32,8 @@ static constexpr float AGITATOR_MAX_ROF = 0.8f;       // balls per second
 static constexpr float OVERSHOOT_FUDGE_FACTOR = .40;  // how much agitator overshoots
 
 static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
-    .gearRatio = 1 / 36.0f,
-    .agitatorMotorId = tap::motor::MOTOR4,
+    .gearRatio = 1,
+    .agitatorMotorId = tap::motor::MOTOR7,
     .agitatorCanBusId = tap::can::CanBus::CAN_BUS2,
     .isAgitatorInverted = false,
     /**
