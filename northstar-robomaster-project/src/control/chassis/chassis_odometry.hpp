@@ -7,15 +7,15 @@
 #include "modm/math/geometry/angle.hpp"
 #include "modm/math/geometry/vector.hpp"
 
-/*
-    Chassis Odometry uses a 2D coordinate system, using the ground as the XY plane
-    +X: Right
-    +Y: Forward
-    +Rotation: CCW
-*/
-
 namespace src::chassis
 {
+/**
+ * Object which keeps track of the robot's position and velocity based on motor speeds and IMU
+ * readings. Chassis Odometry uses a 2D coordinate system, using the ground as the XY plane
+ * +X: Right
+ * +Y: Forward
+ * +Rotation: CCW
+ */
 class ChassisOdometry
 {
     static constexpr float ONE_OVER_THREE = 1.0f / 3.0f;
@@ -64,6 +64,10 @@ public:
     modm::Vector<float, 3> getVelocity3dGlobal() { return velocity3dGlobal; }
     float getRotation() { return rotation; }
 
+    /**
+     * Resets position and velocity to 0. Does not reset rotation since that is determined by the
+     * IMU.
+     */
     void zeroOdometry()
     {
         positionGlobal = modm::Vector<float, 2>(0, 0);
@@ -71,14 +75,29 @@ public:
         velocityLocal = modm::Vector<float, 2>(0, 0);
     }
 
-    void setOdometry(modm::Vector2f pos, modm::Vector2f velo, float rot)
+    /**
+     * Sets the odometry to the specified position and velocity.
+     *
+     * @param pos The position to set the odometry to, in meters.
+     * @param velo The velocity to set the odometry to, in meters per second. This will have a
+     * negligible effect on the odometry since velocity is determined by motor speeds.
+     */
+    void setOdometry(modm::Vector2f pos, modm::Vector2f velo)
     {
         positionGlobal = pos;
         velocityGlobal = velo;
-        rotation = rot;
     }
 
-    // input is in radians per second
+    /**
+     * Primary method for updating the odometry. Takes in the motor speeds in radians per second and
+     * updates position, velocity and rotation accordingly. Should only be called from the refresh
+     * loop in chassis_subsystem.cpp
+     *
+     * @param motorRPS_LF Left front motor speed in radians per second
+     * @param motorRPS_LB Left back motor speed in radians per second
+     * @param motorRPS_RF Right front motor speed in radians per second
+     * @param motorRPS_RB Right back motor speed in radians per second
+     */
     void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
     {
         uint32_t currentTimeMicroSeconds = tap::arch::clock::getTimeMicroseconds();
@@ -118,6 +137,14 @@ public:
         positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
     }
 
+    /**
+     * Converts a vector2 from the local robot coordinate system to the global field coordinate
+     * system
+     *
+     * @param local The vector in the local robot coordinate system to be converted to the global
+     * field coordinate system
+     * @return The vector in the global field coordinate system
+     */
     modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2>& local)
     {
         float cosR = cosf(rotation);
