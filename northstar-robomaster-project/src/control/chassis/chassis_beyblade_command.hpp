@@ -24,7 +24,6 @@ public:
     ChassisBeybladeCommand(
         ChassisSubsystem *chassis,
         src::control::ControlOperatorInterface *operatorInterface,
-        short direction,
         bool isVariable);
 
     const char *getName() const override { return "Chassis beyblade drive"; }
@@ -48,7 +47,7 @@ private:
 
     float distScaleFactor;
 
-    short direction;
+    uint8_t direction;
 
     bool isVariable;
 

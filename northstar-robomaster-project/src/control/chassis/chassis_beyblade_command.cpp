@@ -13,14 +13,21 @@ namespace src::chassis
 ChassisBeybladeCommand::ChassisBeybladeCommand(
     ChassisSubsystem* chassis,
     src::control::ControlOperatorInterface* operatorInterface,
-    short direction,
     bool isVariable)
     : chassis(chassis),
       operatorInterface(operatorInterface),
-      direction(direction),
       isVariable(isVariable)
 {
     addSubsystemRequirement(chassis);
+    RandomNumberGenerator::enable();
+    if (RandomNumberGenerator::isReady())
+    {
+        direction = (RandomNumberGenerator::getValue() % 2) == 0 ? 1 : -1;
+    }
+    else
+    {
+        direction = 1;
+    }
 }
 
 void ChassisBeybladeCommand::initialize()
