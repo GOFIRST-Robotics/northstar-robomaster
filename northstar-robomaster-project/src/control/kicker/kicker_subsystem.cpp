@@ -17,6 +17,7 @@
 
 using namespace tap::motor;
 
+/* Subsystem for the kicker on the hero turret. */
 namespace src::kicker
 {
 KickerSubsystem::KickerSubsystem(
