@@ -149,9 +149,9 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     rotateAgitator,
     unjamAgitator);
 
-ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
-    {&rotateAndUnjamAgitator, &rotateKicker},
-    "Rotate and Unjam Agitator with Kicker");
+// ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
+//     {&rotateAndUnjamAgitator, &rotateKicker},
+//     "Rotate and Unjam Agitator with Kicker");
 
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
@@ -183,7 +183,7 @@ GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
 GovernorLimitedCommand<4>
     rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
         {&agitator},
-        rotateAndUnjamAgitatorWithKicker,
+        rotateAndUnjamAgitator,
         {&refSystemProjectileLaunchedGovernor,
          &fireRateLimitGovernor,
          &flywheelOnGovernor,
