@@ -1,7 +1,7 @@
 #ifndef TEST_DEF_HPP_
 #define TEST_DEF_HPP_
 
-#define USING_CHASSIS
+// #define USING_CHASSIS
 #define USING_TURRET
 // #define USING_AGITATOR
 // #define USING_FLYWHEEL

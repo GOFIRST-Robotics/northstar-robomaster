@@ -121,7 +121,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turretSubsystem,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -131,7 +131,7 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turretSubsystem,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -143,16 +143,16 @@ test::TurretTestCommand turretTestCommand(
     &worldFramePitchTurretImuController,
     modm::toRadian(0.5));
 
-user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    &turretSubsystem,
-    &worldFrameYawChassisImuController,
-    &worldFramePitchChassisImuController,
-    &worldFrameYawTurretCanImuController,
-    &worldFramePitchTurretCanImuController,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &turretSubsystem,
+//     &worldFrameYawChassisImuController,
+//     &worldFramePitchChassisImuController,
+//     &worldFrameYawTurretCanImuController,
+//     &worldFramePitchTurretCanImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR);
 
 HoldCommandMapping xPressed(
     drivers(),

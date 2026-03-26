@@ -165,7 +165,7 @@ tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
     CAN_BUS_MOTORS,
-    true,
+    false,
     "PitchMotor",
     false,
     1,
@@ -258,7 +258,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -268,7 +268,7 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -617,8 +617,8 @@ void startStandardCommands(Drivers *drivers)
         0,
         0,
         0,
-        modm::toRadian(-135),
-        modm::toRadian(-90)));
+        0,                      // modm::toRadian(-135),
+        modm::toRadian(180)));  //-90 for current standard
 
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }

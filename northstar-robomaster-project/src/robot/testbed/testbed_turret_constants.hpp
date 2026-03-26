@@ -49,7 +49,7 @@ static constexpr float USER_YAW_INPUT_SCALAR = 0.04f;
 static constexpr float USER_PITCH_INPUT_SCALAR = 0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS2;
-static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR5;  // 1
+static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR8;  // 1
 
 static constexpr tap::motor::REVMotorId YAW_MOTOR_ID_1 =
     tap::motor::REVMotorId::REV_MOTOR1;  // May have to change these
@@ -136,7 +136,7 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_POS_PID_CONFIG = {
-    .kp = 20.0f,
+    .kp = 0.0f,
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.5f,
@@ -175,9 +175,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_POS_PID_AUTO_AIM_CONFIG 
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_VEL_PID_CONFIG = {
-    .kp = 1'000.0f,
+    .kp = 0.0f,
     .ki = 0.0f,
-    .kd = 10.0f,
+    .kd = 0.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,  // 0.0f
     .tQDerivativeKalman = 1.0f,
