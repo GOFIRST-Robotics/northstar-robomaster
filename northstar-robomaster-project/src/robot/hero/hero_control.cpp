@@ -202,7 +202,7 @@ tap::motor::RevMotor yawMotor1(
     YAW_MOTOR_ID_1,
     CAN_BUS_MOTORS,
     tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
-    true,
+    false,
     "YawMotor1",
     1,
     YAW_MOTOR_CONFIG.startEncoderValue,
