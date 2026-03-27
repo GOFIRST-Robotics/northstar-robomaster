@@ -144,7 +144,7 @@ ToggleCommandMapping leftSwitchUpFlywheels(
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_MOTORS,
+    CAN_BUS_PITCH,
     false,
     "PitchMotor",
     false,
@@ -156,7 +156,7 @@ src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTO
 tap::motor::RevMotor yawMotor1(
     drivers(),
     YAW_MOTOR_ID_1,
-    CAN_BUS_MOTORS,
+    CAN_BUS_YAW,
     tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
     false,
     "YawMotor1",
@@ -167,7 +167,7 @@ tap::motor::RevMotor yawMotor1(
 tap::motor::RevMotor yawMotor2(
     drivers(),
     YAW_MOTOR_ID_2,
-    CAN_BUS_MOTORS,
+    CAN_BUS_YAW,
     tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
     false,
     "YawMotor2",
