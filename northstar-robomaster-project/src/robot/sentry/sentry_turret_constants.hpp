@@ -85,31 +85,17 @@ static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 12000 // 7'000;
 namespace world_rel_turret_imu
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
-    // .kp = 60.0f,
-    // .ki = 0.0f,
-    // .kd = 5.0f,
-    .kp = 30.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
+    .kp = 20.0f,
     .ki = 0.0f,
-    .kd = 3.0f,
+    .kd = 0.0f,
     .maxICumulative = 0.0f,
-    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
+    .maxOutput = 30.0f,
     .tQDerivativeKalman = 1.0f,
     .tRDerivativeKalman = 0.0f,
     .tQProportionalKalman = 1.0f,
     .tRProportionalKalman = 0.0f,
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
-    // .kp = 22.0f,
-    // .ki = 0.0f,
-    // .kd = 0.3f,
-    // .maxICumulative = 0.0f,
-    // .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    // .tQDerivativeKalman = 1.0f,
-    // .tRDerivativeKalman = 0.0f,
-    // .tQProportionalKalman = 1.0f,
-    // .tRProportionalKalman = 0.0f,
-    // .errDeadzone = 0.0f,
-    // .errorDerivativeFloor = 0.0f,
 };
 
 static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_AUTO_AIM_CONFIG = {
@@ -127,32 +113,17 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_AUTO_AIM_CONFIG = 
 };
 
 static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
-    // .kp = 2000.0f,
-    // .ki = 20.0f,
-    // .kd = 500.0f,
-    .kp = 10000.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
-                     // 1000
+    .kp = 0.7f,
     .ki = 0.0f,
-    .kd = 1000.0f,
-    .maxICumulative = 1'000.0f,
-    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
+    .kd = 0.0f,
+    .maxICumulative = 0.0f,
+    .maxOutput = 5.0f,
     .tQDerivativeKalman = 1.0f,
     .tRDerivativeKalman = 0.0f,
     .tQProportionalKalman = 1.0f,
-    .tRProportionalKalman = 0.5f,
+    .tRProportionalKalman = 0.0f,
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
-    // .kp = 20'000.0f,
-    // .ki = 100.0f,
-    // .kd = 0.0f,
-    // .maxICumulative = 2'000.0f,
-    // .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    // .tQDerivativeKalman = 1.0f,
-    // .tRDerivativeKalman = 0.0f,
-    // .tQProportionalKalman = 1.0f,
-    // .tRProportionalKalman = 0.5f,
-    // .errDeadzone = 0.0f,
-    // .errorDerivativeFloor = 0.0f,
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_POS_PID_CONFIG = {
