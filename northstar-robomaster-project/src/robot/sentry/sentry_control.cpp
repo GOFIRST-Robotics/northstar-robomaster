@@ -160,7 +160,7 @@ tap::motor::RevMotor yawMotor1(
     tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
     false,
     "YawMotor1",
-    1,
+    (1.0f / 3.5f),
     YAW_MOTOR_CONFIG.startEncoderValue/*,
     &drivers()->encoder*/);
 
@@ -171,7 +171,7 @@ tap::motor::RevMotor yawMotor2(
     tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
     false,
     "YawMotor2",
-    1,
+    (1.0f / 3.5f),
     YAW_MOTOR_CONFIG.startEncoderValue);
 
 src::control::turret::TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_CONFIG);
