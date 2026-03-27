@@ -161,8 +161,8 @@ tap::motor::RevMotor yawMotor1(
     false,
     "YawMotor1",
     1,
-    YAW_MOTOR_CONFIG.startEncoderValue,
-    &drivers()->encoder);
+    YAW_MOTOR_CONFIG.startEncoderValue/*,
+    &drivers()->encoder*/);
 
 tap::motor::RevMotor yawMotor2(
     drivers(),
