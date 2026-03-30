@@ -238,7 +238,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -248,7 +248,7 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -526,13 +526,8 @@ void startSentryCommands(Drivers *drivers)
     drivers->visionComms.attachOdometry(chassisOdometry);
     drivers->visionComms.attachPitchMotor(&pitchMotor);
 
-    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
-        0,
-        0,
-        0,
-        0,
-        modm::toRadian(-135),
-        modm::toRadian(-90)));
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, 0, modm::toRadian(180)));
 }
 // from RM upside down left hand rule 180 around roll
 

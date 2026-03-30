@@ -50,7 +50,7 @@ static constexpr float USER_PITCH_INPUT_SCALAR = 0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_PITCH = tap::can::CanBus::CAN_BUS2;
 static constexpr tap::can::CanBus CAN_BUS_YAW = tap::can::CanBus::CAN_BUS1;
-static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR5;                     // 1
+static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR8;                     // 1
 static constexpr tap::motor::REVMotorId YAW_MOTOR_ID_1 = tap::motor::REVMotorId::REV_MOTOR1;  // 2
 static constexpr tap::motor::REVMotorId YAW_MOTOR_ID_2 = tap::motor::REVMotorId::REV_MOTOR2;  // 2
 
@@ -86,9 +86,9 @@ static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 12000 // 7'000;
 namespace world_rel_turret_imu
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
-    .kp = 20.0f,
+    .kp = 30.0f,
     .ki = 0.0f,
-    .kd = 0.0f,
+    .kd = 0.7f,
     .maxICumulative = 0.0f,
     .maxOutput = 30.0f,
     .tQDerivativeKalman = 1.0f,
@@ -118,7 +118,7 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
-    .maxOutput = 5.0f,
+    .maxOutput = 2.5f,
     .tQDerivativeKalman = 1.0f,
     .tRDerivativeKalman = 0.0f,
     .tQProportionalKalman = 1.0f,
@@ -263,9 +263,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
 namespace chassis_rel
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
-    .kp = 70'000.0f,
+    .kp = 0.0f,
     .ki = 0.0f,
-    .kd = 4000.0f,
+    .kd = 0.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 0.1f,

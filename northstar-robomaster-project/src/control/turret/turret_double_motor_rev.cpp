@@ -44,7 +44,7 @@ void TurretDoubleMotorRev::setMotorOutput(float out)
 {
     out = limitVal(out, -MAX_OUT_REV, MAX_OUT_REV);
 
-    if (motor1->isMotorOnline() && motor2->isMotorOnline())
+    if (isOnline())
     {
         motor1->setControlValue(out);
         motor2->setControlValue(out);
