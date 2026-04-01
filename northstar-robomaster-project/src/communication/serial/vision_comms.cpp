@@ -221,23 +221,23 @@ void VisionComms::sendRobotOdometry()
         modm::Vector2f global_vel = chassisOdometry->getVelocityGlobal();
 
         // Chassis data
-        data->chassis_data.pos_x = global_pos.x;  // meters
-        data->chassis_data.pos_y = global_pos.y;  // meters
-        data->chassis_data.pos_z = 0;  // TODO: this assumes the robot is on level ground.
-                                       // Odometry should support z for varied height fields
+        // data->chassis_data.pos_x = global_pos.x;  // meters
+        // data->chassis_data.pos_y = global_pos.y;  // meters
+        // data->chassis_data.pos_z = 0;  // TODO: this assumes the robot is on level ground.
+        // Odometry should support z for varied height fields
 
         data->chassis_data.vel_x = global_vel.x;  // meters/second
         data->chassis_data.vel_y = global_vel.y;  // meters/second
-        data->chassis_data.vel_z = 0;             // TODO: see z on position (it doesn't exist)
+        // data->chassis_data.vel_z = 0;             // TODO: see z on position (it doesn't exist)
 
         // Turret Data
         data->turret_data.pitch = pitchMotor->getPositionWrapped();  // radians
         data->turret_data.yaw = drivers->bmi088.getYaw();            // radians
         data->turret_data.roll = drivers->bmi088.getRoll();          // radians
 
-        data->turret_data.pitch_vel = pitchMotor->getShaftRPM() / 60 * M_TWOPI;
+        // data->turret_data.pitch_vel = pitchMotor->getShaftRPM() / 60 * M_TWOPI;
         data->turret_data.yaw_vel = drivers->bmi088.getGz();
-        data->turret_data.roll_vel = drivers->bmi088.getGx();
+        // data->turret_data.roll_vel = drivers->bmi088.getGx();
 
         odometryMessage.setCRC16();
         drivers->uart.write(
