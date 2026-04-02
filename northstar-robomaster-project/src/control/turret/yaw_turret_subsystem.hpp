@@ -22,7 +22,7 @@
 
 #include "tap/control/subsystem.hpp"
 
-#include "turret_motor_GM6020.hpp"
+#include "turret_motor_DJI.hpp"
 
 namespace src::control::turret
 {
@@ -53,16 +53,13 @@ public:
     // @note: these are here to differentiate between a client wants to control the motor vs. just
     // read values from it. If we decide that we're fine using const / non-const references to the
     // motor, these can be removed
-    inline src::control::turret::TurretMotorGM6020& getMutableMotor() { return yawMotor; }
-    inline const src::control::turret::TurretMotorGM6020& getReadOnlyMotor() const
-    {
-        return yawMotor;
-    }
+    inline src::control::turret::TurretMotorDJI& getMutableMotor() { return yawMotor; }
+    inline const src::control::turret::TurretMotorDJI& getReadOnlyMotor() const { return yawMotor; }
 
     void refreshSafeDisconnect() override { yawMotor.setMotorOutput(0); }
 
 private:
-    src::control::turret::TurretMotorGM6020 yawMotor;
+    src::control::turret::TurretMotorDJI yawMotor;
 };  // class YawTurretSubsystem
 
 }  // namespace src::control::turret

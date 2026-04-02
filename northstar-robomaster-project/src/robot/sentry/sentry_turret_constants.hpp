@@ -50,9 +50,9 @@ static constexpr float USER_PITCH_INPUT_SCALAR = 0.02f;
 
 static constexpr tap::can::CanBus CAN_BUS_PITCH = tap::can::CanBus::CAN_BUS2;
 static constexpr tap::can::CanBus CAN_BUS_YAW = tap::can::CanBus::CAN_BUS1;
-static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR8;                     // 1
-static constexpr tap::motor::REVMotorId YAW_MOTOR_ID_1 = tap::motor::REVMotorId::REV_MOTOR1;  // 2
-static constexpr tap::motor::REVMotorId YAW_MOTOR_ID_2 = tap::motor::REVMotorId::REV_MOTOR2;  // 2
+static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR8;  // 1
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_1 = tap::motor::MOTOR1;  // 2
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_2 = tap::motor::MOTOR2;  // 2
 
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,

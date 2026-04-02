@@ -24,7 +24,7 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
+src::control::turret::TurretMotorDJI pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
 
 tap::motor::RevMotor yawMotor1(
     drivers(),
