@@ -141,6 +141,8 @@ public:
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
+    float getChassisPowerDraw();
+
     /**
      * Gets the max chassis wheel speed based on a power limit.
      *

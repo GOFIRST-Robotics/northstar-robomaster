@@ -192,6 +192,16 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxWheelSpeed.second;
 }
 
+float ChassisSubsystem::getChassisPowerDraw()
+{
+    float powerSum = 0.0f;
+    for (size_t motor_idx = 0; motor_idx < motors.size(); motor_idx++)
+    {
+        powerSum += abs(motors[motor_idx].getOutputDesired());
+    }
+    return powerSum * 24.0f;
+}
+
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
