@@ -59,7 +59,7 @@ private:
     // X position of the text
     static constexpr uint16_t TEXT_X = SCREEN_WIDTH / 2 - 150;
     // Y position of the text
-    static constexpr uint16_t TEXT_Y = 900;
+    static constexpr uint16_t TEXT_Y = 700;
     // WIDTH of the text
     static constexpr uint16_t WIDTH = 4;
     // SIZE of the text

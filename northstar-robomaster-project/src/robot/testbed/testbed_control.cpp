@@ -32,10 +32,13 @@
 #include "ref_system_constants.hpp"
 
 // Subsystems
+#include "control/imu/imu_calibrate_command.hpp"
+
 #include "test_def.hpp"
 #include "using_agitator.hpp"
 #include "using_chassis.hpp"
 #include "using_flywheel.hpp"
+#include "using_hud.hpp"
 #include "using_turret.hpp"
 
 namespace testbed_control
@@ -45,6 +48,27 @@ src::control::RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers(
 #ifdef USING_FLYWHEEL
 
 #endif  // USING_FLYWHEEL
+
+ChassisPowerIndicator chassisPower(refSerialTransmitter, drivers()->refSerial, chassisSubsystem);
+
+TextHudIndicators textHudIndicators(
+    *drivers(),
+    agitator,
+    // imuCalibrateCommand,
+    {&chassisBeyBladeCommand},
+    refSerialTransmitter);
+
+std::vector<HudIndicator *> hudIndicators = {
+    &ammoIndicator,
+    &circleCrosshair,
+    &textHudIndicators,
+    &chassisPower
+    // &visionIndicator,
+    // &flyWheelIndicator,
+    //&shootingModeIndicator,
+    /*&cvAimingIndicator*/};
+
+ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
 void initializeSubsystems(src::testbed::Drivers *drivers)
 {
@@ -63,6 +87,8 @@ void initializeSubsystems(src::testbed::Drivers *drivers)
 #endif
 #if defined(USING_TURRET) && defined(USING_REV)
     revTurret.initialize();
+#endif
+#ifdef USING_HUD
 #endif
 }
 
@@ -88,6 +114,9 @@ void registerTestSubsystems(src::testbed::Drivers *drivers)
 #if defined(USING_TURRET) && defined(USING_REV)
     drivers->commandScheduler.registerSubsystem(&revTurret);
 #endif
+#ifdef USING_HUD
+    drivers->commandScheduler.registerSubsystem(&clientDisplay);
+#endif
 }
 
 void setDefaultTestCommands(src::testbed::Drivers *drivers)
@@ -101,12 +130,14 @@ void setDefaultTestCommands(src::testbed::Drivers *drivers)
 #if defined(USING_TURRET) && defined(USING_REV)
     revTurret.setDefaultCommand(&turretUserControlCommand);
 #endif
+#ifdef USING_HUD
+    clientDisplay.setDefaultCommand(&clientDisplayCommand);
+#endif
 }
 
 void startTestCommands(src::testbed::Drivers *drivers)
 {
-    // drivers->bmi088.setMountingTransform(
-    // tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(0, 0, 0, 0, 0, 0));
 }
 
 void registerTestIoMappings(src::testbed::Drivers *drivers)
@@ -115,8 +146,8 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
     drivers->commandMapper.addMap(&leftMousePressedShoot);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&qPressed10RPS);
-    drivers->commandMapper.addMap(&ePressed20RPS);
-    drivers->commandMapper.addMap(&rPressedFullAuto);
+    // drivers->commandMapper.addMap(&ePressed20RPS);
+    // drivers->commandMapper.addMap(&rPressedFullAuto);
 
 #endif
 #ifdef USING_FLYWHEEL
@@ -135,8 +166,7 @@ void registerTestIoMappings(src::testbed::Drivers *drivers)
 
 namespace src::testbed
 {
-// imu::ImuCalibrateCommandBase *getImuCalibrateCommand() { return
-// &testbed_control::imuCalibrateCommand; }
+src::control::imu::ImuCalibrateCommandBase *getImuCalibrateCommand() { return nullptr; }
 
 void initSubsystemCommands(src::testbed::Drivers *drivers)
 {
