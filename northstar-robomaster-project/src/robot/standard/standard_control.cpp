@@ -166,7 +166,7 @@ ToggleCommandMapping leftSwitchUpFlywheels(
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_PITCH,
+    CAN_BUS_MOTORS,
     false,
     "PitchMotor",
     false,
