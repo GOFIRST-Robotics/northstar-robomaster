@@ -149,9 +149,9 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     rotateAgitator,
     unjamAgitator);
 
-ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
-    {&rotateAndUnjamAgitator, &rotateKicker},
-    "Rotate and Unjam Agitator with Kicker");
+// ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
+//     {&rotateAndUnjamAgitator, &rotateKicker},
+//     "Rotate and Unjam Agitator with Kicker");
 
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
@@ -180,14 +180,14 @@ GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
      &flywheelOnGovernor,
      &heatLimitGovernor});
 
-GovernorLimitedCommand<4>
-    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
-        {&agitator},
-        rotateAndUnjamAgitatorWithKicker,
-        {&refSystemProjectileLaunchedGovernor,
-         &fireRateLimitGovernor,
-         &flywheelOnGovernor,
-         &heatLimitGovernor});
+// GovernorLimitedCommand<4>
+//     rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
+//         {&agitator},
+//         rotateAndUnjamAgitatorWithKicker,
+//         {&refSystemProjectileLaunchedGovernor,
+//          &fireRateLimitGovernor,
+//          &flywheelOnGovernor,
+//          &heatLimitGovernor});
 
 // agitator mappings
 ToggleCommandMapping vPressed(
@@ -202,13 +202,13 @@ ToggleCommandMapping gPressedChangeFireRate(
 
 HoldRepeatCommandMapping leftMousePressedShoot(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
 ToggleCommandMapping leftSwitchDownPressedShoot(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 ToggleCommandMapping rightSwitchUpRunKicker(
