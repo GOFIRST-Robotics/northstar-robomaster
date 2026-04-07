@@ -20,8 +20,6 @@
 #ifndef TURRET_SUBSYSTEM_HPP_
 #define TURRET_SUBSYSTEM_HPP_
 
-#include <memory>
-
 #include "tap/algorithms/linear_interpolation_predictor.hpp"
 #include "tap/algorithms/wrapped_float.hpp"
 #include "tap/control/subsystem.hpp"
@@ -33,8 +31,8 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "src/mock/turret_motor_mock.hpp"
 #else
-#include "turret_double_motor_rev.hpp"
-#include "turret_motor_GM6020.hpp"
+
+#include "turret_motor_DJI.hpp"
 
 #endif
 
@@ -74,8 +72,10 @@ public:
      */
     explicit TurretSubsystem(
         tap::Drivers* drivers,
-        TurretMotorGM6020& pitchMotor,
-        TurretDoubleMotorRev& yawMotor,
+        tap::motor::MotorInterface* pitchMotor,
+        tap::motor::MotorInterface* yawMotor,
+        const TurretMotorConfig& pitchMotorConfig,
+        const TurretMotorConfig& yawMotorConfig,
         const src::can::TurretMCBCanComm* turretMCB);
 
     void initialize() override;
@@ -90,7 +90,10 @@ public:
 
     const char* getName() const override { return "Turret"; }
 
-    mockable inline bool isOnline() const { return pitchMotor.isOnline() && yawMotor.isOnline(); }
+    mockable inline bool isOnline() const
+    {
+        return true;
+    }  // pitchMotor.isOnline() && yawMotor.isOnline(); }
 
     const inline src::can::TurretMCBCanComm* getTurretMCB() const { return turretMCB; }
 
@@ -99,9 +102,9 @@ public:
     testing::NiceMock<mock::TurretMotorMock> yawMotor;
 #else
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotorGM6020 pitchMotor;
+    TurretMotorDJI pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretDoubleMotorRev yawMotor;
+    TurretMotorDJI yawMotor;
 #endif
 
 protected:

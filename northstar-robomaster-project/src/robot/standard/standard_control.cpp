@@ -37,6 +37,8 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // turret
+#include "tap/motor/double_dji_motor.hpp"
+
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
@@ -171,32 +173,28 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
-
-tap::motor::RevMotor yawMotor1(
+tap::motor::DoubleDjiMotor yawMotor(
     drivers(),
     YAW_MOTOR_ID_1,
+    YAW_MOTOR_ID_2,
     CAN_BUS_MOTORS,
-    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
+    CAN_BUS_MOTORS,
+    false,
     false,
     "YawMotor1",
-    1,
+    "YawMotor2",
+    false,
+    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
     YAW_MOTOR_CONFIG.startEncoderValue,
     &drivers()->encoder);
 
-tap::motor::RevMotor yawMotor2(
+TurretSubsystem turret(
     drivers(),
-    YAW_MOTOR_ID_2,
-    CAN_BUS_MOTORS,
-    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
-    false,
-    "YawMotor2",
-    1,
-    YAW_MOTOR_CONFIG.startEncoderValue);
-
-src::control::turret::TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_CONFIG);
-
-TurretSubsystem turret(drivers(), pitchTurretMotor, yawTurretMotor, &getTurretMCBCanComm());
+    &pitchMotor,
+    &yawMotor,
+    PITCH_MOTOR_CONFIG,
+    YAW_MOTOR_CONFIG,
+    &getTurretMCBCanComm());
 
 // turret controlers
 algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(

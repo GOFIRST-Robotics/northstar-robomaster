@@ -8,6 +8,7 @@
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
 #include "tap/drivers.hpp"
+#include "tap/motor/double_dji_motor.hpp"
 #include "tap/util_macros.hpp"
 
 #include "../../robot-type/robot_type.hpp"
@@ -46,7 +47,7 @@
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/turret_double_motor_rev.hpp"
-#include "control/turret/turret_motor_GM6020.hpp"
+#include "control/turret/turret_motor_DJI.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -151,32 +152,28 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-src::control::turret::TurretMotorGM6020 pitchTurretMotor(&pitchMotor, PITCH_MOTOR_CONFIG);
-
-tap::motor::RevMotor yawMotor1(
+tap::motor::DoubleDjiMotor yawMotor(
     drivers(),
     YAW_MOTOR_ID_1,
-    CAN_BUS_YAW,
-    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,  // Change from duty cycle
-    false,
-    "YawMotor1",
-    (1.0f / 3.5f),
-    YAW_MOTOR_CONFIG.startEncoderValue/*,
-    &drivers()->encoder*/);
-
-tap::motor::RevMotor yawMotor2(
-    drivers(),
     YAW_MOTOR_ID_2,
     CAN_BUS_YAW,
-    tap::motor::RevMotor::ControlMode::DUTY_CYCLE,
+    CAN_BUS_YAW,
     false,
+    false,
+    "YawMotor1",
     "YawMotor2",
-    (1.0f / 3.5f),
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    false,
+    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
-src::control::turret::TurretDoubleMotorRev yawTurretMotor(&yawMotor1, &yawMotor2, YAW_MOTOR_CONFIG);
-
-TurretSubsystem turret(drivers(), pitchTurretMotor, yawTurretMotor, &getTurretMCBCanComm());
+TurretSubsystem turret(
+    drivers(),
+    &pitchMotor,
+    &yawMotor,
+    PITCH_MOTOR_CONFIG,
+    YAW_MOTOR_CONFIG,
+    &getTurretMCBCanComm());
 
 // turret controlers
 algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
@@ -238,7 +235,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -248,7 +245,7 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -526,13 +523,8 @@ void startSentryCommands(Drivers *drivers)
     drivers->visionComms.attachOdometry(chassisOdometry);
     drivers->visionComms.attachPitchMotor(&pitchMotor);
 
-    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
-        0,
-        0,
-        0,
-        0,
-        modm::toRadian(-135),
-        modm::toRadian(-90)));
+    drivers->bmi088.setMountingTransform(
+        tap::algorithms::transforms::Transform(0, 0, 0, 0, 0, modm::toRadian(180)));
 }
 // from RM upside down left hand rule 180 around roll
 

@@ -252,12 +252,8 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
         positionPid,
         velocityPid);
 
-    if (pidOut > 4)
-    {
-        std::cout << "wtdf";
-    }
     lastpidOut = pidOut;
-    turretMotor.setMotorOutput(pidOut / 10.0f);
+    turretMotor.setMotorOutput(pidOut);
 }
 
 void WorldFrameYawTurretImuCascadePidTurretController::setSetpoint(WrappedFloat desiredSetpoint)
