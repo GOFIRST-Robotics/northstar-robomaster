@@ -5,12 +5,12 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 #include "control/clientDisplay/graphics/vector_3d.hpp"
-#include "subsystems/drivetrain/DrivetrainSubsystem.hpp"
-#include "subsystems/drivetrain/DrivetrainSubsystemConstants.hpp"
-#include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/drivetrain/DrivetrainSubsystem.hpp"
+// #include "subsystems/drivetrain/DrivetrainSubsystemConstants.hpp"
+// #include "subsystems/gimbal/GimbalSubsystem.hpp"
 
-using namespace subsystems;
-
+namespace control::clientDisplay::graphics
+{
 class PeekingLines : public GraphicsContainer
 {
 public:
@@ -92,3 +92,4 @@ private:
     UnfilledRectangle
         right{UISubsystem::Color::PURPLISH_RED, 0, BOTTOM_OFFSET, 0, HEIGHT, THICKNESS};
 };
+}  // namespace control::clientDisplay::graphics

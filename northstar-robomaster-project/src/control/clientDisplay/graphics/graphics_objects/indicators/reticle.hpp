@@ -8,9 +8,9 @@
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 #include "control/clientDisplay/graphics/vector_2d.hpp"
 #include "control/clientDisplay/graphics/vector_3d.hpp"
-#include "subsystems/gimbal/GimbalSubsystem.hpp"
-#include "subsystems/indexer/IndexerSubsystem.hpp"
-#include "subsystems/jetson/JetsonSubsystemConstants.hpp"
+// #include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/indexer/IndexerSubsystem.hpp"
+// #include "subsystems/jetson/JetsonSubsystemConstants.hpp"
 
 using namespace tap::communication::serial;
 namespace control::clientDisplay::graphics
