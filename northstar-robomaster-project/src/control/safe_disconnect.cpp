@@ -28,5 +28,8 @@ RemoteSafeDisconnectFunction::RemoteSafeDisconnectFunction(tap::Drivers *drivers
 {
     this->drivers = drivers;
 }
-bool RemoteSafeDisconnectFunction::operator()() { return !drivers->remote.isConnected(); }
+bool RemoteSafeDisconnectFunction::operator()()
+{
+    return false;
+}  //! drivers->remote.isConnected(); }
 }  // namespace src::control

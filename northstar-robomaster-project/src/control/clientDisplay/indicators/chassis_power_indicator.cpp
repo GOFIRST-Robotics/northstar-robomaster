@@ -82,7 +82,7 @@ void ChassisPowerIndicator::initialize()
         WIDTH,
         TEXT_X,
         TEXT_Y,
-        "FIREMODE: ",
+        "CHASSIS POWER: ",
         &textGraphic);
 
     getUnusedGraphicName(graphicName);

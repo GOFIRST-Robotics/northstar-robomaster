@@ -101,7 +101,7 @@ int main()
 
     while (1)
     {
-        // do this as fast as you can
+        //         // do this as fast as you can
         PROFILE(drivers->profiler, updateIo, (drivers));
 
         if (sendMotorTimeout.execute())
@@ -120,7 +120,7 @@ int main()
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
-#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY) || defined(TARGET_TEST_BED)
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
         if (revTxPublisherTimeout.execute())
         {
             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
@@ -180,13 +180,13 @@ bool cal = false;
 bool calibrated = false;
 static void updateIo(Drivers *drivers)
 {
-#ifndef TARGET_TEST_BED
+    // #ifndef TARGET_TEST_BED
     if (!calibrated && drivers->remote.isConnected())
     {
         drivers->commandScheduler.addCommand(getImuCalibrateCommand());
         calibrated = true;
     }
-#endif
+// #endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
 #endif
