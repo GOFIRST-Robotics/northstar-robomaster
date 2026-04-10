@@ -121,10 +121,10 @@ bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)
 
     std::memcpy(&cleanData, message.data, sizeof(OdometryData));
 
-    chassisOdometry->setOdometry(
-        {cleanData.chassis_data.pos_x, cleanData.chassis_data.pos_y},
-        {cleanData.chassis_data.vel_x, cleanData.chassis_data.vel_y},
-        cleanData.turret_data.yaw);
+    // chassisOdometry->setOdometry(
+    //     {cleanData.chassis_data.pos_x, cleanData.chassis_data.pos_y},
+    //     {cleanData.chassis_data.vel_x, cleanData.chassis_data.vel_y},
+    //     cleanData.turret_data.yaw);
 
     return true;
 }
@@ -220,11 +220,13 @@ void VisionComms::sendRobotOdometry()
         modm::Vector2f global_pos = chassisOdometry->getPositionGlobal();
         modm::Vector2f global_vel = chassisOdometry->getVelocityGlobal();
 
+        data->timestamp = tap::arch::clock::getTimeMicroseconds();
+
         // Chassis data
         // data->chassis_data.pos_x = global_pos.x;  // meters
         // data->chassis_data.pos_y = global_pos.y;  // meters
-        // data->chassis_data.pos_z = 0;  // TODO: this assumes the robot is on level ground.
-        // Odometry should support z for varied height fields
+        // data->chassis_data.pos_z = 0;             // TODO: this assumes the robot is on level
+        // ground. Odometry should support z for varied height fields
 
         data->chassis_data.vel_x = global_vel.x;  // meters/second
         data->chassis_data.vel_y = global_vel.y;  // meters/second
@@ -236,7 +238,7 @@ void VisionComms::sendRobotOdometry()
         data->turret_data.roll = drivers->bmi088.getRoll();          // radians
 
         // data->turret_data.pitch_vel = pitchMotor->getShaftRPM() / 60 * M_TWOPI;
-        data->turret_data.yaw_vel = drivers->bmi088.getGz();
+        // data->turret_data.yaw_vel = drivers->bmi088.getGz();
         // data->turret_data.roll_vel = drivers->bmi088.getGx();
 
         odometryMessage.setCRC16();
@@ -277,32 +279,58 @@ void VisionComms::sendTurretRefData()
 
         message.messageType = MessageType::REF_TURRET_DATA;
 
-        // save into the message
-        message.data[0] = static_cast<uint16_t>(refTurretData.bulletSpeed);
+        // Offset 0
+        uint16_t bulletSpeed = static_cast<uint16_t>(refTurretData.bulletSpeed);
+        std::memcpy(&message.data[0], &bulletSpeed, 2);
 
-        message.data[1] = static_cast<uint16_t>(refTurretData.bulletsRemaining17);
+        // Offset 2
+        uint16_t bullets17 = static_cast<uint16_t>(refTurretData.bulletsRemaining17);
+        std::memcpy(&message.data[2], &bullets17, 2);
 
-        message.data[2] = static_cast<uint16_t>(refTurretData.bulletsRemaining42);
+        // Offset 4
+        uint16_t bullets42 = static_cast<uint16_t>(refTurretData.bulletsRemaining42);
+        std::memcpy(&message.data[4], &bullets42, 2);
 
-        message.data[3] = static_cast<uint16_t>(refTurretData.bulletType);
+        // Offset 6
+        uint16_t bulletType = static_cast<uint16_t>(refTurretData.bulletType);
+        std::memcpy(&message.data[6], &bulletType, 2);
 
-        message.data[4] = static_cast<uint16_t>(refTurretData.coolingRate);
+        // Offset 8
+        uint16_t coolingRate = static_cast<uint16_t>(refTurretData.coolingRate);
+        std::memcpy(&message.data[8], &coolingRate, 2);
 
-        message.data[5] = static_cast<uint16_t>(refTurretData.firingFreq);
+        // Offset 10
+        uint16_t firingFreq = static_cast<uint16_t>(refTurretData.firingFreq);
+        std::memcpy(&message.data[10], &firingFreq, 2);
 
-        message.data[6] = static_cast<uint16_t>(refTurretData.heat17ID1);
+        // Offset 12
+        uint16_t heat17_1 = static_cast<uint16_t>(refTurretData.heat17ID1);
+        std::memcpy(&message.data[12], &heat17_1, 2);
 
-        message.data[7] = static_cast<uint16_t>(refTurretData.heat17ID2);
+        // Offset 14
+        uint16_t heat17_2 = static_cast<uint16_t>(refTurretData.heat17ID2);
+        std::memcpy(&message.data[14], &heat17_2, 2);
 
-        message.data[8] = static_cast<uint16_t>(refTurretData.heat42);
+        // Offset 16
+        uint16_t heat42 = static_cast<uint16_t>(refTurretData.heat42);
+        std::memcpy(&message.data[16], &heat42, 2);
 
-        message.data[9] = static_cast<uint16_t>(refTurretData.heatLimit);
+        // Offset 18
+        uint16_t heatLimit = static_cast<uint16_t>(refTurretData.heatLimit);
+        std::memcpy(&message.data[18], &heatLimit, 2);
 
-        message.data[10] = static_cast<uint16_t>(refTurretData.lastReceivedLaunchingInfoTimestamp);
+        // Offset 20
+        uint16_t launchTime =
+            static_cast<uint16_t>(refTurretData.lastReceivedLaunchingInfoTimestamp);
+        std::memcpy(&message.data[20], &launchTime, 2);
 
-        message.data[11] = static_cast<uint16_t>(refTurretData.launchMechanismID);
+        // Offset 22
+        uint16_t launchMech = static_cast<uint16_t>(refTurretData.launchMechanismID);
+        std::memcpy(&message.data[22], &launchMech, 2);
 
-        message.data[12] = static_cast<uint16_t>(refTurretData.yaw);
+        // Offset 24
+        uint16_t yaw = static_cast<uint16_t>(refTurretData.yaw);
+        std::memcpy(&message.data[24], &yaw, 2);
 
         message.setCRC16();
         drivers->uart.write(
