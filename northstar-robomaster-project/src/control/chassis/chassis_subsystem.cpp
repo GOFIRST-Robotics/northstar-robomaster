@@ -218,6 +218,8 @@ void ChassisSubsystem::driveBasedOnHeading(
     float sin_theta = sin(heading);
     float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
     float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
+    isPeeking = abs(vy_local) > 0.1;
+    isPeekingLeft = isPeeking && (vy_local < 0);
     LFSpeed = mpsToRpm(
         (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel

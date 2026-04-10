@@ -4,7 +4,7 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class TestGraphics : public GraphicsContainer
 {
@@ -83,4 +83,4 @@ private:
     Arc arc2{UISubsystem::Color::YELLOW, 170, 770, 50, 50, 0, 30, 1};
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

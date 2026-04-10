@@ -8,12 +8,13 @@
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 #include "control/clientDisplay/graphics/vector_2d.hpp"
 #include "control/clientDisplay/graphics/vector_3d.hpp"
-// #include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/turret/turretSubsystem.hpp"
 // #include "subsystems/indexer/IndexerSubsystem.hpp"
 // #include "subsystems/jetson/JetsonSubsystemConstants.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
 using namespace tap::communication::serial;
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class Reticle : public GraphicsContainer
 {
@@ -24,8 +25,8 @@ public:  // important constants and enums
     static constexpr float PANEL_ANGLE =
         15 * PI / 180;  // radians, tilt of the panel, 0 would be panel is not tilted
     static constexpr float AVERAGE_HEIGHT_OFF_GROUND =
-        0.18;  // meters, center of panel to ground, for calculating where on screen reticle things
-               // should be
+        0.18;  // meters, center of panel to ground, for calculating where on screen reticle
+               // things should be
 
     // distances down range and colors to draw them
     static constexpr int NUM_THINGS = 9;
@@ -60,25 +61,25 @@ public:  // important constants and enums
     enum class ReticleDrawMode : uint8_t
     {
         RECTANGLES =
-            0,  // multiple rectangles of different colors, tops and bottoms of them are tops and
-                // bottoms of panels, midpoints of sides are edges of standard size panels
+            0,  // multiple rectangles of different colors, tops and bottoms of them are tops
+                // and bottoms of panels, midpoints of sides are edges of standard size panels
         HORIZ_LINES = 1,  // multiple of horizontal lines, widths represent panel widths, heights
                           // represent where the center of a standard panel needs to be to hit it,
                           // lines go across the center of a panel, endpoints are edges of panels
-        VERT_LINES = 2,   // multiple of (almost) vertical lines, heights represent panel heights,
-                          // heights represent where the top and bottom edges of either panel needs
-                          // to be to hit it, lines go across the left and/or right edge of the
-                          // panel, depending on ReticleSidedMode
-        TRAPEZOIDS =
-            3,  // like RECTANGLES but uses many lines to make it a trapezoid, tracing the edges of
-                // panels. Not recommended for use with ReticleSolveMode::FOR_HEIGHT_OFF_GROUND
-        BOTH_LINES = 4,  // combination of HORIZ_LINES and VERT_LINES
+        VERT_LINES = 2,   // multiple of (almost) vertical lines, heights represent panel
+                          // heights, heights represent where the top and bottom edges of either
+                          // panel needs to be to hit it, lines go across the left and/or right
+                          // edge of the panel, depending on ReticleSidedMode
+        TRAPEZOIDS = 3,   // like RECTANGLES but uses many lines to make it a trapezoid, tracing
+                          // the edges of panels. Not recommended for use with
+                          // ReticleSolveMode::FOR_HEIGHT_OFF_GROUND
+        BOTH_LINES = 4,   // combination of HORIZ_LINES and VERT_LINES
     };
 
     enum class ReticleSolveMode : uint8_t
     {
-        FOR_HEIGHT_OFF_GROUND = 0,  // uses pitch and DISTANCES away to solve for height, redraws
-                                    // the reticle often because pitch changes often
+        FOR_HEIGHT_OFF_GROUND = 0,  // uses pitch and DISTANCES away to solve for height,
+                                    // redraws the reticle often because pitch changes often
         FOR_PITCH = 1,  // uses AVERAGE_HEIGHT_OFF_GROUND and DISTANCES away to solve for pitch,
                         // reticle doesn't ever need redrawn because constants are constant
     };
@@ -96,14 +97,16 @@ private:  // draw settings
     ReticleSolveMode solveMode = ReticleSolveMode::FOR_PITCH;
     ReticleSidedMode sidedMode = ReticleSidedMode::BOTH;
 
-    static constexpr int DIAGONAL_OFFSET =
-        50;  // when can't shoot, the vertical line becomes diagonal, by shifting x by this amount
+    static constexpr int DIAGONAL_OFFSET = 50;  // when can't shoot, the vertical line becomes
+                                                // diagonal, by shifting x by this amount
 
 public:
-    Reticle(tap::Drivers* drivers, GimbalSubsystem* gimbal, IndexerSubsystem* index)
+    Reticle(
+        tap::Drivers* drivers,
+        src::control::turret::TurretSubsystem* turret /*IndexerSubsystem* index*/)
         : drivers(drivers),
-          gimbal(gimbal),
-          index(index)
+          turret(turret)
+    //   index(index)
     {
         for (int i = 0; i < NUM_THINGS; i++)
         {
@@ -126,45 +129,46 @@ public:
 
     void update()
     {
-        float pitch = gimbal->getPitchEncoderValue();
+        float pitch = turret->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue();
 
         ReticleSidedMode adjustedSidedMode =
             drawMode == ReticleDrawMode::TRAPEZOIDS ? ReticleSidedMode::BOTH : sidedMode;
 
-        bool canShoot = true;
+        // bool canShoot = true;
 
-        if (!index->isIndexOnline())
-        {
-            verticalLine.color = UISubsystem::Color::PINK;
-            canShoot = false;
-        }
+        // if (!index->isIndexOnline())
+        // {
+        //     verticalLine.color = UISubsystem::Color::PINK;
+        //     canShoot = false;
+        // }
 
-        if (!index->isProjectileAtBeam())
-        {
-            verticalLine.color = UISubsystem::Color::BLACK;
-            canShoot = false;
-        }
+        // if (!index->isProjectileAtBeam())
+        // {
+        //     verticalLine.color = UISubsystem::Color::BLACK;
+        //     canShoot = false;
+        // }
 
-        if (!index->heatAllowsShooting())
-        {
-            verticalLine.color = UISubsystem::Color::WHITE;
-            canShoot = false;
-        }
+        // if (!index->heatAllowsShooting())
+        // {
+        //     verticalLine.color = UISubsystem::Color::WHITE;
+        //     canShoot = false;
+        // }
 
         verticalLine.x1 = UISubsystem::HALF_SCREEN_WIDTH;
         verticalLine.x2 = UISubsystem::HALF_SCREEN_WIDTH;
-        if (canShoot)
-        {
-            verticalLine.color =
-                index->refPoweringIndex() ? UISubsystem::Color::WHITE : UISubsystem::Color::PINK;
-            verticalLine.thickness = 1;
-        }
-        else
-        {
-            verticalLine.thickness = 10;
-            verticalLine.x1 += DIAGONAL_OFFSET;
-            verticalLine.x2 -= DIAGONAL_OFFSET;
-        }
+        // if (canShoot)
+        // {
+        //     verticalLine.color =
+        //         index->refPoweringIndex() ? UISubsystem::Color::WHITE :
+        //         UISubsystem::Color::PINK;
+        //     verticalLine.thickness = 1;
+        // }
+        // else
+        // {
+        //     verticalLine.thickness = 10;
+        //     verticalLine.x1 += DIAGONAL_OFFSET;
+        //     verticalLine.x2 -= DIAGONAL_OFFSET;
+        // }
 
         solvedForPitchLandingSpotThisCycle = false;
         for (int i = 0; i < NUM_THINGS; i++)
@@ -211,7 +215,8 @@ public:
                                  drawMode == ReticleDrawMode::TRAPEZOIDS;
             if (drawVertLines)
             {
-                // vert lines traces one edge of the panel, so they aren't always exactly vertical
+                // vert lines traces one edge of the panel, so they aren't always exactly
+                // vertical
 
                 lines[i][0].x1 = rt.getX();
                 lines[i][0].y1 = rt.getY();
@@ -265,8 +270,8 @@ public:
 
 private:
     tap::Drivers* drivers;
-    GimbalSubsystem* gimbal;
-    IndexerSubsystem* index;
+    src::control::turret::TurretSubsystem* turret;
+    // IndexerSubsystem* index;
 
     Vector3d panelEdges[4] = {
         {PANEL_WIDTH / 2, 0, 0},   // right
@@ -294,15 +299,16 @@ private:
 
     // for solving for pitch
     static constexpr int MAX_NUM_ITERATIONS =
-        10;  // it is difficult to actually solve for pitch because initial launch positions depend
-             // on pitch
+        10;  // it is difficult to actually solve for pitch because initial launch positions
+             // depend on pitch
     int forPitchLandingSpotsSolved[NUM_THINGS];  // so we do a binary search, guessing a pitch,
-                                                 // calculating where it lands, and trying a higher
-                                                 // or lower pitch accordingly
+                                                 // calculating where it lands, and trying a
+                                                 // higher or lower pitch accordingly
     Vector3d forPitchLandingSpots[NUM_THINGS];
     float forPitchPitches[NUM_THINGS];
     bool solvedForPitchLandingSpotThisCycle =
-        false;  // prevent solving for multiple in one update() cycle so it doesn't take a long time
+        false;  // prevent solving for multiple in one update() cycle so it doesn't take a long
+                // time
 
     Vector2d project(Vector3d in, float pitch)
     {
@@ -321,13 +327,13 @@ private:
     {
         if (solveMode == ReticleSolveMode::FOR_HEIGHT_OFF_GROUND)
         {
-            Vector3d temp{0, initialShotVelocity, 0};
+            Vector3d temp{0, 15.0f, 0};
             Vector3d initialVelo = temp.rotatePitch(-*pitch);
             Vector3d initialPos{0, 0, 0};  // shot starts in barrel space
             temp = Projections::barrelSpaceToPivotSpace(initialPos);
             initialPos = temp.rotatePitch(-*pitch);
-            // initialPos and initialVelo are in pivot space, parallel to the ground so gravity is
-            // pulling in the -z direction only
+            // initialPos and initialVelo are in pivot space, parallel to the ground so gravity
+            // is pulling in the -z direction only
 
             float t =
                 (DISTANCES[i] - initialPos.getY()) /
@@ -341,8 +347,8 @@ private:
             return Vector3d{
                 initialPos.getX(),
                 DISTANCES[i],
-                zFinal};  // side to side doesn't change, we are defining the down range distance,
-                          // and we calculated the height off the ground
+                zFinal};  // side to side doesn't change, we are defining the down range
+                          // distance, and we calculated the height off the ground
         }
         else
         {  // FOR_PITCH
@@ -356,8 +362,8 @@ private:
             // solve
             forPitchPitches[i] = 0;
             solveMode =
-                ReticleSolveMode::FOR_HEIGHT_OFF_GROUND;  // switch to height mode to recurse and
-                                                          // calculate the other way
+                ReticleSolveMode::FOR_HEIGHT_OFF_GROUND;  // switch to height mode to recurse
+                                                          // and calculate the other way
             for (int j = 0; j < MAX_NUM_ITERATIONS; j++)
             {
                 forPitchLandingSpots[i] = calculateLandingSpot(forPitchPitches + i, i);
@@ -387,4 +393,4 @@ private:
     }
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

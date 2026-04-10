@@ -4,14 +4,14 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
-// when trying to buy projectiles as soon as the match starts, you can't see the original countdown
-// this is drawn to the side so you can still know the countdown
+// when trying to buy projectiles as soon as the match starts, you can't see the original
+// countdown this is drawn to the side so you can still know the countdown
 class Countdown : public GraphicsContainer
 {
 public:
-    Countdown(src::Drivers* drivers) : drivers(drivers)
+    Countdown(tap::Drivers* drivers) : drivers(drivers)
     {
         addGraphicsObject(&number);
         number.x = X_POSITION;
@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    src::Drivers* drivers;
+    tap::Drivers* drivers;
 
     static constexpr uint16_t X_POSITION =
         1680;  // pixels, all numbers at the same y level on screen
@@ -60,4 +60,4 @@ private:
     IntegerGraphic number{};
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

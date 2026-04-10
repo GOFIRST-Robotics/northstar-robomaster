@@ -14,16 +14,20 @@
 #include "control/clientDisplay/graphics/graphics_objects/indicators/predicted_remaining_shots_indicator.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/reticle.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/supercap_charge_indicator.hpp"
-// #include "subsystems/drivetrain/DrivetrainSubsystem.hpp"
+// #include "subsystems/chassis/chassisSubsystem.hpp"
 // #include "subsystems/flywheel/FlywheelSubsystem.hpp"
-// #include "subsystems/gimbal/GimbalSubsystem.hpp"
-// #include "subsystems/indexer/HeroIndexerSubsystem.hpp"
+// #include "subsystems/turret/turretSubsystem.hpp"
+// #include "subsystems/agitator/HeroagitatorSubsystem.hpp"
+#include "control/agitator/velocity_agitator_subsystem.hpp"
+#include "control/chassis/chassis_subsystem.hpp"
 #include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
+#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
 #include "drivers.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class SentryDrawCommand : public tap::control::Command, GraphicsContainer
 {
@@ -31,16 +35,16 @@ public:
     SentryDrawCommand(
         src::Drivers* drivers,
         UISubsystem* ui,
-        GimbalSubsystem* gimbal,
-        FlywheelSubsystem* flywheel,
-        IndexerSubsystem* indexer,
-        DrivetrainSubsystem* drivetrain)
+        src::control::turret::TurretSubsystem* turret,
+        src::control::flywheel::TwoFlywheelSubsystem* flywheel,
+        src::agitator::VelocityAgitatorSubsystem* agitator,
+        src::chassis::ChassisSubsystem* chassis)
         : drivers(drivers),
           ui(ui),
-          gimbal(gimbal),
+          turret(turret),
           flywheel(flywheel),
-          indexer(indexer),
-          drivetrain(drivetrain)
+          agitator(agitator),
+          chassis(chassis)
     {
         addSubsystemRequirement(ui);
 
@@ -86,22 +90,22 @@ public:
 private:
     src::Drivers* drivers;
     UISubsystem* ui;
-    GimbalSubsystem* gimbal;
-    FlywheelSubsystem* flywheel;
-    IndexerSubsystem* indexer;
-    DrivetrainSubsystem* drivetrain;
+    src::control::turret::TurretSubsystem* turret;
+    src::control::flywheel::TwoFlywheelSubsystem* flywheel;
+    src::agitator::VelocityAgitatorSubsystem* agitator;
+    src::chassis::ChassisSubsystem* chassis;
 
     // add top level graphics objects here and in the constructor
-    LaneAssistLines lane{gimbal};
-    SupercapChargeIndicator supercap{drivetrain};
-    ChassisOrientationIndicator orient{true, drivers, gimbal, drivetrain};
-    PeekingLines peek{drivetrain, gimbal};
-    Reticle reticle{drivers, gimbal, indexer};
-    HitRing ring{drivers, gimbal};
-    PredictedRemainingShotsIndicator remain{drivers, indexer};
+    LaneAssistLines lane{turret};
+    SupercapChargeIndicator supercap{chassis};
+    ChassisOrientationIndicator orient{true, drivers, turret, chassis};
+    PeekingLines peek{chassis, turret};
+    Reticle reticle{drivers, turret, agitator};
+    HitRing ring{drivers, turret};
+    PredictedRemainingShotsIndicator remain{drivers, agitator};
     AllRobotHealthNumbers numbers{drivers};
     Countdown countdown{drivers};
-    LinearVelocityIndicator velo{drivetrain};
+    LinearVelocityIndicator velo{chassis};
     ImuRecalibrationIndicator recal{drivers};
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

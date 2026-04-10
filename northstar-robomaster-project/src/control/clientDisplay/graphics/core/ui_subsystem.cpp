@@ -1,8 +1,9 @@
 #include "ui_subsystem.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
-// define the static variable, if this isnt here things go wrong saying it is a undefined reference
+// define the static variable, if this isnt here things go wrong saying it is a undefined
+// reference
 uint32_t UISubsystem::currGraphicName = 0;
 int8_t UISubsystem::currLayer = 1;  // layer 0 is where most stuff is, so asking for a layer gets
                                     // you 1 or higher (or -1 if there aren't any more layers)
@@ -15,8 +16,8 @@ UISubsystem::UISubsystem(tap::Drivers* drivers)
     // assume all layers had something on them from a previous team, so all need cleared
     for (int i = 0; i < NUM_LAYERS; i++) layersState[i] = 2;
 
-    graphicsIndex = 0;  // might start with one or two already in the array from last time, so set
-                        // it once outside of run
+    graphicsIndex = 0;  // might start with one or two already in the array from last time, so
+                        // set it once outside of run
 }
 
 uint32_t UISubsystem::getUnusedGraphicName()
@@ -68,10 +69,10 @@ bool UISubsystem::run()
         restart();  // Restart the thread
     }
 
-    PT_BEGIN();  // ignore this error, it still builds, need to figure out how to make vscode not
-                 // angry at this
-    // inside of a protothread, you aren't able to make new variables, errors with: 'jump to case
-    // label' so make new variables in the hpp and set their values here
+    PT_BEGIN();  // ignore this error, it still builds, need to figure out how to make vscode
+                 // not angry at this
+    // inside of a protothread, you aren't able to make new variables, errors with: 'jump to
+    // case label' so make new variables in the hpp and set their values here
 
     // drivers->leds.set(tap::gpio::Leds::Red, false);
     // drivers->leds.set(tap::gpio::Leds::Green, false);
@@ -89,11 +90,11 @@ bool UISubsystem::run()
         }
         if (layersState[innerGraphicsIndex] == 1)
         {
-            needToClearAllLayers = false;  // if all are 0(cleared) or 2(needs to be cleared), then
-                                           // we can clear all, otherwise we can't
+            needToClearAllLayers = false;  // if all are 0(cleared) or 2(needs to be cleared),
+                                           // then we can clear all, otherwise we can't
         }
-    }  // loop ends when the layer at innerGraphicsIndex needs cleared, or all layers were checked
-       // and all were clear
+    }  // loop ends when the layer at innerGraphicsIndex needs cleared, or all layers were
+       // checked and all were clear
 
     if (needToClearAllLayers)
     {
@@ -127,9 +128,9 @@ bool UISubsystem::run()
         PT_WAIT_UNTIL(delayTimeout.execute());
 
         // maybe some object saved from the last iteration just got removed, we don't want to
-        // accidentally draw it could check if the 1 or 2 saved objects were on a cleared layer, but
-        // it probably isn't worth it clearing layers probably doesn't happen enough, those objects
-        // will be visited on the next iteration
+        // accidentally draw it could check if the 1 or 2 saved objects were on a cleared layer,
+        // but it probably isn't worth it clearing layers probably doesn't happen enough, those
+        // objects will be visited on the next iteration
         graphicsIndex = 0;
     }
 
@@ -162,8 +163,8 @@ bool UISubsystem::run()
         else
         {
             // if it isn't a string, add it to the array and see if it is full
-            nextGraphicsObject->markToDraw();  // mark the object as 'to draw' to prevent it from
-                                               // being gotten again from the container
+            nextGraphicsObject->markToDraw();  // mark the object as 'to draw' to prevent it
+                                               // from being gotten again from the container
             objectsToSend[graphicsIndex++] = nextGraphicsObject;
             if (graphicsIndex == TARGET_NUM_OBJECTS) break;  // if full, stop trying to find more
         }
@@ -274,4 +275,4 @@ void UISubsystem::setTopLevelContainer(GraphicsContainer* container)
         layersState[innerGraphicsIndex] = 2;
     }
 }
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

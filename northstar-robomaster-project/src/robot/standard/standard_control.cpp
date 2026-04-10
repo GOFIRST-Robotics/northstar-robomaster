@@ -96,6 +96,8 @@
 
 #include "control/clientDisplay/client_display_command.hpp"
 #include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/graphics/core/infantry_draw_command.hpp"
+#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/indicators/ammo_indicator.hpp"
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
@@ -121,7 +123,8 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
-using namespace src::control::client_display;
+// using namespace src::control::client_display;
+using namespace src::control::client_display::graphics;
 using namespace tap::communication::serial;
 using namespace src::control::hopper;
 using namespace src::control::buzzer;
@@ -534,46 +537,58 @@ ToggleCommandMapping xPressedIMUCalibrate(
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
 
 // HUD
-ClientDisplaySubsystem clientDisplay(drivers());
-tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
+// ClientDisplaySubsystem clientDisplay(drivers());
+// tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
 
-AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
+// AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
 
-VisionIndicator visionIndicator(refSerialTransmitter, drivers()->refSerial, drivers()->visionComms);
+// VisionIndicator visionIndicator(refSerialTransmitter, drivers()->refSerial,
+// drivers()->visionComms);
 
-CircleCrosshair circleCrosshair(refSerialTransmitter);
+// CircleCrosshair circleCrosshair(refSerialTransmitter);
 
-FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, flywheelOnGovernor);
+// FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial,
+// flywheelOnGovernor);
 
-ShootingModeIndicator shootingModeIndicator(
-    refSerialTransmitter,
-    drivers()->refSerial,
-    leftMousePressedShoot);
+// ShootingModeIndicator shootingModeIndicator(
+//     refSerialTransmitter,
+//     drivers()->refSerial,
+//     leftMousePressedShoot);
 
-CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial, cvOnTargetGovernor);
+// CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial,
+// cvOnTargetGovernor);
 
-TextHudIndicators textHudIndicators(
-    *drivers(),
-    agitator,
-    // imuCalibrateCommand,
-    {&chassisWiggleCommand, &chassisBeyBladeCommand},
-    refSerialTransmitter);
+// TextHudIndicators textHudIndicators(
+//     *drivers(),
+//     agitator,
+//     // imuCalibrateCommand,
+//     {&chassisWiggleCommand, &chassisBeyBladeCommand},
+//     refSerialTransmitter);
 
-std::vector<HudIndicator *> hudIndicators = {
-    &ammoIndicator,
-    &circleCrosshair,
-    &textHudIndicators,
-    // &visionIndicator,
-    // &flyWheelIndicator,
-    &shootingModeIndicator,
-    /*&cvAimingIndicator*/};
+// std::vector<HudIndicator *> hudIndicators = {
+//     &ammoIndicator,
+//     &circleCrosshair,
+//     &textHudIndicators,
+//     // &visionIndicator,
+//     // &flyWheelIndicator,
+//     &shootingModeIndicator,
+//     /*&cvAimingIndicator*/};
 
-ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
+// ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping crtlShiftEPressedClientDisplay(
+src::control::client_display::graphics::UISubsystem ui(drivers());
+src::control::client_display::graphics::InfantryDrawCommand infantryDrawCommand(
     drivers(),
-    {&clientDisplayCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+    &ui,
+    &turret,
+    // &flywheel,
+    &agitator,
+    &chassisSubsystem);
+
+// PressCommandMapping crtlShiftEPressedClientDisplay(
+//     drivers(),
+//     {&clientDisplayCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
 void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
@@ -594,15 +609,17 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
-    drivers->commandScheduler.registerSubsystem(&clientDisplay);
+    // drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
+    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
-    clientDisplay.setDefaultCommand(&clientDisplayCommand);
+    // clientDisplay.setDefaultCommand(&clientDisplayCommand);
+    ui.setDefaultCommand(&infantryDrawCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
@@ -635,7 +652,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
     drivers->commandMapper.addMap(&qPressedNormDrive);
-    drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
+    // drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);

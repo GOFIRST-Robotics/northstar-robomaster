@@ -4,7 +4,7 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class TestFill : public GraphicsContainer
 {
@@ -28,4 +28,4 @@ private:
     static constexpr int R = 60;
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

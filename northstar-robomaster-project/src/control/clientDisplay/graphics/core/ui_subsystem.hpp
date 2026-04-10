@@ -11,7 +11,7 @@
 
 #include "drivers.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 using namespace tap::communication::serial;
 
@@ -77,8 +77,8 @@ public:  // Public Methods
     static int8_t getUnusedLayer();
 
     /* Marks a layer to be cleared next time the UISubsystem gets a chance.
-     * Will also mark items on this layer as hidden to make sure they don't immediately get drawn
-     * again. */
+     * Will also mark items on this layer as hidden to make sure they don't immediately get
+     * drawn again. */
     static void clearAndHideLayer(int8_t layer);
 
     /*
@@ -90,11 +90,11 @@ public:  // Public Methods
 
     static void fixAngle(uint16_t* a)
     {
-        *a %= 360;  // set a to the remainder after dividing by 360, so if it was 361 it would now
-                    // be 1
+        *a %= 360;  // set a to the remainder after dividing by 360, so if it was 361 it would
+                    // now be 1
     }
 
 private:         // Private Methods
     bool run();  // for protothread
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

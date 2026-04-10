@@ -5,15 +5,16 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 #include "control/clientDisplay/graphics/vector_3d.hpp"
-// #include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/turret/turretSubsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 // looks like / \ at the bottom of the screen
 class LaneAssistLines : public GraphicsContainer
 {
 public:
-    LaneAssistLines(GimbalSubsystem* gimbal) : gimbal(gimbal)
+    LaneAssistLines(src::control::turret::TurretSubsystem* turret) : turret(turret)
     {
         addGraphicsObject(&left);
         addGraphicsObject(&right);
@@ -21,8 +22,9 @@ public:
 
     void update()
     {
-        float pitch = gimbal->getPitchEncoderValue();
-        // vs's in robot space, don't need to rotate with drivetrain, does need to rotate with pitch
+        float pitch = turret->pitchMotor.getChassisFrameMeasuredAngle().getUnwrappedValue();
+        // vs's in robot space, don't need to rotate with drivetrain, does need to rotate with
+        // pitch
         Vector3d rightTop3 = Vector3d{ROBOT_RADIUS, FORWARD_DISTANCE, 0};
         Vector3d rightRef3 = Vector3d{ROBOT_RADIUS, FORWARD_DISTANCE - ROBOT_RADIUS, 0};
         Vector3d leftTop3 = Vector3d{-ROBOT_RADIUS, FORWARD_DISTANCE, 0};
@@ -31,8 +33,8 @@ public:
         Vector2d rightTop2 = project(rightTop3, pitch);
         if (rightTop2.getY() < 0)
         {
-            // if top line is off the bottom of the screen, don't project the other points and draw
-            // nothing
+            // if top line is off the bottom of the screen, don't project the other points and
+            // draw nothing
             this->hide();  // hide all the lines I contain
             return;
         }
@@ -68,7 +70,7 @@ private:
 
     static constexpr uint16_t THICKNESS = 2;  // pixels
 
-    GimbalSubsystem* gimbal;
+    src::control::turret::TurretSubsystem* turret;
 
     Line left{UISubsystem::Color::CYAN, 0, 0, 0, 0, THICKNESS};
     Line right{UISubsystem::Color::CYAN, 0, 0, 0, 0, THICKNESS};
@@ -95,4 +97,4 @@ private:
         return Vector2d(top.getX() - top.getY() / slope, 0);
     }
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

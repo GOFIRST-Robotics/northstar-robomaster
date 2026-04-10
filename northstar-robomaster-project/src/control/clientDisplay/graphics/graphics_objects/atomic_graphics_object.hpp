@@ -6,7 +6,7 @@
 
 using namespace tap::communication::serial;
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class AtomicGraphicsObject : public GraphicsObject
 {
@@ -48,8 +48,8 @@ public:
             graphicData,
             graphicNameArray,
             getNextOperation(),
-            layer < 0 ? 0 : layer,  // UISubsystem::getUnusedLayer might return -1 when there aren't
-                                    // any unused layers,
+            layer < 0 ? 0 : layer,  // UISubsystem::getUnusedLayer might return -1 when there
+                                    // aren't any unused layers,
             // if someone doesn't check if it did this protects trying to send -1 to the server
             color);
         wasHidden = isHidden;
@@ -108,4 +108,4 @@ private:
     int8_t prevLayer = -2;
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

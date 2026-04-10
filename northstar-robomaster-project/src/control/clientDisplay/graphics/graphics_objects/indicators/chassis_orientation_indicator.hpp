@@ -3,10 +3,12 @@
 #include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
-// #include "subsystems/drivetrain/DrivetrainSubsystem.hpp"
-// #include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/chassis/chassisSubsystem.hpp"
+// #include "subsystems/turret/turretSubsystem.hpp"
+#include "control/chassis/chassis_subsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 // looks like
 //    __
@@ -21,12 +23,12 @@ public:
     ChassisOrientationIndicator(
         bool showPlsSpin,
         tap::Drivers* drivers,
-        GimbalSubsystem* gimbal,
-        DrivetrainSubsystem* drivetrain)
+        src::control::turret::TurretSubsystem* turret,
+        src::chassis::ChassisSubsystem* chassis)
         : showPlsSpin(showPlsSpin),
           drivers(drivers),
-          gimbal(gimbal),
-          drivetrain(drivetrain)
+          turret(turret),
+          chassis(chassis)
     {
         addGraphicsObject(&front);
         addGraphicsObject(&side);
@@ -40,9 +42,10 @@ public:
 
     void update()
     {
-        uint16_t heading =
-            static_cast<uint16_t>(gimbal->getYawEncoderValue() * 180 / PI + YAW_OFFSET);
-        // if the gimbal compared to the drivetrain (from the encoder) is facing forward, heading
+        uint16_t heading = static_cast<uint16_t>(
+            turret->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue() * 180 / PI +
+            YAW_OFFSET);
+        // if the turret compared to the chassis (from the encoder) is facing forward, heading
         // would be 0, if facing right, heading would be 90
 
         // front arc is convex
@@ -50,21 +53,21 @@ public:
         UISubsystem::fixAngle(&front.startAngle);
         front.endAngle = front.startAngle + INNER_ARC_LEN;
 
-        side.setHidden(!drivetrain->isPeeking);
+        side.setHidden(!chassis->isPeeking);
 #if defined(TARGET_STANDARD)
         // side arc is concave (because flyswatters), so angle is flipped
-        side.startAngle = (drivetrain->isPeekingLeft ? 90 : 270) + heading - INNER_ARC_LEN / 2;
+        side.startAngle = (chassis->isPeekingLeft ? 90 : 270) + heading - INNER_ARC_LEN / 2;
         UISubsystem::fixAngle(&side.startAngle);
         side.endAngle = side.startAngle + INNER_ARC_LEN;
 
         // and xy location isn't the center
-        float angleRadians =
-            (drivetrain->isPeekingLeft ? PI / 2 : 3 * PI / 2) + gimbal->getYawEncoderValue();
+        float angleRadians = (chassis->isPeekingLeft ? PI / 2 : 3 * PI / 2) +
+                             turret->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue();
         side.cx = front.cx - 2 * side.width * sin(angleRadians);
         side.cy = front.cy - 2 * side.width * cos(angleRadians);
 #else
         // side arc is like the front one, convex
-        side.startAngle = (drivetrain->isPeekingLeft ? 270 : 90) + heading - INNER_ARC_LEN / 2;
+        side.startAngle = (chassis->isPeekingLeft ? 270 : 90) + heading - INNER_ARC_LEN / 2;
         UISubsystem::fixAngle(&side.startAngle);
         side.endAngle = side.startAngle + INNER_ARC_LEN;
 #endif
@@ -79,8 +82,8 @@ public:
 
         if (showPlsSpin)
         {
-            plsSpinText.setHidden(drivetrain->isPeeking || drivetrain->isBeyblading);
-            // plsSpinBox.setHidden(!drivetrain->isPeeking && !drivetrain->isBeyblading);
+            plsSpinText.setHidden(chassis->isPeeking || chassis->isBeyblading);
+            // plsSpinBox.setHidden(!chassis->isPeeking && !chassis->isBeyblading);
 
             plsSpinText.x = UISubsystem::HALF_SCREEN_WIDTH - plsSpinText.width / 2;
             // plsSpinBox.x1 = plsSpinText.x-TEXT_THICKNESS;
@@ -89,14 +92,14 @@ public:
     }
 
     static constexpr float YAW_OFFSET =
-        2 * 360;  // degrees, 0 from the yaw might not be top on the screen, also needs to make sure
-                  // it is positive because we are using uints
+        2 * 360;  // degrees, 0 from the yaw might not be top on the screen, also needs to make
+                  // sure it is positive because we are using uints
 
 private:
     bool showPlsSpin;
     tap::Drivers* drivers;
-    GimbalSubsystem* gimbal;
-    DrivetrainSubsystem* drivetrain;
+    src::control::turret::TurretSubsystem* turret;
+    src::chassis::ChassisSubsystem* chassis;
 
     static constexpr uint16_t THICKNESS = 2;  // pixels
     static constexpr uint16_t INNER_SIZE =
@@ -132,7 +135,7 @@ private:
     static constexpr uint16_t TEXT_THICKNESS = 5;
     StringGraphic
         plsSpinText{UISubsystem::Color::PINK, "Pls spin", 0, TEXT_Y, TEXT_HEIGHT, TEXT_THICKNESS};
-    // Line plsSpinBox{UISubsystem::Color::PINK, 0, TEXT_Y+TEXT_HEIGHT/2, 0, TEXT_Y+TEXT_HEIGHT/2,
-    // TEXT_HEIGHT+TEXT_THICKNESS*2};
+    // Line plsSpinBox{UISubsystem::Color::PINK, 0, TEXT_Y+TEXT_HEIGHT/2, 0,
+    // TEXT_Y+TEXT_HEIGHT/2, TEXT_HEIGHT+TEXT_THICKNESS*2};
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

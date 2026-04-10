@@ -183,6 +183,11 @@ public:
         return modm::Angle::normalize(targetAngle - getChassisYaw());
     }
 
+    bool isBeyblading{false};
+    bool isPeeking{false};
+    bool isPeekingLeft{false};
+    int linearVelocity{0};
+
 private:
     /**
      * Gets the wheel RPM from a desired mps

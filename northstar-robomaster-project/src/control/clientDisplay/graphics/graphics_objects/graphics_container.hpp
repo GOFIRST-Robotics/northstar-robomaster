@@ -4,7 +4,7 @@
 
 #include "graphics_object.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class GraphicsContainer : public GraphicsObject
 {
@@ -107,4 +107,4 @@ private:
     std::vector<GraphicsObject*> objects;
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

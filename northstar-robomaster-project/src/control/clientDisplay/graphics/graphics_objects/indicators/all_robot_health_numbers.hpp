@@ -4,7 +4,7 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class AllRobotHealthNumbers : public GraphicsContainer
 {
@@ -18,8 +18,8 @@ public:
             numbers[i].thickness = 3;
             this->addGraphicsObject(numbers + i);  // pointer math
 
-            expirationTimeouts[i].stop();  // timers might be initialized started, we need them to
-                                           // be stopped until we get hit
+            expirationTimeouts[i].stop();  // timers might be initialized started, we need them
+                                           // to be stopped until we get hit
             canTakeDamage[i] = false;
         }
     }
@@ -82,9 +82,8 @@ public:
                 if (drivers->refSerial.getRobotData().robotId == ids[i])
                     numbers[i].color = UISubsystem::Color::RED_AND_BLUE;
 
-                // highlight robots taking damage by turning the number white and doubling the size
-                // for one frame
-                // if(numbers[i].integerChanged()){
+                // highlight robots taking damage by turning the number white and doubling the
+                // size for one frame if(numbers[i].integerChanged()){
                 //     numbers[i].color = UISubsystem::Color::WHITE;
                 //     numbers[i].y = Y_POSITION-LINE_HEIGHT;
                 //     numbers[i].height = 2*LINE_HEIGHT;
@@ -164,4 +163,4 @@ private:
 
     uint16_t centerXs[6];
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

@@ -2,7 +2,7 @@
 #include "orientation_2d.hpp"
 #include "vector_2d.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class Pose2d : public Vector2d, public Orientation2d
 {
@@ -131,4 +131,4 @@ public:
     }
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

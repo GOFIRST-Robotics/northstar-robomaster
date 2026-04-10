@@ -5,18 +5,22 @@
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
 #include "control/clientDisplay/graphics/vector_3d.hpp"
-// #include "subsystems/drivetrain/DrivetrainSubsystem.hpp"
-// #include "subsystems/drivetrain/DrivetrainSubsystemConstants.hpp"
-// #include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/chassis/chassisSubsystem.hpp"
+// #include "subsystems/chassis/chassisSubsystemConstants.hpp"
+// #include "subsystems/turret/turretSubsystem.hpp"
+#include "control/chassis/chassis_subsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class PeekingLines : public GraphicsContainer
 {
 public:
-    PeekingLines(DrivetrainSubsystem* drivetrain, GimbalSubsystem* gimbal)
-        : gimbal(gimbal),
-          drivetrain(drivetrain)
+    PeekingLines(
+        src::chassis::ChassisSubsystem* chassis,
+        src::control::turret::TurretSubsystem* turret)
+        : turret(turret),
+          chassis(chassis)
     {
         addGraphicsObject(&left);
         addGraphicsObject(&right);
@@ -24,7 +28,7 @@ public:
 
     void update()
     {
-        if (drivetrain->isPeeking)
+        if (chassis->isPeeking)
         {
             Vector3d vs{MAGNITUDE, 0, 0};
             Vector3d temp;
@@ -35,7 +39,8 @@ public:
             for (int i = 0; i < 4; i++)
             {
                 // currently the point is to the right, needs rotated forward
-                temp = vs.rotateYaw(ANGLES[i] + gimbal->getYawEncoderValue());
+                temp = vs.rotateYaw(
+                    ANGLES[i] + turret->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue());
                 // now we are still in robot space, need to get to pivot
                 temp2 = Projections::robotSpaceToPivotSpace(temp);
                 // now in pivot, since we don't care about y we won't rotate by pitch
@@ -66,19 +71,19 @@ public:
     }
 
 private:
-    GimbalSubsystem* gimbal;
-    DrivetrainSubsystem* drivetrain;
+    src::control::turret::TurretSubsystem* turret;
+    src::chassis::ChassisSubsystem* chassis;
 
-    // these numbers need calculated, would be robot dependent but the infantry is the only robot
-    // to draw peeking lines, these are for knowing what sector the enemy has to be in for them to
-    // not be able to shoot at us if we are hiding our front panel behind a wall. ANGLE1 determines
-    // the inner edge of the rectangle, the one used to align with a wall. ANGLE2 determines the
-    // outer edge of the rectangle, the one used to mark how far away from the wall the enemy can be
-    // and still not be able to hit us. As a driver, the goal while peeking is to keep the enemy
-    // inside of these bounds.
+    // these numbers need calculated, would be robot dependent but the infantry is the only
+    // robot to draw peeking lines, these are for knowing what sector the enemy has to be in for
+    // them to not be able to shoot at us if we are hiding our front panel behind a wall. ANGLE1
+    // determines the inner edge of the rectangle, the one used to align with a wall. ANGLE2
+    // determines the outer edge of the rectangle, the one used to mark how far away from the
+    // wall the enemy can be and still not be able to hit us. As a driver, the goal while
+    // peeking is to keep the enemy inside of these bounds.
     static constexpr float ANGLE1 =
-        PI / 2 -
-        PEEK_RIGHT_AMT;  // zero would be directly to the right/left, 90 would be directly forward
+        PI / 2 - 0.45;  // Make not 0.45 in future  // zero would be directly to the right/left,
+                        // 90 would be directly forward
     static constexpr float ANGLE2 = ANGLE1 + 0.06;
     static constexpr float ANGLES[4] = {ANGLE1, ANGLE2, PI - ANGLE1, PI - ANGLE2};
     static constexpr float MAGNITUDE = 0.3;  // need a magnitude to make a 3d point to project
@@ -92,4 +97,4 @@ private:
     UnfilledRectangle
         right{UISubsystem::Color::PURPLISH_RED, 0, BOTTOM_OFFSET, 0, HEIGHT, THICKNESS};
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

@@ -3,9 +3,10 @@
 #include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/atomic_graphics_objects.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/graphics_container.hpp"
-// #include "subsystems/gimbal/GimbalSubsystem.hpp"
+// #include "subsystems/turret/turretSubsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 // looks like
 //    __
@@ -16,7 +17,9 @@ namespace control::clientDisplay::graphics
 class HitRing : public GraphicsContainer
 {
 public:
-    HitRing(tap::Drivers* drivers, GimbalSubsystem* gimbal) : drivers(drivers), gimbal(gimbal)
+    HitRing(tap::Drivers* drivers, src::control::turret::TurretSubsystem* turret)
+        : drivers(drivers),
+          turret(turret)
     {
         // initialize rings
         for (int i = 0; i < NUM_HISTORY; i++)
@@ -25,8 +28,8 @@ public:
             rings[i].height = rings[i].width;
             rings[i].cx = UISubsystem::HALF_SCREEN_WIDTH;
             rings[i].cy = UISubsystem::HALF_SCREEN_HEIGHT;
-            expirationTimeouts[i].stop();  // timers might be initialized started, we need them to
-                                           // be stopped until we get hit
+            expirationTimeouts[i].stop();  // timers might be initialized started, we need them
+                                           // to be stopped until we get hit
             this->addGraphicsObject(rings + i);  // pointer math
             rings[i].hide();
             rings[i].thickness = THICKNESS;
@@ -35,10 +38,11 @@ public:
 
     void update()
     {
-        float encoder = gimbal->getYawEncoderValue() * 180 / PI;
+        float encoder =
+            turret->yawMotor.getChassisFrameMeasuredAngle().getWrappedValue() * 180 / PI;
         float imu = drivers->bmi088.getYaw();
-        // if the gimbal compared to the drivetrain (from the encoder) is facing forward, heading
-        // would be 360, if facing right, heading would be 90
+        // if the turret compared to the drivetrain (from the encoder) is facing forward,
+        // heading would be 360, if facing right, heading would be 90
 
         // update/clear old hits
         bool allSlotsUnused = true;
@@ -116,7 +120,7 @@ public:
 
 private:
     tap::Drivers* drivers;
-    GimbalSubsystem* gimbal;
+    src::control::turret::TurretSubsystem* turret;
 
     uint16_t previousHp;
 
@@ -143,9 +147,9 @@ private:
     tap::arch::MilliTimeout expirationTimeouts[NUM_HISTORY];  // for knowing how old a hit is,
                                                               // stopped if not hit recently
 
-    // need to know which orientation (compared to gimbal) we got hit.
-    // This is a combination of which panel got hit and what angle the drivetrain is at (compared to
-    // gimbal)
+    // need to know which orientation (compared to turret) we got hit.
+    // This is a combination of which panel got hit and what angle the drivetrain is at
+    // (compared to turret)
     float hitOrientations[NUM_HISTORY];
 
     // once we know what direction we hit in, we no longer care about the drivetrain spinning
@@ -158,4 +162,4 @@ private:
         rings[i].endAngle = rings[i].startAngle + ARC_LEN;
     }
 };
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

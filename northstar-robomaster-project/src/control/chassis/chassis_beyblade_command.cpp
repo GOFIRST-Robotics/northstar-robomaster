@@ -27,6 +27,7 @@ void ChassisBeybladeCommand::initialize()
 {
     prevTime = tap::arch::clock::getTimeMilliseconds();
     calcSpeed = 1.0f * direction;
+    chassis->isBeyblading = true;
 }
 
 float calcedRot;
@@ -54,6 +55,7 @@ void ChassisBeybladeCommand::execute()
 void ChassisBeybladeCommand::end([[maybe_unused]] bool interrupted)
 {
     chassis->setVelocityTurretDrive(0, 0, 0);
+    chassis->isBeyblading = false;
 }
 
 float ChassisBeybladeCommand::calculateBeyBladeRotationSpeed(float maxSpeed, uint32_t dt)

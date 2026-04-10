@@ -2,7 +2,7 @@
 
 #include "atomic_graphics_object.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class Line : public AtomicGraphicsObject
 {
@@ -91,7 +91,8 @@ public:
             prevHeight == height && prevColor == color);
     }
 
-    uint16_t x, y, width, height, thickness;  // can set this directly, will appear next time drawn
+    uint16_t x, y, width, height,
+        thickness;  // can set this directly, will appear next time drawn
 
 private:
     void setPrev()
@@ -254,8 +255,8 @@ public:
             prevEndAngle == endAngle);
     }
 
-    uint16_t startAngle, endAngle;  // can set this directly, will appear next time drawn, 0 is up,
-                                    // positive is clockwise, in degrees
+    uint16_t startAngle, endAngle;  // can set this directly, will appear next time drawn, 0 is
+                                    // up, positive is clockwise, in degrees
     uint16_t cx, cy, width, height,
         thickness;  // can set this directly, will appear next time drawn
 
@@ -323,24 +324,25 @@ public:
 private:
     static constexpr uint16_t THICKNESS = 5;  // pixels
     static constexpr uint16_t SIZE0 =
-        392;  // pixels, makes it so we are just inside the left parenthesis thingy if in lane 0,
-              // higher number lanes are further in
+        392;  // pixels, makes it so we are just inside the left parenthesis thingy if in lane
+              // 0, higher number lanes are further in
 
     static constexpr uint16_t START_ANGLE_LEFT =
-        227;  // degrees, lines up with the bottom of the left parenthesis thingy that is drawn by
-              // default
+        227;  // degrees, lines up with the bottom of the left parenthesis thingy that is drawn
+              // by default
     static constexpr uint16_t END_ANGLE_LEFT = 313;  // degrees, lines up with the top
 
     static constexpr uint16_t START_ANGLE_RIGHT =
-        START_ANGLE_LEFT - 180;  // degrees, lines up with the bottom of the left parenthesis thingy
-                                 // that is drawn by default
+        START_ANGLE_LEFT - 180;  // degrees, lines up with the bottom of the left parenthesis
+                                 // thingy that is drawn by default
     static constexpr uint16_t END_ANGLE_RIGHT =
         END_ANGLE_LEFT - 180;  // degrees, lines up with the top
 
     bool isLeft;
     uint16_t lane;
 
-    // in the event the start and end angle are the same, hide the arc, not have it be a full circle
+    // in the event the start and end angle are the same, hide the arc, not have it be a full
+    // circle
     void fixZeroThickness() { setHidden(startAngle == endAngle); }
 };
 
@@ -359,8 +361,8 @@ public:
     {
     }
 
-    /* resizes this text to fit within the given rect, ignoring width because it doesn't cut off the
-     * contained text */
+    /* resizes this text to fit within the given rect, ignoring width because it doesn't cut off
+     * the contained text */
     void inputRect(UnfilledRectangle* rect)
     {
         x = rect->x;
@@ -402,8 +404,8 @@ private:
 protected:
     uint16_t fontSize, textX,
         textY = 0;     // can read these, but don't set these, set with setTextNumbers
-    uint16_t len = 0;  // for sending integer 123 or text ABC, len would be 3. Not sure about floats
-                       // yet, need to test
+    uint16_t len = 0;  // for sending integer 123 or text ABC, len would be 3. Not sure about
+                       // floats yet, need to test
 
     uint16_t intLen(int32_t n)
     {
@@ -420,8 +422,8 @@ protected:
         return std::floor(std::log10(n) + 5);
     }
 
-    // assumes null terminated, also strings longer than 30 will say size 30 because only 30 can be
-    // send in one message
+    // assumes null terminated, also strings longer than 30 will say size 30 because only 30 can
+    // be send in one message
     uint16_t stringLen(const char* str)
     {
         uint16_t r = strlen(str);
@@ -656,4 +658,4 @@ private:
     RefSerialData::Tx::GraphicColor prevColor;
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

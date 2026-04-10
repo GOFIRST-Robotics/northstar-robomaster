@@ -1,6 +1,6 @@
 #include <cmath>
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class Orientation2d
 {
@@ -70,4 +70,4 @@ public:
     }
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics

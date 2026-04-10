@@ -4,7 +4,7 @@
 
 #include "control/clientDisplay/graphics/vector_3d.hpp"
 
-namespace control::clientDisplay::graphics
+namespace src::control::client_display::graphics
 {
 class Projections
 {
@@ -12,97 +12,97 @@ public:
 #if defined(HERO)  // todo
     // no OFFSET_X_ROBOT_TO_PITCH_PIVOT because pitch rotates around x
     static constexpr float OFFSET_Y_ROBOT_TO_PITCH_PIVOT =
-        0;  // meters, forward distance from robot center to pitch rotate point, positive means it
-            // is in front of robot center
+        0;  // meters, forward distance from robot center to pitch rotate point, positive means
+            // it is in front of robot center
     static constexpr float OFFSET_Z_ROBOT_TO_PITCH_PIVOT =
-        0.75;  // meters, vertical distance from floor to pitch rotate point, positive means gimbal
-               // is above the floor (kind of has to be positive)
+        0.75;  // meters, vertical distance from floor to pitch rotate point, positive means
+               // gimbal is above the floor (kind of has to be positive)
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_VTM =
-        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to the
-            // right of robot center
+        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to
+            // the right of robot center
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_VTM =
-        0.155;  // meters, forward distance from pitch rotate point to vtm, positive means vtm is in
-                // front of pitch pivot point
+        0.155;  // meters, forward distance from pitch rotate point to vtm, positive means vtm
+                // is in front of pitch pivot point
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_VTM =
-        0.0785;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm is
-                 // above the pitch pivot point
+        0.0785;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm
+                 // is above the pitch pivot point
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_BARREL =
-        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity is
-            // in JetsonSubsystemConstants.hpp, as J
+        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity
+            // is in JetsonSubsystemConstants.hpp, as J
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_BARREL = 0.188;  // meters
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_BARREL = 0;      // meters
 #elif defined(SENTRY)                                               // todo
     // no OFFSET_X_ROBOT_TO_PITCH_PIVOT because pitch rotates around x
     static constexpr float OFFSET_Y_ROBOT_TO_PITCH_PIVOT =
-        0;  // meters, forward distance from robot center to pitch rotate point, positive means it
-            // is in front of robot center
+        0;  // meters, forward distance from robot center to pitch rotate point, positive means
+            // it is in front of robot center
     static constexpr float OFFSET_Z_ROBOT_TO_PITCH_PIVOT =
-        0.36;  // meters, vertical distance from floor to pitch rotate point, positive means gimbal
-               // is above the floor (kind of has to be positive)
+        0.36;  // meters, vertical distance from floor to pitch rotate point, positive means
+               // gimbal is above the floor (kind of has to be positive)
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_VTM =
-        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to the
-            // right of robot center
+        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to
+            // the right of robot center
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_VTM =
         0;  // meters, forward distance from pitch rotate point to vtm, positive means vtm is in
             // front of pitch pivot point
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_VTM =
-        0;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm is above
-            // the pitch pivot point
+        0;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm is
+            // above the pitch pivot point
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_BARREL =
-        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity is
-            // in JetsonSubsystemConstants.hpp, as J
+        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity
+            // is in JetsonSubsystemConstants.hpp, as J
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_BARREL = 0;  // meters
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_BARREL = 0;  // meters
 #elif defined(INFANTRY)                                             // todo
     // no OFFSET_X_ROBOT_TO_PITCH_PIVOT because pitch rotates around x
     static constexpr float OFFSET_Y_ROBOT_TO_PITCH_PIVOT =
-        0;  // meters, forward distance from robot center to pitch rotate point, positive means it
-            // is in front of robot center
+        0;  // meters, forward distance from robot center to pitch rotate point, positive means
+            // it is in front of robot center
     static constexpr float OFFSET_Z_ROBOT_TO_PITCH_PIVOT =
         0.352358;  // meters, vertical distance from floor to pitch rotate point, positive means
                    // gimbal is above the floor (kind of has to be positive)
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_VTM =
-        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to the
-            // right of robot center
+        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to
+            // the right of robot center
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_VTM =
-        0.1555;  // meters, forward distance from pitch rotate point to vtm, positive means vtm is
-                 // in front of pitch pivot point
+        0.1555;  // meters, forward distance from pitch rotate point to vtm, positive means vtm
+                 // is in front of pitch pivot point
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_VTM =
-        0.0072336;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm
-                    // is above the pitch pivot point
+        0.0072336;  // meters, vertical distance from pitch rotate point to vtm, positive means
+                    // vtm is above the pitch pivot point
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_BARREL =
-        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity is
-            // in JetsonSubsystemConstants.hpp, as J
+        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity
+            // is in JetsonSubsystemConstants.hpp, as J
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_BARREL = 0.1555;  // meters
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_BARREL = 0;       // meters
 #else                                                               // old infantry, todo
     // no OFFSET_X_ROBOT_TO_PITCH_PIVOT because pitch rotates around x
     static constexpr float OFFSET_Y_ROBOT_TO_PITCH_PIVOT =
-        0;  // meters, forward distance from robot center to pitch rotate point, positive means it
-            // is in front of robot center
+        0;  // meters, forward distance from robot center to pitch rotate point, positive means
+            // it is in front of robot center
     static constexpr float OFFSET_Z_ROBOT_TO_PITCH_PIVOT =
-        0.36;  // meters, vertical distance from floor to pitch rotate point, positive means gimbal
-               // is above the floor (kind of has to be positive)
+        0.36;  // meters, vertical distance from floor to pitch rotate point, positive means
+               // gimbal is above the floor (kind of has to be positive)
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_VTM =
-        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to the
-            // right of robot center
+        0;  // meters, side to side distance from robot center to vtm, positive means vtm is to
+            // the right of robot center
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_VTM =
         0;  // meters, forward distance from pitch rotate point to vtm, positive means vtm is in
             // front of pitch pivot point
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_VTM =
-        0;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm is above
-            // the pitch pivot point
+        0;  // meters, vertical distance from pitch rotate point to vtm, positive means vtm is
+            // above the pitch pivot point
 
     static constexpr float OFFSET_X_PITCH_PIVOT_TO_BARREL =
-        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity is
-            // in JetsonSubsystemConstants.hpp
+        0;  // meters, like OFFSET_X_PITCH_PIVOT_TO_VTM but for where shots exit. Exit velocity
+            // is in JetsonSubsystemConstants.hpp
     static constexpr float OFFSET_Y_PITCH_PIVOT_TO_BARREL = 0;  // meters
     static constexpr float OFFSET_Z_PITCH_PIVOT_TO_BARREL = 0;  // meters
 #endif
@@ -150,9 +150,9 @@ public:
             OFFSET_Z_PITCH_PIVOT_TO_BARREL - v.getZ());
     }
 
-    /** vtm space is defined as: vtm at origin, positive x is to the right, positive y is forward,
-       positive z is above these numbers are from aruw, projection_utils.hpp, and aren't robot
-       specific*/
+    /** vtm space is defined as: vtm at origin, positive x is to the right, positive y is
+       forward, positive z is above these numbers are from aruw, projection_utils.hpp, and
+       aren't robot specific*/
     static Vector2d vtmSpaceToScreenSpace(Vector3d& v)
     {
         return Vector2d(
@@ -161,4 +161,4 @@ public:
     }
 };
 
-}  // namespace control::clientDisplay::graphics
+}  // namespace src::control::client_display::graphics
