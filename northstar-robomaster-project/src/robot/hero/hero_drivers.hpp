@@ -29,7 +29,7 @@ public:
           controlOperatorInterface(this),
           visionComms(this),
           turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2),
-          encoder(false, 1.0f)
+          encoder(true, 1.0f)
     {
     }
 

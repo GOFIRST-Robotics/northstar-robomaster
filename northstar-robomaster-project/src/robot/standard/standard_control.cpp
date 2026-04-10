@@ -166,7 +166,7 @@ ToggleCommandMapping leftSwitchUpFlywheels(
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_MOTORS,
+    CAN_BUS_PITCH,
     false,
     "PitchMotor",
     false,
@@ -177,14 +177,14 @@ tap::motor::DoubleDjiMotor yawMotor(
     drivers(),
     YAW_MOTOR_ID_1,
     YAW_MOTOR_ID_2,
-    CAN_BUS_MOTORS,
-    CAN_BUS_MOTORS,
-    false,
-    false,
+    CAN_BUS_YAW,
+    CAN_BUS_YAW,
+    true,
+    true,
     "YawMotor1",
     "YawMotor2",
     false,
-    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 1.5f),
     YAW_MOTOR_CONFIG.startEncoderValue,
     &drivers()->encoder);
 
@@ -600,7 +600,7 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //
+    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //&chassisDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
     clientDisplay.setDefaultCommand(&clientDisplayCommand);
 }
@@ -615,7 +615,7 @@ void startStandardCommands(Drivers *drivers)
         0,
         0,
         0,
-        0,                      // modm::toRadian(-135),
+        modm::toRadian(180),    // modm::toRadian(-135),
         modm::toRadian(180)));  //-90 for current standard
 
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
