@@ -4,6 +4,7 @@
 
 #include "control/clientDisplay/graphics/graphics_objects/indicators/all_robot_health_numbers.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/chassis_orientation_indicator.hpp"
+#include "control/clientDisplay/graphics/graphics_objects/indicators/chassis_power_indicator.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/countdown.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/hit_ring.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/hopper_lid_indicator.hpp"
@@ -14,6 +15,7 @@
 #include "control/clientDisplay/graphics/graphics_objects/indicators/predicted_remaining_shots_indicator.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/reticle.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/supercap_charge_indicator.hpp"
+
 // #include "subsystems/chassis/chassisSubsystem.hpp"
 // #include "subsystems/flywheel/FlywheelSubsystem.hpp"
 // #include "subsystems/turret/turretSubsystem.hpp"
@@ -59,6 +61,7 @@ public:
         addGraphicsObject(&countdown);
         // addGraphicsObject(&velo);
         // addGraphicsObject(&recal);
+        addGraphicsObject(&chassisPower);
     };
 
     void initialize() override { ui->setTopLevelContainer(this); };
@@ -77,6 +80,7 @@ public:
         // velo.update();
         // recal.update();
         // logo doesn't need updating
+        chassisPower.update();
     };
 
     // ui subsystem won't do anything until its top level container is set, so we are ok to add
@@ -107,5 +111,6 @@ private:
     Countdown countdown{drivers};
     // LinearVelocityIndicator velo{chassis};
     // ImuRecalibrationIndicator recal{drivers};
+    ChassisPowerIndicator chassisPower{drivers, chassis};
 };
 }  // namespace src::control::client_display::graphics
