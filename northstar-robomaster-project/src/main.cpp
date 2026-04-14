@@ -175,6 +175,7 @@ bool conneccc = false;
 float debugLastAimDataYaw = 0.0f;
 float debugLastAimDataPitch = 0.0f;
 float dddddgfregr = 0;
+bool uartOnline = false;
 
 bool cal = false;
 bool calibrated = false;
@@ -215,5 +216,7 @@ static void updateIo(Drivers *drivers)
     debugRoll = modm::toDegree(drivers->bmi088.getRoll());
     conneccc = drivers->remote.isConnected();
     dddddgfregr = drivers->encoder.getPosition().getUnwrappedValue();
+    uartOnline = drivers->refSerial.getRefSerialReceivingData();
+
 #endif
 }

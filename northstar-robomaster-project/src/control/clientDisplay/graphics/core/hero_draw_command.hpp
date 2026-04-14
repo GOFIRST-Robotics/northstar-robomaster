@@ -4,6 +4,7 @@
 
 #include "control/clientDisplay/graphics/graphics_objects/indicators/all_robot_health_numbers.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/chassis_orientation_indicator.hpp"
+#include "control/clientDisplay/graphics/graphics_objects/indicators/chassis_power_indicator.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/countdown.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/hit_ring.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/imu_recalibration_indicator.hpp"
@@ -47,15 +48,16 @@ public:
         addSubsystemRequirement(ui);
 
         addGraphicsObject(&lane);
-        addGraphicsObject(&supercap);
+        // addGraphicsObject(&supercap);
         addGraphicsObject(&orient);
         addGraphicsObject(&reticle);
         addGraphicsObject(&ring);
         // addGraphicsObject(&remain);
         addGraphicsObject(&numbers);
         addGraphicsObject(&countdown);
-        addGraphicsObject(&velo);
-        addGraphicsObject(&recal);
+        // addGraphicsObject(&velo);
+        // addGraphicsObject(&recal);
+        addGraphicsObject(&chassisPower);
     };
 
     void initialize() override { ui->setTopLevelContainer(this); };
@@ -63,15 +65,16 @@ public:
     void execute() override
     {
         lane.update();
-        supercap.update();
+        // supercap.update();
         orient.update();
         reticle.update();
         ring.update();
         // remain.update();
         numbers.update();
         countdown.update();
-        velo.update();
-        recal.update();
+        // velo.update();
+        // recal.update();
+        chassisPower.update();
         // logo doesn't need updating
     };
 
@@ -93,14 +96,15 @@ private:
 
     // add top level graphics objects here and in the constructor
     LaneAssistLines lane{turret};
-    SupercapChargeIndicator supercap{chassis};
+    // SupercapChargeIndicator supercap{chassis};
     ChassisOrientationIndicator orient{true, drivers, turret, chassis};
-    Reticle reticle{drivers, turret, agitator};
+    Reticle reticle{drivers, turret};
     HitRing ring{drivers, turret};
     // PredictedRemainingShotsIndicator remain{drivers, agitator};
     AllRobotHealthNumbers numbers{drivers};
     Countdown countdown{drivers};
-    LinearVelocityIndicator velo{chassis};
-    ImuRecalibrationIndicator recal{drivers};
+    // LinearVelocityIndicator velo{chassis};
+    // ImuRecalibrationIndicator recal{drivers};
+    ChassisPowerIndicator chassisPower{drivers, chassis};
 };
 }  // namespace src::control::client_display::graphics
