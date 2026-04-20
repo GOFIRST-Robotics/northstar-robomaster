@@ -180,14 +180,14 @@ GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
      &flywheelOnGovernor,
      &heatLimitGovernor});
 
-// GovernorLimitedCommand<4>
-//     rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
-//         {&agitator},
-//         rotateAndUnjamAgitatorWithKicker,
-//         {&refSystemProjectileLaunchedGovernor,
-//          &fireRateLimitGovernor,
-//          &flywheelOnGovernor,
-//          &heatLimitGovernor});
+GovernorLimitedCommand<4>
+    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
+        {&agitator},
+        rotateAndUnjamAgitator,
+        {&refSystemProjectileLaunchedGovernor,
+         &fireRateLimitGovernor,
+         &flywheelOnGovernor,
+         &heatLimitGovernor});
 
 // agitator mappings
 ToggleCommandMapping vPressed(
