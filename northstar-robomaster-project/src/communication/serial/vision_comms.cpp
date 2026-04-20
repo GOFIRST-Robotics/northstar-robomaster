@@ -148,10 +148,10 @@ bool VisionComms::decodeToAutoPathData(const ReceivedSerialMessage& message)
 
     std::memcpy(&wireData, message.data, sizeof(CubicBezier::CurveData));
 
-    CubicBezier newCurve(wireData);
+    CubicBezier* newCurve = new CubicBezier(wireData);
 
     chassisAutoDrive->resetPath();
-    chassisAutoDrive->addCurveToPath(newCurve);
+    chassisAutoDrive->setCurve(newCurve);
 
     return true;
 }

@@ -33,8 +33,8 @@ public:
         AUTO_PATH = 5,
         // REF_DATA = 6
         HEALTH = 6,
-        REF_TURRET_DATA,
-        VISION_LOCALIZATION
+        REF_TURRET_DATA = 7,
+        VISION_LOCALIZATION = 8
     };
 
     struct RefData
