@@ -161,6 +161,8 @@ public:
      */
     float getMaxCurrentOutput(bool refSerialOnline, float chassisPowerLimit);
 
+    ChassisOdometry* getChassisOdometry() { return chassisOdometry; }
+
     void refresh() override;
 
     void refreshSafeDisconnect() override

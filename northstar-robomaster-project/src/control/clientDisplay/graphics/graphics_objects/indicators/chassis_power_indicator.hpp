@@ -28,15 +28,22 @@ public:
         powerDraw.calculateNumbers();
         powerDraw.x = X_POSITION - powerDraw.width / 2;
 
-        if (chassis->getChassisPowerDraw() > 100)
+        if (chassis->getChassisPowerDraw() > chassis->getChassisPowerLimit())
         {
             powerDraw.color = UISubsystem::Color::RED_AND_BLUE;
-            powerDraw.show();
+            energyInBuffer -= (chassis->getChassisPowerDraw() - chassis->getChassisPowerLimit()) *
+                              drivers->DT / 1000.0f;
         }
         else
         {
-            powerDraw.hide();
+            powerDraw.color = UISubsystem::Color::WHITE;
+            energyInBuffer += RECHARGE_PER_CYCLE;
         }
+
+        if (energyInBuffer < 0) energyInBuffer = 0;
+        if (energyInBuffer > 60) energyInBuffer = 60;
+        float chargeBarLength = (energyInBuffer / 60.0f) * 200;
+        chargeBar.x2 = X_POSITION - 100 + chargeBarLength;
     }
 
 private:
@@ -50,7 +57,25 @@ private:
                                                   // screen
     static constexpr uint16_t LINE_HEIGHT = 100;  // pixels, this is a large number
 
+    float RECHARGE_PER_CYCLE = 15 * drivers->DT / 1000.0f;
+
+    float energyInBuffer = 60.0f;
+
     IntegerGraphic powerDraw{};
+    UnfilledRectangle chargeBarOutline{
+        UISubsystem::Color::RED_AND_BLUE,
+        X_POSITION - 300,
+        Y_POSITION,
+        200,
+        LINE_HEIGHT,
+        2};
+    Line chargeBar{
+        UISubsystem::Color::RED_AND_BLUE,
+        X_POSITION - 300,
+        Y_POSITION,
+        X_POSITION - 100,
+        Y_POSITION,
+        16};
 };
 
 }  // namespace src::control::client_display::graphics
