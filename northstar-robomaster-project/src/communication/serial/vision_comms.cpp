@@ -58,12 +58,6 @@ void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMe
             return;
         }
 
-        case MessageType::VISION_LOCALIZATION:
-        {
-            decodeToVisionAprilTagLocalization(completeMessage);
-            return;
-        }
-
         default:
             break;
     }
@@ -127,10 +121,8 @@ bool VisionComms::decodeToOdometeryData(const ReceivedSerialMessage& message)
 
     std::memcpy(&cleanData, message.data, sizeof(OdometryData));
 
-    // chassisOdometry->setOdometry(
-    //     {cleanData.chassis_data.pos_x, cleanData.chassis_data.pos_y},
-    //     {cleanData.chassis_data.vel_x, cleanData.chassis_data.vel_y},
-    //     cleanData.turret_data.yaw);
+    // chassisOdometry->setGlobalPosition({cleanData.chassis_data.pos_x,
+    // cleanData.chassis_data.pos_y});
 
     return true;
 }
@@ -166,12 +158,8 @@ bool VisionComms::decodeToVisionAprilTagLocalization(const ReceivedSerialMessage
     }
 
     VisionComms::AprilTagLocalizationData localizationData;
-
     std::memcpy(&localizationData, message.data, sizeof(CubicBezier::CurveData));
-
-    modm::Vector2f positionGlobal = {localizationData.posX, localizationData.posY};
-
-    chassisOdometry->setGlobalPosition(positionGlobal);
+    chassisOdometry->setGlobalPosition({localizationData.posX, localizationData.posY});
 
     return true;
 }
