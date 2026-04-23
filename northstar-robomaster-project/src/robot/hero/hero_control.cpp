@@ -56,7 +56,6 @@
 #include "control/flywheel/flywheel_constants.hpp"
 #include "control/flywheel/two_flywheel_run_command.hpp"
 
-
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
@@ -81,6 +80,8 @@
 
 #include "control/clientDisplay/client_display_command.hpp"
 #include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/graphics/core/hero_draw_command.hpp"
+#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/indicators/ammo_indicator.hpp"
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
@@ -113,6 +114,7 @@ using namespace tap::control::governor;
 using namespace src::control::client_display;
 using namespace tap::communication::serial;
 using namespace src::control::buzzer;
+using namespace src::control::client_display::graphics;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -465,12 +467,21 @@ std::vector<HudIndicator *> hudIndicators = {
     &flyWheelIndicator,
     &heroSpinIndicator};
 
-ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
+// ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping ctrlShiftBPressedClientDisplay(
+// PressCommandMapping ctrlShiftBPressedClientDisplay(
+//     drivers(),
+//     {&clientDisplayCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+
+src::control::client_display::graphics::UISubsystem ui(drivers());
+src::control::client_display::graphics::HeroDrawCommand heroDrawCommand(
     drivers(),
-    {&clientDisplayCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+    &ui,
+    &turret,
+    // &flywheel,
+    &agitator,
+    &chassisSubsystem);
 
 void initializeSubsystems(Drivers *drivers)
 {
@@ -490,6 +501,7 @@ void registerHeroSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
+    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultHeroCommands(Drivers *drivers)
@@ -498,6 +510,7 @@ void setDefaultHeroCommands(Drivers *drivers)
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);
+    ui.setDefaultCommand(&heroDrawCommand);
 }
 
 void startHeroCommands(Drivers *drivers)
@@ -524,7 +537,7 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gPressedChangeFireRate);
     drivers->commandMapper.addMap(&xPressedIMUCalibrate);
     drivers->commandMapper.addMap(&zPressedWiggle);
-    drivers->commandMapper.addMap(&ctrlShiftBPressedClientDisplay);
+    // drivers->commandMapper.addMap(&ctrlShiftBPressedClientDisplay);
 
     drivers->commandMapper.addMap(&rightSwitchUpRunKicker);
 }

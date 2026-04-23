@@ -59,7 +59,7 @@ public:
         // addGraphicsObject(&remain);
         addGraphicsObject(&numbers);
         addGraphicsObject(&countdown);
-        // addGraphicsObject(&velo);
+        addGraphicsObject(&velo);
         // addGraphicsObject(&recal);
         addGraphicsObject(&chassisPower);
     };
@@ -112,5 +112,6 @@ private:
     // LinearVelocityIndicator velo{chassis};
     // ImuRecalibrationIndicator recal{drivers};
     ChassisPowerIndicator chassisPower{drivers, chassis};
+    LinearVelocityIndicator velo{chassis};
 };
 }  // namespace src::control::client_display::graphics

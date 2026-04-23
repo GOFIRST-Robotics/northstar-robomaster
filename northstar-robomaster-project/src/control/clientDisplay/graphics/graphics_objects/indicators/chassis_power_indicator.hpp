@@ -52,7 +52,7 @@ private:
     src::chassis::ChassisSubsystem* chassis;
 
     static constexpr uint16_t X_POSITION =
-        100;  // pixels, all numbers at the same y level on screen
+        600;  // pixels, all numbers at the same y level on screen
     static constexpr uint16_t Y_POSITION = 300;   // pixels, all numbers at the same y level on
                                                   // screen
     static constexpr uint16_t LINE_HEIGHT = 100;  // pixels, this is a large number

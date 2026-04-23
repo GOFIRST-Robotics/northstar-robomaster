@@ -32,16 +32,16 @@ class HeroDrawCommand : public tap::control::Command, GraphicsContainer
 {
 public:
     HeroDrawCommand(
-        src::Drivers* drivers,
+        tap::Drivers* drivers,
         UISubsystem* ui,
         src::control::turret::TurretSubsystem* turret,
-        src::control::flywheel::TwoFlywheelSubsystem* flywheel,
+        // src::control::flywheel::TwoFlywheelSubsystem* flywheel,
         src::agitator::VelocityAgitatorSubsystem* agitator,
         src::chassis::ChassisSubsystem* chassis)
         : drivers(drivers),
           ui(ui),
           turret(turret),
-          flywheel(flywheel),
+          //   flywheel(flywheel),
           agitator(agitator),
           chassis(chassis)
     {
@@ -58,6 +58,7 @@ public:
         // addGraphicsObject(&velo);
         // addGraphicsObject(&recal);
         addGraphicsObject(&chassisPower);
+        addGraphicsObject(&velo);
     };
 
     void initialize() override { ui->setTopLevelContainer(this); };
@@ -72,10 +73,11 @@ public:
         // remain.update();
         numbers.update();
         countdown.update();
-        // velo.update();
+        velo.update();
         // recal.update();
         chassisPower.update();
         // logo doesn't need updating
+        velo.update();
     };
 
     // ui subsystem won't do anything until its top level container is set, so we are ok to add
@@ -87,10 +89,10 @@ public:
     const char* getName() const override { return "hero ui draw command"; }
 
 private:
-    src::Drivers* drivers;
+    tap::Drivers* drivers;
     UISubsystem* ui;
     src::control::turret::TurretSubsystem* turret;
-    src::control::flywheel::TwoFlywheelSubsystem* flywheel;
+    // src::control::flywheel::TwoFlywheelSubsystem* flywheel;
     src::agitator::VelocityAgitatorSubsystem* agitator;
     src::chassis::ChassisSubsystem* chassis;
 
@@ -106,5 +108,6 @@ private:
     // LinearVelocityIndicator velo{chassis};
     // ImuRecalibrationIndicator recal{drivers};
     ChassisPowerIndicator chassisPower{drivers, chassis};
+    LinearVelocityIndicator velo{chassis};
 };
 }  // namespace src::control::client_display::graphics
