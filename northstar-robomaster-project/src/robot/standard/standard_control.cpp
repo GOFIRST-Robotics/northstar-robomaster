@@ -600,8 +600,8 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  //&chassisDriveCommand);  //
-    turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //&chassisOrientDriveCommand);  //
+    turret.setDefaultCommand(&turretUserControlCommand);       // when mcb is mounted on turret
     clientDisplay.setDefaultCommand(&clientDisplayCommand);
 }
 
@@ -615,8 +615,8 @@ void startStandardCommands(Drivers *drivers)
         0,
         0,
         0,
-        modm::toRadian(180),    // modm::toRadian(-135),
-        modm::toRadian(180)));  //-90 for current standard
+        modm::toRadian(180),
+        modm::toRadian(180)));
 
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
@@ -649,7 +649,7 @@ namespace src::standard
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return &standard_control::imuCalibrateCommand;
+    return nullptr;  // &standard_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::standard::Drivers *drivers)
