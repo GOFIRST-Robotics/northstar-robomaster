@@ -46,7 +46,7 @@ public:
 
     void execute() override {}
 
-    void end(bool interrupted) override {}
+    void end([[maybe_unused]] bool interrupted) override {}
 
     bool isFinished() const { return true; }
 

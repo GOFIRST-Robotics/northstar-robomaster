@@ -25,7 +25,10 @@ static constexpr tap::motor::MotorId LEFT_BACK_MOTOR_ID = tap::motor::MOTOR3;
 static constexpr tap::motor::MotorId RIGHT_FRONT_MOTOR_ID = tap::motor::MOTOR1;
 static constexpr tap::motor::MotorId RIGHT_BACK_MOTOR_ID = tap::motor::MOTOR4;
 
-static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
+static constexpr float AMPS_DESIRED_OUTPUT_RATIO = 20.0f / 16384.0f;  // I/Output
+static constexpr float CHASSIS_VOLTAGE = 24.0f;
+
+[[maybe_unused]] static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
 {
     float dist = sqrt((vert * vert) + (hor * hor));
     if (dist > 1.0f)
@@ -38,5 +41,18 @@ static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
     }
 }
 }  // namespace src::chassis
+
+static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
+{
+    float dist = sqrt((vert * vert) + (hor * hor));
+    if (dist > 1.0f)
+    {
+        return modm::Pair<float, float>(vert / dist, hor / dist);
+    }
+    else
+    {
+        return modm::Pair<float, float>(vert, hor);
+    }
+}
 
 #endif  // CHASSIS_CONSTANTS_HPP_

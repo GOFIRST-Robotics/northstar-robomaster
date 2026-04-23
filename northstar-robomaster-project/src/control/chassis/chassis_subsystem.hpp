@@ -18,8 +18,9 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/dji_motor_mock.hpp"
 #else
-#include "tap/motor/dji_motor.hpp"
+#include "control/turret/turret_motor.hpp"
 #endif
+#include "chassis_odometry.hpp"
 
 namespace src::chassis
 {
@@ -33,6 +34,9 @@ struct ChassisConfig
     modm::Pid<float>::Parameter wheelVelocityPidConfig;
 };
 
+/**
+ * Represents a chassis subsystem
+ */
 class ChassisSubsystem : public tap::control::Subsystem
 {
 public:
@@ -59,38 +63,101 @@ public:
         tap::Drivers* drivers,
         const ChassisConfig& config,
         src::can::TurretMCBCanComm* turretMCBCanComm,
-        tap::motor::DjiMotor* yawMotor);
+        src::control::turret::TurretMotor* yawMotor,
+        ChassisOdometry* chassisOdometry_);
 
     void initialize() override;
 
+    /**
+     * Sets the desired forward, sideways, and rotational velocity in relation to the turret.
+     *
+     * @param forward The desired forward velocity in MPS.
+     * @param sideways The desired sideways velocity in MPS.
+     * @param rotational The desired rotational velocity. Radians Per Second.
+     */
     mockable void setVelocityTurretDrive(float forward, float sideways, float rotational);
 
+    /**
+     * Sets the desired forward, sideways, and rotational velocity in relation to a zero'd angle.
+     *
+     * @param forward The desired forward velocity in MPS.
+     * @param sideways The desired sideways velocity in MPS.
+     * @param rotational The desired rotational velocity. Radians Per Second.
+     */
     mockable void setVelocityFieldDrive(float forward, float sideways, float rotational);
 
-    mockable void setVelocityBeyBladeDrive(float forward, float sideways, float rotational);
-
+    /**
+     * Sets the desired forward, sideways, and rotational velocity based on a heading.
+     * The other drive methods use this one.
+     *
+     * @param forward The desired forward velocity in MPS.
+     * @param sideways The desired sideways velocity in MPS.
+     * @param rotational The desired rotational velocity. Radians Per Second.
+     * @param heading The desired heading. Whatever heading is passed in will be positive forward.
+     */
     void driveBasedOnHeading(float forwards, float sideways, float rotational, float heading);
 
+    /**
+     * Gets a rotation speed for the chassis based on a distance from a desired angle.
+     *
+     * @param angleOffset Distance away from the target angle.
+     * @return A chassis speed in Radians per Second
+     */
     float chassisSpeedRotationPID(float angleOffset);
 
-    float calculateMaxRotationSpeed(float vert, float hor);
+    float chassisSpeedRotationAutoDrivePID(float angleOffset);
 
+    /**
+     * Calculates the max rotation speed based on the max chassis wheel speed.
+     *
+     * @param forward The forward commanded chassis velocity.
+     * @param sideways The sideways commanded chassis velocity.
+     * @return the maximum rotational speed to use based on forward and sideways velocity.
+     */
+    float calculateMaxRotationSpeed(float forward, float sideways);
+
+    /**
+     * Calculates the chassis rotational speed.
+     *
+     * @return The chassis rotational speed in Radians per Second.
+     */
     float getChassisRotationSpeed();
 
+    /**
+     * Calculates the angluar distance from the chassis zero and the turret angle.
+     *
+     * @return The angular distance from the chassis zero to the turret angle.
+     */
     float getChassisZeroTurret();
 
-    float getChassiPowerLimit()
+    /**
+     * Gets the chassis power limit from the ref system.
+     *
+     * @return The max chassis power limit.
+     */
+    float getChassisPowerLimit()
     {
+        // return 120.0f;
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
+    /**
+     * Gets the max chassis wheel speed based on a power limit.
+     *
+     * @param refSerialOnline Is the ref system online and connected.
+     * @param chassisPowerLimit The chassis power limit in watts.
+     * @return The max chassis wheel speed.
+     */
     float getMaxWheelSpeed(bool refSerialOnline, float chassisPowerLimit);
 
-    float getMaxAccelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getMaxDeccelSpeed(bool refSerialOnline, float chassisPowerLimit);
-
-    float getVoltageReductionFactorFromTorque(float chassisPowerLimit);
+    /**
+     * Gets the max chassis current output.
+     *
+     * @param refSerialOnline Is the ref system online and connected.
+     * @param chassisPowerLimit The chassis power limit in watts.
+     * @return The max chassis current.
+     */
+    float getMaxCurrentOutput(bool refSerialOnline, float chassisPowerLimit);
 
     void refresh() override;
 
@@ -102,19 +169,35 @@ public:
         }
     }
 
-    const char* getName() const override { return "Chassis"; }
+    virtual const char* getName() const override { return "Chassis"; }
 
-    float getYaw();
+    inline float getChassisYaw()
+    {
+        return modm::Angle::normalize(drivers->bmi088.getYaw() - getTurretYaw());
+    }
+
+    inline float getDifferenceToTargetAngle(float targetAngle)
+    {
+        return modm::Angle::normalize(targetAngle - getChassisYaw());
+    }
 
 private:
+    /**
+     * Gets the wheel RPM from a desired mps
+     *
+     * @param mps Desired wheel mps
+     * @returns Calcualted R wheel RPM
+     */
     inline float mpsToRpm(float mps)
     {
         return mps / (M_PI * src::chassis::WHEEL_DIAMETER_M) * 60.0f / CHASSIS_GEAR_RATIO;
     }
 
+    src::chassis::ChassisOdometry* chassisOdometry;
+
     src::can::TurretMCBCanComm* turretMcbCanComm;
 
-    tap::motor::DjiMotor* yawMotor;
+    src::control::turret::TurretMotor* yawMotor;
 
     float beyBladeRotationSpeed = 0.0f;
 
@@ -124,6 +207,9 @@ private:
 
     std::array<tap::algorithms::Ramp, static_cast<uint8_t>(2)> rampControllers;
 
+    /**
+     * @return The turret yaw angle in radians.
+     */
     inline float getTurretYaw();
 
 protected:

@@ -53,7 +53,10 @@ public:
 
     void end(bool interrupted) override;
 
-    bool isAimingWithinLaunchingTolerance(uint8_t turretID) const { return withinAimingTolerance; }
+    bool isAimingWithinLaunchingTolerance([[maybe_unused]] uint8_t turretID) const
+    {
+        return withinAimingTolerance;
+    }
 
 private:
     tap::Drivers *drivers;

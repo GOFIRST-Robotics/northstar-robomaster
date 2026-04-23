@@ -5,11 +5,11 @@
 #include "tap/drivers.hpp"
 
 #include "communication/serial/vision_comms.hpp"
+#include "control/turret/CV/turret_cv_control_command.hpp"
 #include "control/turret/algorithms/turret_controller_interface.hpp"
+#include "control/turret/turret_subsystem.hpp"
 #include "robot/control_operator_interface.hpp"
 #include "robot/sentry/sentry_scan_command.hpp"
-#include "robot/sentry/sentry_turret_cv_control_command.hpp"
-#include "robot/sentry/sentry_turret_subsystem.hpp"
 
 namespace src::control::turret::cv
 {
@@ -20,11 +20,9 @@ public:
         tap::Drivers *drivers,
         src::control::ControlOperatorInterface &controlOperatorInterface,
         src::serial::VisionComms &visionComms,
-        src::control::turret::SentryTurretSubsystem *sentryTurretSubsystem,
-        src::control::turret::algorithms::TurretYawControllerInterface *yawControllerBottom,
-        src::control::turret::algorithms::TurretPitchControllerInterface *pitchControllerBottom,
-        src::control::turret::algorithms::TurretYawControllerInterface *yawControllerTop,
-        src::control::turret::algorithms::TurretPitchControllerInterface *pitchControllerTop,
+        src::control::turret::TurretSubsystem *sentryTurretSubsystem,
+        src::control::turret::algorithms::TurretYawControllerInterface *yawController,
+        src::control::turret::algorithms::TurretPitchControllerInterface *pitchController,
         float userYawInputScalar,
         float userPitchInputScalar,
         float DELTA_MAX,
@@ -44,7 +42,7 @@ public:
     const char *getName() const override { return "Sentry CV"; }
 
 private:
-    src::control::turret::cv::SentryTurretCVControlCommand turretCVControlCommand;
+    src::control::turret::cv::TurretCVControlCommand turretCVControlCommand;
     src::control::turret::cv::SentryScanCommand turretScanCommand;
     src::serial::VisionComms &visionComms;
 };  // class SentryCvManagerCommand

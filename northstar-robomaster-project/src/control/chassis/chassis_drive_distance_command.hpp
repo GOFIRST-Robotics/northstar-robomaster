@@ -5,6 +5,7 @@
 #include "control/chassis/constants/chassis_constants.hpp"
 #include "modm/math/filter/pid.hpp"
 
+#include "chassis_subsystem.hpp"
 
 namespace src
 {
@@ -25,7 +26,7 @@ class ChassisDriveDistanceCommand : public tap::control::Command
 public:
     ChassisDriveDistanceCommand(
         ChassisSubsystem *chassis,
-        src::control::ControlOperatorInterface *operatorInterface,
+        src::chassis::ChassisOdometry *chassisOdometry,
         float xDist,
         float yDist,
         float maxError);
@@ -41,22 +42,13 @@ public:
     bool isFinished() const override;
 
 private:
+    static constexpr float MAXIMUM_MPS = 1.0f;
+    static constexpr float MINIMUM_MPS = 0.38f;
+
     src::chassis::ChassisSubsystem *chassis;
+    src::chassis::ChassisOdometry *chassisOdometry;
 
-    src::control::ControlOperatorInterface *operatorInterface;
-
-    float xDist;  // Forward
-    float yDist;  // Sideways
+    modm::Vector<float, 2> targetPosition;
     float maxError;
-
-    float xDistanceCounter;
-    float yDistanceCounter;
-
-    uint32_t prevTime;
-
-    using Pid = modm::Pid<float>;
-
-    Pid xPid;
-    Pid yPid;
 };
 }  // namespace src::chassis

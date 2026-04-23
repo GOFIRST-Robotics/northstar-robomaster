@@ -16,10 +16,12 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// chassis
+#include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_drive_distance_command.hpp"
+#include "control/chassis/chassis_drive_to_point_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
@@ -35,12 +37,15 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // turret
+#include "tap/motor/double_dji_motor.hpp"
+
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 #include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/test/turret_test_command.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -83,6 +88,7 @@
 #include "control/buzzer/buzzer_subsystem.hpp"
 #include "control/buzzer/play_song_command.hpp"
 #include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/tuff_startup_noise.hpp"
 #include "control/buzzer/song/twinkle_twinkle.hpp"
 
 // HUD
@@ -130,8 +136,7 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 
 // songs
 BuzzerSubsystem buzzerSubsystem(drivers());
-
-PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
 // PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
 
@@ -161,24 +166,29 @@ ToggleCommandMapping leftSwitchUpFlywheels(
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_MOTORS,
-    true,
+    CAN_BUS_PITCH,
+    false,
     "PitchMotor",
     false,
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotor(
+tap::motor::DoubleDjiMotor yawMotor(
     drivers(),
-    YAW_MOTOR_ID,
-    CAN_BUS_MOTORS,
+    YAW_MOTOR_ID_1,
+    YAW_MOTOR_ID_2,
+    CAN_BUS_YAW,
+    CAN_BUS_YAW,
     true,
-    "YawMotor",
+    true,
+    "YawMotor1",
+    "YawMotor2",
     false,
-    1,
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 1.5f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
-StandardTurretSubsystem turret(
+TurretSubsystem turret(
     drivers(),
     &pitchMotor,
     &yawMotor,
@@ -246,7 +256,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -256,9 +266,16 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
+
+user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
+
+PressCommandMapping ePressed180(
+    drivers(),
+    {&turret180TurnCommand},
+    RemoteMapState({Remote::Key::Q}));
 
 ToggleCommandMapping xCtrlPressedCvControl(
     drivers(),
@@ -384,6 +401,13 @@ ToggleCommandMapping gPressed(
 //     RemoteMapState(RemoteMapState::MouseButton::LEFT),
 //     false);
 
+// chassis odometry
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &turret.yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
+
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
     drivers(),
@@ -400,7 +424,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &turret.yawMotor,
+    chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -422,33 +447,12 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     1.0f,
     M_TWOPI);
 
-src::chassis::ChassisDriveDistanceCommand driveDist1(
+src::chassis::ChassisDriveToPointCommand driveToOneMeterForward(
     &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    3,
+    chassisOdometry,
     0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist2(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    3,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist3(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    -3,
-    0,
-    0.2);
-
-src::chassis::ChassisDriveDistanceCommand driveDist4(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    0,
-    -3,
-    0.2);
+    1,
+    0.02);
 
 // Chassis Governors
 
@@ -464,6 +468,11 @@ PlateHitGovernor plateHitGovernor(drivers(), 5000);
 //     false);
 
 // chassis Mappings
+PressCommandMapping lClickPressedDriveOneMeter(
+    drivers(),
+    {&driveToOneMeterForward},
+    RemoteMapState(RemoteMapState::MouseButton::LEFT));
+
 ToggleCommandMapping bPressedNotCntlPressedBeyblade(
     drivers(),
     {&chassisBeyBladeCommand},
@@ -515,7 +524,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         true,
     }},
     &chassisSubsystem,
-    &playTwinkleCommand);
+    &playStartupSongCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -566,7 +575,7 @@ PressCommandMapping crtlShiftEPressedClientDisplay(
     {&clientDisplayCommand},
     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
 
-void initializeSubsystems(Drivers *drivers)
+void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     dummySubsystem.initialize();
     chassisSubsystem.initialize();
@@ -589,19 +598,26 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisOrientDriveCommand);  // chassisOrientDriveCommand);
-    // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
-    // running
-    turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //&chassisOrientDriveCommand);  //
+    turret.setDefaultCommand(&turretUserControlCommand);       // when mcb is mounted on turret
     clientDisplay.setDefaultCommand(&clientDisplayCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, modm::toRadian(45), 0));
+    drivers->visionComms.attachOdometry(chassisOdometry);
+    drivers->visionComms.attachPitchMotor(&pitchMotor);
+
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(180),
+        modm::toRadian(180)));
+
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
@@ -625,6 +641,7 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
     drivers->commandMapper.addMap(&rightSwitchUpHopper);
     // drivers->commandMapper.addMap(&ctrlShiftZSong);
+    drivers->commandMapper.addMap(&ePressed180);
 }
 }  // namespace standard_control
 
@@ -632,7 +649,7 @@ namespace src::standard
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return &standard_control::imuCalibrateCommand;
+    return nullptr;  // &standard_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::standard::Drivers *drivers)

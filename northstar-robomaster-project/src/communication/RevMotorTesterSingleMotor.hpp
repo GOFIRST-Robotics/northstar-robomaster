@@ -30,7 +30,7 @@ public:
 
     void refresh() override;
 
-    const char* getName() { return "RevMotorTesterSubsytem"; }
+    virtual const char* getName() const override { return "RevMotorTesterSubsytem"; }
 
 private:
     modm::Pid<float> pid;

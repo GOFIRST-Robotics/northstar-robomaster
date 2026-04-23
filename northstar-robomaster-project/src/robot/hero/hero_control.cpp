@@ -38,6 +38,8 @@
 #include "control/kicker/kicker_subsystem_config.hpp"
 
 // turret
+#include "tap/motor/double_dji_motor.hpp"
+
 #include "communication/RevMotorTester.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
@@ -53,6 +55,7 @@
 #include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
 #include "control/flywheel/two_flywheel_run_command.hpp"
+
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -88,6 +91,13 @@
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 #include "control/clientDisplay/indicators/vision_indicator.hpp"
 
+// BUZZER
+#include "control/buzzer/buzzer_subsystem.hpp"
+#include "control/buzzer/play_song_command.hpp"
+#include "control/buzzer/song/megalovania.hpp"
+#include "control/buzzer/song/tuff_startup_noise.hpp"
+#include "control/buzzer/song/twinkle_twinkle.hpp"
+
 using tap::can::CanBus;
 
 using namespace tap::control::setpoint;
@@ -102,6 +112,7 @@ using namespace src::control::governor;
 using namespace tap::control::governor;
 using namespace src::control::client_display;
 using namespace tap::communication::serial;
+using namespace src::control::buzzer;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -111,10 +122,14 @@ DummySubsystem dummySubsystem(drivers());
 
 inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->turretMCBCanCommBus2; }
 
+// songs
+BuzzerSubsystem buzzerSubsystem(drivers());
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
+
 // flywheel
 DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
 
-TwoFlywheelRunCommand heroFlywheelRunCommand(&flywheel, 15.0f);
+TwoFlywheelRunCommand heroFlywheelRunCommand(&flywheel, 12);
 
 ToggleCommandMapping fPressedFlywheel(
     drivers(),
@@ -227,15 +242,20 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DjiMotor yawMotor(
+tap::motor::DoubleDjiMotor yawMotor(
     drivers(),
-    YAW_MOTOR_ID,
+    YAW_MOTOR_ID_1,
+    YAW_MOTOR_ID_2,
     CAN_BUS_MOTORS,
-    true,
-    "YawMotor",
+    CAN_BUS_MOTORS,
     false,
-    1,
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    false,
+    "YawMotor1",
+    "YawMotor2",
+    false,
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
 TurretSubsystem turret(
     drivers(),
@@ -309,16 +329,22 @@ user::TurretUserControlCommand turretUserControlCommand(
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
-user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-    drivers(),
-    drivers()->controlOperatorInterface,
-    &turret,
-    &worldFrameYawChassisImuController,
-    &worldFramePitchChassisImuController,
-    &worldFrameYawTurretCanImuController,
-    &worldFramePitchTurretCanImuController,
-    USER_YAW_INPUT_SCALAR,
-    USER_PITCH_INPUT_SCALAR);
+// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+//     drivers(),
+//     drivers()->controlOperatorInterface,
+//     &turret,
+//     &worldFrameYawChassisImuController,
+//     &worldFramePitchChassisImuController,
+//     &worldFrameYawTurretCanImuController,
+//     &worldFramePitchTurretCanImuController,
+//     USER_YAW_INPUT_SCALAR,
+//     USER_PITCH_INPUT_SCALAR);
+
+src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
+    &drivers()->bmi088,
+    &turret.yawMotor,
+    src::chassis::DIST_TO_CENTER,
+    src::chassis::WHEEL_DIAMETER_M);
 
 // chassis subsystem
 src::chassis::ChassisSubsystem chassisSubsystem(
@@ -336,7 +362,8 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor);
+    &turret.yawMotor,
+    chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
     &chassisSubsystem,
@@ -384,9 +411,10 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &turret,
         &chassisFrameYawTurretController,
         &chassisFramePitchTurretController,
-        true,
+        false,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playStartupSongCommand);
 
 ToggleCommandMapping xPressedIMUCalibrate(
     drivers(),
@@ -461,6 +489,7 @@ void registerHeroSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&kicker);
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
+    drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
 }
 
 void setDefaultHeroCommands(Drivers *drivers)

@@ -14,7 +14,7 @@
 #include "src/mock/turret_motor_mock.hpp"
 #else
 #include "turret_double_motor_rev.hpp"
-#include "turret_motor_GM6020.hpp"
+#include "turret_motor_DJI.hpp"
 
 #endif
 
@@ -69,7 +69,7 @@ public:
     testing::NiceMock<mock::TurretMotorMock> yawMotor;
 #else
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotorGM6020 pitchMotor;
+    TurretMotorDJI pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
     TurretDoubleMotorRev yawMotor;
 #endif

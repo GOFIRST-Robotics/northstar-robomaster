@@ -168,6 +168,7 @@ static inline void updateWorldFrameSetpoint(
  */
 float debugpositionControllerError;
 float debugvelocityPidOutput;
+float debugPositionPidOutput;
 float debugworldFrameAngleError;
 float debugchassisFrameAngleMeasurement;
 
@@ -188,7 +189,7 @@ static inline float runWorldFrameTurretImuController(
     debugpositionControllerError = positionControllerError;
     const float positionPidOutput =
         positionPid.runController(positionControllerError, worldFrameVelocityMeasured, dt);
-
+    debugPositionPidOutput = positionPidOutput;
     const float velocityControllerError = positionPidOutput - worldFrameVelocityMeasured;
     const float velocityPidOutput =
         velocityPid.runControllerDerivateError(velocityControllerError, dt);
@@ -220,20 +221,20 @@ void WorldFrameYawTurretImuCascadePidTurretController::initialize()
         velocityPid,
         worldFrameSetpoint);
 }
-
+float lastpidOut = 0;
 void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
-    if (abs(worldFrameMeasurementIMU - getBmi088Yaw(true).getWrappedValue()) > M_TWOPI * .7f)
+    if (abs(worldFrameMeasurementIMU - getBmi088Yaw(false).getWrappedValue()) > M_TWOPI * .7f)
     {
         IMUrevolutions += tap::algorithms::getSign(
-            worldFrameMeasurementIMU - getBmi088Yaw(true).getWrappedValue());
+            worldFrameMeasurementIMU - getBmi088Yaw(false).getWrappedValue());
     }
-    worldFrameMeasurementIMU = getBmi088Yaw(true).getWrappedValue();
+    worldFrameMeasurementIMU = getBmi088Yaw(false).getWrappedValue();
     const WrappedFloat chassisFrameYaw = turretMotor.getChassisFrameMeasuredAngle();
-    const WrappedFloat worldFrameYawAngle = getBmi088Yaw(true);  // negitive
-    const float worldFrameYawVelocity = -getBmi088YawVelocity();
+    const WrappedFloat worldFrameYawAngle = getBmi088Yaw(false);  // negitive
+    const float worldFrameYawVelocity = getBmi088YawVelocity();
 
     updateWorldFrameSetpoint(
         desiredSetpoint,
@@ -251,6 +252,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
         positionPid,
         velocityPid);
 
+    lastpidOut = pidOut;
     turretMotor.setMotorOutput(pidOut);
 }
 

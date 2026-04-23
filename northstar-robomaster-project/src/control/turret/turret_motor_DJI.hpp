@@ -22,7 +22,7 @@ namespace src::control::turret
  * that the gimbal motor used is a 6020, but in general with some taproot-side MRs, this class can
  * be generalized to work with any motor interface.
  */
-class TurretMotorGM6020 final : public TurretMotor
+class TurretMotorDJI final : public TurretMotor
 {
 public:
     /// Maximum output, voltage control between [-24, 24] volts scaled up to [-30,000, 30,000] units
@@ -32,7 +32,7 @@ public:
      * Construct a turret motor with some particular hardware motor interface and a motor
      * configuration struct.
      */
-    TurretMotorGM6020(tap::motor::MotorInterface *motor, const TurretMotorConfig &motorConfig);
+    TurretMotorDJI(tap::motor::MotorInterface *motor, const TurretMotorConfig &motorConfig);
 
     inline void initialize() override { motor->initialize(); }
 
