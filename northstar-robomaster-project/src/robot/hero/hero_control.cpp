@@ -47,9 +47,9 @@
 #include "control/turret/user/turret_user_world_relative_command.hpp"
 
 // flywheel
-#include "control/flywheel/dji_three_flywheel_subsystem.hpp"
+#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/three_flywheel_run_command.hpp"
+#include "control/flywheel/two_flywheel_run_command.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -121,14 +121,9 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
 // flywheel
-DJIThreeFlywheelSubsystem flywheel(
-    drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    DOWN_MOTOR_ID,
-    CAN_BUS);
+DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
 
-ThreeFlywheelRunCommand heroFlywheelRunCommand(&flywheel);
+TwoFlywheelRunCommand heroFlywheelRunCommand(&flywheel, 12);
 
 ToggleCommandMapping fPressedFlywheel(
     drivers(),
@@ -203,7 +198,7 @@ tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
     CAN_BUS_MOTORS,
-    false,
+    true,
     "PitchMotor",
     false,
     1,
@@ -467,7 +462,13 @@ void setDefaultHeroCommands(Drivers *drivers)
 
 void startHeroCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(0, 0, 0, 0, 0, 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(180),
+        modm::toRadian(180)));
     // pitch up needs to be negitive up is on motor side
     // right neg
     drivers->commandScheduler.addCommand(&imuCalibrateCommand);
@@ -492,7 +493,7 @@ namespace src::hero
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return &hero_control::imuCalibrateCommand;
+    return nullptr;  //&hero_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::hero::Drivers *drivers)
