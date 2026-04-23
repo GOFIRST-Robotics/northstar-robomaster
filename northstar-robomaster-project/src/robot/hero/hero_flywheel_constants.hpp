@@ -32,7 +32,7 @@ static constexpr float FLYWHEEL_PID_K_MAX_OUT_REV = 1.0f;
 static constexpr float FLYWHEEL_PID_KP_DJI = 30.0f;
 static constexpr float FLYWHEEL_PID_KI_DJI = 0.0f;
 static constexpr float FLYWHEEL_PID_KD_DJI = 0.0f;
-static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM_DJI = 0.0f;
+static constexpr float FLYWHEEL_PID_MAX_ERROR_SUM_DJI = 4000.0f;
 static constexpr float FLYWHEEL_PID_MAX_OUTPUT_DJI = 25'000.0f;
 
 static constexpr float MAX_DESIRED_LAUNCH_SPEED_RPM = 8000;
@@ -63,7 +63,7 @@ static std::array<std::array<modm::Pair<float, float>, 4>, SPIN_COUNT>
 
 static constexpr modm::Pair<float, float> MPS_TO_RPM[] = {
     {0.0f, 0.0f},
-    {15.0f, 5500.0f},
+    {15.0f, 5750.0f},
     {18.0f, 7000.0f},
     {24.5f, 7700.0f}};
 

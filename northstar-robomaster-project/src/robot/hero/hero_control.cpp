@@ -202,13 +202,13 @@ ToggleCommandMapping gPressedChangeFireRate(
 
 HoldRepeatCommandMapping leftMousePressedShoot(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(RemoteMapState::MouseButton::LEFT),
     false);
 
 ToggleCommandMapping leftSwitchDownPressedShoot(
     drivers(),
-    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker},  // TODO
+    {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
 ToggleCommandMapping rightSwitchUpRunKicker(
