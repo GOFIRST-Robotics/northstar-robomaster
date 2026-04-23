@@ -473,11 +473,15 @@ void setDefaultHeroCommands(Drivers *drivers)
 
 void startHeroCommands(Drivers *drivers)
 {
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, modm::toRadian(-90), 0, 0));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(180),
+        modm::toRadian(180)));
     // pitch up needs to be negitive up is on motor side
     // right neg
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerHeroIoMappings(Drivers *drivers)
@@ -501,7 +505,7 @@ namespace src::hero
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return &hero_control::imuCalibrateCommand;
+    return nullptr;  //&hero_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::hero::Drivers *drivers)
