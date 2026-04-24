@@ -58,6 +58,12 @@ void VisionComms::messageReceiveCallback(const ReceivedSerialMessage& completeMe
             return;
         }
 
+        case MessageType::VISION_LOCALIZATION:
+        {
+            decodeToVisionAprilTagLocalization(completeMessage);
+            return;
+        }
+
         default:
             break;
     }
