@@ -142,6 +142,7 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
 
 float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
+    // Deadzone logic, make deadzone area a constant eventaully.
     if (abs(angleOffset) < modm::toRadian(1.0f))
     {
         return 0.0f;
