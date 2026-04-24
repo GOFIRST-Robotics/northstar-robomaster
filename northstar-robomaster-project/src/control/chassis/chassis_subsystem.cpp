@@ -142,6 +142,10 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
 
 float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
+    if (abs(angleOffset) < modm::toRadian(1.0f))
+    {
+        return 0.0f;
+    }
     // P
     float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
 
