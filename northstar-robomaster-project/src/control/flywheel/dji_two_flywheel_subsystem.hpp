@@ -21,7 +21,8 @@ public:
         tap::Drivers *drivers,
         tap::motor::MotorId leftMotorId,
         tap::motor::MotorId rightMotorId,
-        tap::can::CanBus canBus);
+        tap::can::CanBus canBus,
+        bool inInverted = false);
 
     void initialize() override;
 
