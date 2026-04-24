@@ -63,12 +63,12 @@ static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
 };
 
 static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
-    .startAngle = modm::toRadian(90),
-    .startEncoderValue = 5750,
-    .minAngle = modm::toRadian(75),
-    .maxAngle = modm::toRadian(115),
+    .startAngle = modm::toRadian(0),
+    .startEncoderValue = 3427,
+    .minAngle = modm::toRadian(-20),
+    .maxAngle = modm::toRadian(30),
     .limitMotorAngles = true,
-    .ratio = 1.0 / 3.0};
+};
 
 static constexpr float TURRET_CG_X = 30.0f;                 // 30.17;
 static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
@@ -180,9 +180,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_POS_PID_AUTO_AIM_CONFIG 
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_VEL_PID_CONFIG = {
-    .kp = 7'000.0f,
+    .kp = 6'000.0f,
     .ki = 0.0f,
-    .kd = 10.0f,
+    .kd = 0.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 1.0f,
