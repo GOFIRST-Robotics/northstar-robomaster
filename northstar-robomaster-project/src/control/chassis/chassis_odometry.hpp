@@ -107,17 +107,17 @@ public:
 
         velocitySmoothedLocal = vectorLowPassFilter(velocityLocal, velocitySmoothedLocal, 0.5f);
 
-        velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
+        // velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
 
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
         rotation = calculateRobotHeading();
 
-        velocityGlobal = convertLocalToGlobal(velocitySmoothedLocal);
-        // positionGlobal += velocityGlobal * deltaTimeSeconds;
+        velocityGlobal = convertLocalToGlobal(velocityLocal);
+        positionGlobal += velocityGlobal * deltaTimeSeconds;
 
-        velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
-        positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
+        // velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
+        // positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
     }
 
     modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2>& local)

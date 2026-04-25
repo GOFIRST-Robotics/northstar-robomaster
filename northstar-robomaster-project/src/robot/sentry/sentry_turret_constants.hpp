@@ -33,7 +33,6 @@
 
 using tap::motor::DjiMotor;
 
-// adding a missing definition in this version of taproot
 namespace DjiMotorConstants
 {
 // Output is in mV
