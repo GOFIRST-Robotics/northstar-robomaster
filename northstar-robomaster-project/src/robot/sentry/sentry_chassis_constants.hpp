@@ -2,6 +2,7 @@
 #define SENTRY_CHASSIS_CONSTANTS_HPP_
 
 #include "tap/motor/dji_motor.hpp"
+#include "tap/motor/dji_motor_encoder.hpp"
 
 #include "modm/math/interpolation/linear.hpp"
 
@@ -26,10 +27,10 @@ static constexpr float CHASSIS_ROTATION_D = 0.01f;
 static constexpr float CHASSIS_ROTATION_MAX_VEL = M_TWOPI;
 static constexpr float AUTO_ROTATION_ALPHA = 0.01f;
 
-static constexpr float CHASSIS_GEAR_RATIO = (187.0f / 3591.0f);
+static constexpr float CHASSIS_GEAR_RATIO = tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508;
 
-static const float DIST_TO_CENTER = .24f;  // from wheel to center
-static const float WHEEL_DIAMETER_M = 0.18f;
+static const float DIST_TO_CENTER = .265f;  // from wheel to center
+static const float WHEEL_DIAMETER_M = 0.118f;
 static const float RAMP_UP_RPM_INCREMENT_MPS = 0.01f;
 
 static constexpr float MAX_CHASSIS_SPEED_MPS = 8.0f;
