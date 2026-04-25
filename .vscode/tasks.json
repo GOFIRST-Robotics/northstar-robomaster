@@ -295,7 +295,7 @@
             "presentation": {
                 "panel": "new"
             },
-            "command": "pipenv run scons run profile=debug robot=TARGET_TESTBED",
+            "command": "pipenv run scons run profile=debug robot=TARGET_TEST_BED",
             "group": "build",
             "problemMatcher": [],
             "options": {
@@ -347,7 +347,7 @@
             "presentation": {
                 "panel": "new"
             },
-            "command": "pipenv run scons run profile=debug robot=TARGET_TESTBED remote=FLY_SKY",
+            "command": "pipenv run scons run profile=debug robot=TARGET_TEST_BED remote=FLY_SKY",
             "group": "build",
             "problemMatcher": [],
             "options": {
