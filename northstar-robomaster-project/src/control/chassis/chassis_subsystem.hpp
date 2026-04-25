@@ -141,6 +141,8 @@ public:
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
+    float getChassisPowerDraw();
+
     /**
      * Gets the max chassis wheel speed based on a power limit.
      *
@@ -158,6 +160,8 @@ public:
      * @return The max chassis current.
      */
     float getMaxCurrentOutput(bool refSerialOnline, float chassisPowerLimit);
+
+    ChassisOdometry* getChassisOdometry() { return chassisOdometry; }
 
     void refresh() override;
 
@@ -180,6 +184,11 @@ public:
     {
         return modm::Angle::normalize(targetAngle - getChassisYaw());
     }
+
+    bool isBeyblading{false};
+    bool isPeeking{false};
+    bool isPeekingLeft{false};
+    int linearVelocity{0};
 
 private:
     /**

@@ -1,5 +1,6 @@
 #ifdef TARGET_HERO
 
+#include "tap/control/concurrent_command.hpp"
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/press_command_mapping.hpp"
@@ -29,8 +30,12 @@
 #include "control/agitator/constants/agitator_constants.hpp"
 #include "control/agitator/set_fire_rate_command.hpp"
 #include "control/agitator/unjam_spoke_agitator_command.hpp"
-#include "robot/hero/hero_agitator_shoot_command.hpp"
-#include "robot/hero/hero_agitator_subsystem.hpp"
+
+// kicker
+#include "control/kicker/constant_velocity_kicker_command.hpp"
+#include "control/kicker/constants/kicker_constants.hpp"
+#include "control/kicker/kicker_subsystem.hpp"
+#include "control/kicker/kicker_subsystem_config.hpp"
 
 // turret
 #include "tap/motor/double_dji_motor.hpp"
@@ -75,6 +80,8 @@
 
 #include "control/clientDisplay/client_display_command.hpp"
 #include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/graphics/core/hero_draw_command.hpp"
+#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/indicators/ammo_indicator.hpp"
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
@@ -107,6 +114,7 @@ using namespace tap::control::governor;
 using namespace src::control::client_display;
 using namespace tap::communication::serial;
 using namespace src::control::buzzer;
+using namespace src::control::client_display::graphics;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -136,13 +144,31 @@ ToggleCommandMapping leftSwitchUpPressedFlywheel(
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
 
 // agitator subsystem
-HeroAgitatorSubsystem agitator(
+VelocityAgitatorSubsystem agitator(
     drivers(),
-    constants::AGITATOR_CONFIG,
-    constants::AGITATOR_PID_CONFIG);
+    constants::AGITATOR_PID_CONFIG,
+    constants::AGITATOR_CONFIG);
 
-// agitator commands
-HeroAgitatorShootCommand agitatorShootCommand(&agitator);
+src::kicker::KickerSubsystem kicker(
+    drivers(),
+    src::control::kicker::constants::KICKER_PID_CONFIG,
+    src::control::kicker::constants::KICKER_CONFIG);
+
+ConstantVelocityAgitatorCommand rotateAgitator(agitator, constants::AGITATOR_ROTATE_CONFIG);
+
+src::control::kicker::ConstantVelocityKickerCommand rotateKicker(&kicker, 40.0f);
+
+UnjamSpokeAgitatorCommand unjamAgitator(agitator, constants::AGITATOR_UNJAM_CONFIG);
+
+MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
+    *drivers(),
+    agitator,
+    rotateAgitator,
+    unjamAgitator);
+
+// ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
+//     {&rotateAndUnjamAgitator, &rotateKicker},
+//     "Rotate and Unjam Agitator with Kicker");
 
 // agitator governors
 HeatLimitGovernor heatLimitGovernor(
@@ -165,11 +191,20 @@ FireRateLimitGovernor fireRateLimitGovernor(manualFireRateReselectionManager);
 
 GovernorLimitedCommand<4> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched(
     {&agitator},
-    agitatorShootCommand,
+    rotateAndUnjamAgitator,
     {&refSystemProjectileLaunchedGovernor,
      &fireRateLimitGovernor,
      &flywheelOnGovernor,
      &heatLimitGovernor});
+
+GovernorLimitedCommand<4>
+    rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunchedWithKicker(
+        {&agitator},
+        rotateAndUnjamAgitator,
+        {&refSystemProjectileLaunchedGovernor,
+         &fireRateLimitGovernor,
+         &flywheelOnGovernor,
+         &heatLimitGovernor});
 
 // agitator mappings
 ToggleCommandMapping vPressed(
@@ -192,6 +227,11 @@ ToggleCommandMapping leftSwitchDownPressedShoot(
     drivers(),
     {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
+
+ToggleCommandMapping rightSwitchUpRunKicker(
+    drivers(),
+    {&rotateKicker},
+    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP));
 
 // turret subsystem
 tap::motor::DjiMotor pitchMotor(
@@ -427,17 +467,27 @@ std::vector<HudIndicator *> hudIndicators = {
     &flyWheelIndicator,
     &heroSpinIndicator};
 
-ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
+// ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
 
-PressCommandMapping ctrlShiftBPressedClientDisplay(
+// PressCommandMapping ctrlShiftBPressedClientDisplay(
+//     drivers(),
+//     {&clientDisplayCommand},
+//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+
+src::control::client_display::graphics::UISubsystem ui(drivers());
+src::control::client_display::graphics::HeroDrawCommand heroDrawCommand(
     drivers(),
-    {&clientDisplayCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+    &ui,
+    &turret,
+    // &flywheel,
+    &agitator,
+    &chassisSubsystem);
 
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
     agitator.initialize();
+    kicker.initialize();
     turret.initialize();
     flywheel.initialize();
 }
@@ -447,9 +497,11 @@ void registerHeroSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&chassisSubsystem);
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&agitator);
+    drivers->commandScheduler.registerSubsystem(&kicker);
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
+    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultHeroCommands(Drivers *drivers)
@@ -458,6 +510,7 @@ void setDefaultHeroCommands(Drivers *drivers)
     // turret.setDefaultCommand(&turretUserWorldRelativeCommand); // for use when can comm is
     // running
     turret.setDefaultCommand(&turretUserControlCommand);
+    ui.setDefaultCommand(&heroDrawCommand);
 }
 
 void startHeroCommands(Drivers *drivers)
@@ -471,7 +524,6 @@ void startHeroCommands(Drivers *drivers)
         modm::toRadian(180)));
     // pitch up needs to be negitive up is on motor side
     // right neg
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerHeroIoMappings(Drivers *drivers)
@@ -485,7 +537,9 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&gPressedChangeFireRate);
     drivers->commandMapper.addMap(&xPressedIMUCalibrate);
     drivers->commandMapper.addMap(&zPressedWiggle);
-    drivers->commandMapper.addMap(&ctrlShiftBPressedClientDisplay);
+    // drivers->commandMapper.addMap(&ctrlShiftBPressedClientDisplay);
+
+    drivers->commandMapper.addMap(&rightSwitchUpRunKicker);
 }
 }  // namespace hero_control
 
