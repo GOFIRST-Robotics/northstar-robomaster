@@ -164,7 +164,7 @@ bool VisionComms::decodeToVisionAprilTagLocalization(const ReceivedSerialMessage
     }
 
     VisionComms::AprilTagLocalizationData localizationData;
-    std::memcpy(&localizationData, message.data, sizeof(CubicBezier::CurveData));
+    std::memcpy(&localizationData, message.data, sizeof(VisionComms::AprilTagLocalizationData));
     chassisOdometry->setGlobalPosition({localizationData.posX, localizationData.posY});
 
     return true;

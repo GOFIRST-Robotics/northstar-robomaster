@@ -107,7 +107,7 @@ public:
 
         velocitySmoothedLocal = vectorLowPassFilter(velocityLocal, velocitySmoothedLocal, 0.5f);
 
-        // velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
+        velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
 
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
