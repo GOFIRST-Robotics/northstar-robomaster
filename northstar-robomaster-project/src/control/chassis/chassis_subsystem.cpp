@@ -234,6 +234,9 @@ void ChassisSubsystem::driveBasedOnHeading(
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
 
+float odomX = 0;
+float odomY = 0;
+
 void ChassisSubsystem::refresh()
 {
     auto runPid = [](Pid& pid, Motor& motor, float desiredOutput) {
@@ -253,5 +256,8 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
+
+    odomX = chassisOdometry->getPositionGlobal().x;
+    odomY = chassisOdometry->getPositionGlobal().y;
 }
 }  // namespace src::chassis

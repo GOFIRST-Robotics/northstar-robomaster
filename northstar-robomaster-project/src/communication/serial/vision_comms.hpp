@@ -33,7 +33,8 @@ public:
         AUTO_PATH = 5,
         // REF_DATA = 6
         HEALTH = 6,
-        REF_TURRET_DATA
+        REF_TURRET_DATA = 7,
+        VISION_LOCALIZATION = 8
     };
 
     struct RefData
@@ -130,6 +131,12 @@ public:
         TurretOdometryData turret_data;
     } modm_packed;
 
+    struct AprilTagLocalizationData
+    {
+        float posX;
+        float posY;
+    } modm_packed;
+
     src::chassis::ChassisOdometry* chassisOdometry;
 
     src::chassis::ChassisAutoDrive* chassisAutoDrive;
@@ -224,6 +231,8 @@ private:
     bool decodeToOdometeryData(const ReceivedSerialMessage& message);
 
     bool decodeToAutoPathData(const ReceivedSerialMessage& message);
+
+    bool decodeToVisionAprilTagLocalization(const ReceivedSerialMessage& message);
 };
 }  // namespace src::serial
 

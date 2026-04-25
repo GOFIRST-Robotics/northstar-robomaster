@@ -78,6 +78,8 @@ public:
         rotation = rot;
     }
 
+    void setGlobalPosition(modm::Vector2f pos) { positionGlobal = pos; }
+
     // input is in radians per second
     void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
     {
@@ -105,14 +107,14 @@ public:
 
         velocitySmoothedLocal = vectorLowPassFilter(velocityLocal, velocitySmoothedLocal, 0.5f);
 
-        // velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
+        velocity3dGlobal = flatLocalVelTo3dGlobalVel(velocityLocal);
 
         // double radiansPerSec = (mps_LF + mps_RF + mps_LB + mps_RB) / (4 * DIST_TO_CENT);
         // rotation -= radiansPerSec * deltaTimeSeconds;
         rotation = calculateRobotHeading();
 
         velocityGlobal = convertLocalToGlobal(velocitySmoothedLocal);
-        positionGlobal += velocityGlobal * deltaTimeSeconds;
+        // positionGlobal += velocityGlobal * deltaTimeSeconds;
 
         velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
         positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
