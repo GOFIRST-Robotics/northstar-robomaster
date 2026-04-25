@@ -197,6 +197,16 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
     return lastComputedMaxWheelSpeed.second;
 }
 
+float ChassisSubsystem::getChassisPowerDraw()
+{
+    float powerSum = 0.0f;
+    for (size_t motor_idx = 0; motor_idx < motors.size(); motor_idx++)
+    {
+        powerSum += abs(motors[motor_idx].getOutputDesired());
+    }
+    return powerSum / (DjiMotor::MAX_OUTPUT_C620 * 20.0f) * 24.0f;
+}
+
 void ChassisSubsystem::driveBasedOnHeading(
     float forward,
     float sideways,
@@ -213,6 +223,8 @@ void ChassisSubsystem::driveBasedOnHeading(
     float sin_theta = sin(heading);
     float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
     float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
+    isPeeking = abs(vy_local) > 0.1;
+    isPeekingLeft = isPeeking && (vy_local < 0);
     LFSpeed = mpsToRpm(
         (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
