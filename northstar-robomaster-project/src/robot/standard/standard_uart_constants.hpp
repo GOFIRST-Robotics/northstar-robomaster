@@ -23,7 +23,7 @@ static constexpr uint16_t primeScaleFactor = 10;
 static constexpr uint32_t TIME_BTWN_SENDING_ODOMETRY_MSG = 2 * primeScaleFactor;
 static constexpr uint32_t TIME_BEFORE_SENDING_ODOMETRY_MSG =
     TIME_BTWN_SENDING_ODOMETRY_MSG + TIME_BEFORE_UART_START;
-static tap::arch::PeriodicMilliTimer sendOdometryMsgTimeout{TIME_BTWN_SENDING_ODOMETRY_MSG};
+static tap::arch::PeriodicMilliTimer sendOdometryMsgTimeout{4};
 
 /** Time in ms between sending the Robot ID message. */
 static constexpr uint32_t TIME_BTWN_SENDING_ROBOT_ID_MSG = 103 * primeScaleFactor;
