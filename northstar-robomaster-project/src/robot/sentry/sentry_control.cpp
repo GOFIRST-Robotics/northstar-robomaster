@@ -45,8 +45,6 @@
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
-#include "control/turret/rev_turret_subsystem.hpp"
-#include "control/turret/turret_double_motor_rev.hpp"
 #include "control/turret/turret_motor_DJI.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
@@ -59,9 +57,9 @@
 #include "control/turret/cv/turret_cv_control_command.hpp"
 
 // flywheel
+#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
-#include "control/flywheel/three_flywheel_run_command.hpp"
+#include "control/flywheel/two_flywheel_run_command.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -126,9 +124,11 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 // PlaySongCommand playStartupSongCommand(&buzzerSubsystem, rouser_song);
 
-RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+// flywheel subsystem
+DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
 
-ThreeFlywheelRunCommand flywheelRunCommand(&flywheel);
+// flywheel commands
+TwoFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -158,12 +158,12 @@ tap::motor::DoubleDjiMotor yawMotor(
     YAW_MOTOR_ID_2,
     CAN_BUS_YAW,
     CAN_BUS_YAW,
-    false,
-    false,
+    true,
+    true,
     "YawMotor1",
     "YawMotor2",
     false,
-    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
     YAW_MOTOR_CONFIG.startEncoderValue,
     &drivers()->encoder);
 
@@ -523,8 +523,13 @@ void startSentryCommands(Drivers *drivers)
     drivers->visionComms.attachOdometry(chassisOdometry);
     drivers->visionComms.attachPitchMotor(&pitchMotor);
 
-    drivers->bmi088.setMountingTransform(
-        tap::algorithms::transforms::Transform(0, 0, 0, 0, 0, modm::toRadian(180)));
+    drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
+        0,
+        0,
+        0,
+        0,
+        modm::toRadian(180),
+        modm::toRadian(180)));
 }
 // from RM upside down left hand rule 180 around roll
 
@@ -544,7 +549,7 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&rightSwitchMidOrientDriveWhenImuCalibrated);
 
-    drivers->commandMapper.addMap(&leftSwitchDownResetOdometry);
+    // drivers->commandMapper.addMap(&leftSwitchDownResetOdometry);
 }
 }  // namespace sentry_control
 
@@ -552,7 +557,7 @@ namespace src::sentry
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return &sentry_control::imuCalibrateCommand;
+    return nullptr;  //&sentry_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::sentry::Drivers *drivers)

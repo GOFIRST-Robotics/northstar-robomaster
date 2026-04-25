@@ -617,8 +617,6 @@ void startStandardCommands(Drivers *drivers)
         0,
         modm::toRadian(180),
         modm::toRadian(180)));
-
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
 }
 
 void registerStandardIoMappings(Drivers *drivers)
