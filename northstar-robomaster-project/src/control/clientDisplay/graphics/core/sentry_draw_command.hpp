@@ -15,6 +15,7 @@
 #include "control/clientDisplay/graphics/graphics_objects/indicators/predicted_remaining_shots_indicator.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/reticle.hpp"
 #include "control/clientDisplay/graphics/graphics_objects/indicators/supercap_charge_indicator.hpp"
+
 // #include "subsystems/chassis/chassisSubsystem.hpp"
 // #include "subsystems/flywheel/FlywheelSubsystem.hpp"
 // #include "subsystems/turret/turretSubsystem.hpp"
@@ -34,16 +35,16 @@ class SentryDrawCommand : public tap::control::Command, GraphicsContainer
 {
 public:
     SentryDrawCommand(
-        src::Drivers* drivers,
+        tap::Drivers* drivers,
         UISubsystem* ui,
         src::control::turret::TurretSubsystem* turret,
-        src::control::flywheel::TwoFlywheelSubsystem* flywheel,
+        // src::control::flywheel::TwoFlywheelSubsystem* flywheel,
         src::agitator::VelocityAgitatorSubsystem* agitator,
         src::chassis::ChassisSubsystem* chassis)
         : drivers(drivers),
           ui(ui),
           turret(turret),
-          flywheel(flywheel),
+          //   flywheel(flywheel),
           agitator(agitator),
           chassis(chassis)
     {
@@ -58,7 +59,7 @@ public:
         // addGraphicsObject(&remain);
         addGraphicsObject(&numbers);
         addGraphicsObject(&countdown);
-        // addGraphicsObject(&velo);
+        addGraphicsObject(&velo);
         // addGraphicsObject(&recal);
         addGraphicsObject(&chassisPower);
     };
@@ -78,8 +79,8 @@ public:
         countdown.update();
         // velo.update();
         // recal.update();
-        chassisPower.update();
         // logo doesn't need updating
+        chassisPower.update();
     };
 
     // ui subsystem won't do anything until its top level container is set, so we are ok to add
@@ -88,13 +89,13 @@ public:
 
     bool isFinished() const override { return false; };  // never done drawing ui
 
-    const char* getName() const override { return "sentry ui draw command"; }
+    const char* getName() const override { return "infantry ui draw command"; }
 
 private:
-    src::Drivers* drivers;
+    tap::Drivers* drivers;
     UISubsystem* ui;
     src::control::turret::TurretSubsystem* turret;
-    src::control::flywheel::TwoFlywheelSubsystem* flywheel;
+    // src::control::flywheel::TwoFlywheelSubsystem* flywheel;
     src::agitator::VelocityAgitatorSubsystem* agitator;
     src::chassis::ChassisSubsystem* chassis;
 
@@ -103,7 +104,7 @@ private:
     // SupercapChargeIndicator supercap{chassis};
     ChassisOrientationIndicator orient{true, drivers, turret, chassis};
     PeekingLines peek{chassis, turret};
-    Reticle reticle{drivers, turret};
+    Reticle reticle{drivers, turret /*agitator*/};
     HitRing ring{drivers, turret};
     // PredictedRemainingShotsIndicator remain{drivers, agitator};
     AllRobotHealthNumbers numbers{drivers};
@@ -111,5 +112,6 @@ private:
     // LinearVelocityIndicator velo{chassis};
     // ImuRecalibrationIndicator recal{drivers};
     ChassisPowerIndicator chassisPower{drivers, chassis};
+    LinearVelocityIndicator velo{chassis};
 };
 }  // namespace src::control::client_display::graphics
