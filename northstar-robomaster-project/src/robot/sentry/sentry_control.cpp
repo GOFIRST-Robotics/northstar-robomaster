@@ -482,7 +482,7 @@ GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
 
 HoldRepeatCommandMapping rightSwitchMidOrientDriveWhenImuCalibrated(
     drivers(),
-    {&orientDriveWhenImuCalibrated},
+    {&chassisDriveCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::MID),
     true);
 
@@ -499,6 +499,7 @@ void initializeSubsystems(Drivers *drivers)
     flywheel.initialize();
     turret.initialize();
     buzzerSubsystem.initialize();
+    stateMachineSubsystem.initialize();
 }
 
 void registerSentrySubsystems(Drivers *drivers)
