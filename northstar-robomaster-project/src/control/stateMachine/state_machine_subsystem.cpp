@@ -63,7 +63,7 @@ void StateMachineSubsystem::refresh()
     float desiredRotation = chassisAutoDrive->getDesiredRotation();
 
     chassisSubsystem->setVelocityFieldDrive(
-        desiredGlobalVelocity.x,
+        desiredGlobalVelocity.x,  // was y, x before?
         desiredGlobalVelocity.y,
         desiredRotation);
 }  // namespace src::stateMachine
