@@ -92,11 +92,6 @@
 #include "control/buzzer/song/rouser.hpp"
 #include "control/buzzer/song/tuff_startup_noise.hpp"
 
-// HUD
-
-#include "control/clientDisplay/graphics/core/sentry_draw_command.hpp"
-#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
-
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -115,7 +110,6 @@ using namespace src::control::governor;
 using namespace tap::control::governor;
 using namespace tap::communication::serial;
 using namespace src::control::buzzer;
-using namespace src::control::client_display::graphics;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -498,15 +492,6 @@ RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 src::stateMachine::StateMachineSubsystem stateMachineSubsystem =
     src::stateMachine::StateMachineSubsystem(drivers(), &chassisSubsystem, chassisAutoDrive);
 
-src::control::client_display::graphics::UISubsystem ui(drivers());
-src::control::client_display::graphics::SentryDrawCommand sentryDrawCommand(
-    drivers(),
-    &ui,
-    &turret,
-    // &flywheel,
-    &agitator,
-    &chassisSubsystem);
-
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
@@ -514,7 +499,6 @@ void initializeSubsystems(Drivers *drivers)
     flywheel.initialize();
     turret.initialize();
     buzzerSubsystem.initialize();
-    stateMachineSubsystem.initialize();
 }
 
 void registerSentrySubsystems(Drivers *drivers)
@@ -525,14 +509,12 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultSentryCommands([[maybe_unused]] Drivers *drivers)
 {
     // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     turret.setDefaultCommand(&turretUserControlCommand);
-    ui.setDefaultCommand(&sentryDrawCommand);
 }
 
 void startSentryCommands(Drivers *drivers)
