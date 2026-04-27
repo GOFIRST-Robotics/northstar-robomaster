@@ -611,16 +611,15 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     // drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    drivers->commandScheduler.registerSubsystem(&ui);
+    // drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(
-        &chassisDriveCommand /*&chassisOrientDriveCommand*/);  //&chassisDriveCommand);  //
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);       // when mcb is mounted on turret
     // clientDisplay.setDefaultCommand(&clientDisplayCommand);
-    ui.setDefaultCommand(&infantryDrawCommand);
+    // ui.setDefaultCommand(&infantryDrawCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
