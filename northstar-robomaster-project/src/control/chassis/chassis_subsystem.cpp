@@ -121,16 +121,7 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
-    // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
-    if (turretRot > M_TWOPI)
-    {
-        turretRot -= M_TWOPI;
-    }
-    else if (turretRot < 0.0f)
-    {
-        turretRot += M_TWOPI;
-    }
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
