@@ -62,9 +62,9 @@ void StateMachineSubsystem::refresh()
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
     float desiredRotation = chassisAutoDrive->getDesiredRotation();
 
-    chassisSubsystem->setVelocityFieldDrive(
-        desiredGlobalVelocity.x,  // was y, x before?
+    chassisSubsystem->setVelocityFieldDrive(  // fuck chassis subsystems fucked up coordinate frames
         desiredGlobalVelocity.y,
+        -desiredGlobalVelocity.x,
         desiredRotation);
 }  // namespace src::stateMachine
 

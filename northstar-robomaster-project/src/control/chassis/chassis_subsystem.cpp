@@ -221,21 +221,23 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rampedSideways = rampControllers[1].getValue();
     float cos_theta = cos(heading);
     float sin_theta = sin(heading);
-    float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
-    float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
-    isPeeking = abs(vy_local) > 0.1;
-    isPeekingLeft = isPeeking && (vy_local < 0);
+
+    // This is the actual correct rotation matrix for a left-handed coord system as defined by the
+    // top of this file...
+    float vx_local = rampedForward * sin_theta + rampedSideways * cos_theta;
+    float vy_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+
     LFSpeed = mpsToRpm(
-        (vx_local - vy_local) / M_SQRT2 +
+        (-vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (-vx_local - vy_local) / M_SQRT2 +
+        (vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (-vx_local + vy_local) / M_SQRT2 +
+        (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (vx_local + vy_local) / M_SQRT2 +
+        (-vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);
@@ -253,6 +255,7 @@ void ChassisSubsystem::driveBasedOnHeading(
 
 float odomX = 0;
 float odomY = 0;
+float odomRot = 0;
 
 void ChassisSubsystem::refresh()
 {
@@ -276,5 +279,6 @@ void ChassisSubsystem::refresh()
 
     odomX = chassisOdometry->getPositionGlobal().x;
     odomY = chassisOdometry->getPositionGlobal().y;
+    odomRot = chassisOdometry->getRotation();
 }
 }  // namespace src::chassis
