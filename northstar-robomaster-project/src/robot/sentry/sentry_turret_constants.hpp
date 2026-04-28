@@ -88,7 +88,7 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
     // .kp = 60.0f,
     // .ki = 0.0f,
     // .kd = 5.0f,
-    .kp = 13.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
+    .kp = 10.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
@@ -130,10 +130,10 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
     // .kp = 2000.0f,
     // .ki = 20.0f,
     // .kd = 500.0f,
-    .kp = 1200.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
-                    // 1000
+    .kp = 800.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
+                   // 1000
     .ki = 0.0f,
-    .kd = 10.0f,
+    .kd = 0.0f,
     .maxICumulative = 1'000.0f,
     .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_C620,
     .tRDerivativeKalman = 0.0f,
