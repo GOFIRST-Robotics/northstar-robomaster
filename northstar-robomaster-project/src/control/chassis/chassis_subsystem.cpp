@@ -222,22 +222,20 @@ void ChassisSubsystem::driveBasedOnHeading(
     float cos_theta = cos(heading);
     float sin_theta = sin(heading);
 
-    // This is the actual correct rotation matrix for a left-handed coord system as defined by the
-    // top of this file...
-    float vx_local = rampedForward * sin_theta + rampedSideways * cos_theta;
-    float vy_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+    float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
+    float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
 
     LFSpeed = mpsToRpm(
-        (-vx_local + vy_local) / M_SQRT2 +
+        (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
     RFSpeed = mpsToRpm(
-        (vx_local + vy_local) / M_SQRT2 +
+        (-vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-right wheel
     RBSpeed = mpsToRpm(
-        (vx_local - vy_local) / M_SQRT2 +
+        (-vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-right wheel
     LBSpeed = mpsToRpm(
-        (-vx_local - vy_local) / M_SQRT2 +
+        (vx_local + vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Rear-left wheel
     int LF = static_cast<int>(MotorId::LF);
     int LB = static_cast<int>(MotorId::LB);

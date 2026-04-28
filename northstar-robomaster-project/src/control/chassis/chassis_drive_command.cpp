@@ -19,6 +19,9 @@ ChassisDriveCommand::ChassisDriveCommand(
     addSubsystemRequirement(chassis);
 }
 
+float y = 0;
+float x = 0;
+
 void ChassisDriveCommand::execute()
 {
     auto scale = [](float raw) -> float {
@@ -29,8 +32,11 @@ void ChassisDriveCommand::execute()
         operatorInterface->getDrivetrainHorizontalTranslation());
     chassis->setVelocityTurretDrive(
         scale(normInput.first),
-        scale(normInput.second),
+        -scale(normInput.second),
         operatorInterface->getDrivetrainRotationalTranslation());
+
+    x = operatorInterface->getDrivetrainHorizontalTranslation();
+    y = operatorInterface->getDrivetrainVerticalTranslation();
 }
 
 void ChassisDriveCommand::end([[maybe_unused]] bool interrupted)
