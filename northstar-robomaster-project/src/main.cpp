@@ -50,8 +50,8 @@
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(tap::Drivers::DT);
-tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
-tap::arch::PeriodicMilliTimer revHeartBeatTimeout(100);
+// tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
+// tap::arch::PeriodicMilliTimer revHeartBeatTimeout(100);
 
 #ifdef TARGET_STANDARD
 using namespace src::standard;
@@ -76,6 +76,10 @@ static void initializeIo(Drivers *drivers);
 // Anything that you would like to be called place here. It will be called
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
+
+uint16_t deltaTime = 0;
+uint16_t lastTime = 0;
+
 static void updateIo(Drivers *drivers);
 int main()
 {
@@ -106,6 +110,10 @@ int main()
 
         if (sendMotorTimeout.execute())
         {
+            uint16_t currentTTime = tap::arch::clock::getTimeMicroseconds();
+            deltaTime = currentTTime - lastTime;
+            lastTime = currentTTime;
+
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
 
             PROFILE(drivers->profiler, drivers->encoder.update, ());
@@ -120,18 +128,19 @@ int main()
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
-#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
-        if (revTxPublisherTimeout.execute())
-        {
-            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
-        }
-        if (revHeartBeatTimeout.execute())
-        {
-            PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
-        }
-        PROFILE(drivers->profiler, drivers->visionComms.sendMessage, ());
+        // #if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
+        //         if (revTxPublisherTimeout.execute())
+        //         {
+        //             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData,
+        //             ());
+        //         }
+        //         if (revHeartBeatTimeout.execute())
+        //         {
+        //             PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
+        //         }
+        //         PROFILE(drivers->profiler, drivers->visionComms.sendMessage, ());
 
-#endif
+        // #endif
         modm::delay_us(10);
     }
     return 0;

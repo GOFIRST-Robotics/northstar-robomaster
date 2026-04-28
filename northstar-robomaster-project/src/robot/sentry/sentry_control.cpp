@@ -92,6 +92,22 @@
 #include "control/buzzer/song/rouser.hpp"
 #include "control/buzzer/song/tuff_startup_noise.hpp"
 
+// hud
+#include "tap/communication/serial/ref_serial_transmitter.hpp"
+
+#include "control/clientDisplay/client_display_command.hpp"
+#include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/graphics/core/sentry_draw_command.hpp"
+#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
+#include "control/clientDisplay/indicators/ammo_indicator.hpp"
+#include "control/clientDisplay/indicators/circle_crosshair.hpp"
+#include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
+#include "control/clientDisplay/indicators/flywheel_indicator.hpp"
+#include "control/clientDisplay/indicators/hud_indicator.hpp"
+#include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
+#include "control/clientDisplay/indicators/text_hud_indicators.hpp"
+#include "control/clientDisplay/indicators/vision_indicator.hpp"
+
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -110,6 +126,7 @@ using namespace src::control::governor;
 using namespace tap::control::governor;
 using namespace tap::communication::serial;
 using namespace src::control::buzzer;
+using namespace src::control::client_display::graphics;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -163,9 +180,8 @@ tap::motor::DoubleDjiMotor yawMotor(
     "YawMotor1",
     "YawMotor2",
     false,
-    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 3.6f),
-    YAW_MOTOR_CONFIG.startEncoderValue,
-    &drivers()->encoder);
+    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue);
 
 TurretSubsystem turret(
     drivers(),
@@ -492,6 +508,15 @@ RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 src::stateMachine::StateMachineSubsystem stateMachineSubsystem =
     src::stateMachine::StateMachineSubsystem(drivers(), &chassisSubsystem, chassisAutoDrive);
 
+src::control::client_display::graphics::UISubsystem ui(drivers());
+src::control::client_display::graphics::SentryDrawCommand sentryDrawCommand(
+    drivers(),
+    &ui,
+    &turret,
+    // &flywheel,
+    &agitator,
+    &chassisSubsystem);
+
 void initializeSubsystems(Drivers *drivers)
 {
     chassisSubsystem.initialize();
@@ -509,12 +534,14 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
+    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultSentryCommands([[maybe_unused]] Drivers *drivers)
 {
     // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     turret.setDefaultCommand(&turretUserControlCommand);
+    ui.setDefaultCommand(&sentryDrawCommand);
 }
 
 void startSentryCommands(Drivers *drivers)
