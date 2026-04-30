@@ -195,7 +195,8 @@ float ChassisSubsystem::getChassisPowerDraw()
     {
         powerSum += abs(motors[motor_idx].getOutputDesired());
     }
-    return powerSum / (DjiMotor::MAX_OUTPUT_C620 * 20.0f) * 24.0f;
+    return powerSum / DjiMotor::MAX_OUTPUT_C620 * 20.0f *
+           24.0f;  // convert to watts, assuming 20A max current and 24V battery
 }
 
 void ChassisSubsystem::driveBasedOnHeading(
