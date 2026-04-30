@@ -199,7 +199,7 @@ float ChassisSubsystem::getChassisPowerDraw()
     {
         powerSum += abs(motors[motor_idx].getOutputDesired());
     }
-    return powerSum / (DjiMotor::MAX_OUTPUT_C620 * 20.0f) * 24.0f;
+    return powerSum / DjiMotor::MAX_OUTPUT_C620 * 20.0f * 24.0f;
 }
 
 void ChassisSubsystem::driveBasedOnHeading(

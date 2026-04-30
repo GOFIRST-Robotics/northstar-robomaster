@@ -20,6 +20,8 @@ public:
         powerDraw.x = X_POSITION;
         powerDraw.y = Y_POSITION;
         powerDraw.height = LINE_HEIGHT;
+        addGraphicsObject(&chargeBarOutline);
+        addGraphicsObject(&chargeBar);
     }
 
     void update()
