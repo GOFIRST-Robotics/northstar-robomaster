@@ -147,31 +147,44 @@ int main()
 }
 static void initializeIo(Drivers *drivers)
 {
-    // drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
-    drivers->can.initialize();
-    drivers->leds.init();
+    // things we need to check controller
+    drivers->remote.initialize();
+    drivers->analog.init();
     drivers->digital.init();
+    drivers->leds.init();
+
+    // if controller is on when the robot turns on, wait for it to be off.
+    // This is to prevent the shredding of wires
+    modm::delay_ms(3000);
+    drivers->leds.set(tap::gpio::Leds::Red, true);
+    int i = 0;
+    while (i < 5000)
+    {
+        drivers->remote.read();
+        if (drivers->remote.isConnected())
+            i = 0;
+        else
+            i++;
+        modm::delay_us(10);
+    }
+
+    drivers->leds.set(tap::gpio::Leds::Blue, true);
+
     drivers->pwm.init();
+    drivers->can.initialize();
     drivers->errorController.init();
-    // drivers->terminalSerial.initialize();
-    drivers->bmi088.initialize(500, .001, 0);
+
     drivers->encoder.initialize();
     drivers->visionComms.initializeUartDelays();
 
-#if defined(TARGET_STANDARD) || defined(TARGET_HERO)
-    drivers->turretMCBCanCommBus2.init();
-#endif
-#ifdef TURRET
-    chassisMcbCanComm.init();
-#else
-    drivers->analog.init();
-    drivers->remote.initialize();
     drivers->refSerial.initialize();
+
+    drivers->bmi088.initialize(500, 0.0f, 0.000f);
+    drivers->bmi088.setTargetTemperature(35.0f);
+    drivers->bmi088.setCalibrationSamples(4000);
+
 #ifndef FLY_SKY
     drivers->visionComms.initializeCV();
-#endif
-    // drivers->schedulerTerminalHandler.init();
-    // drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
 float debugYaw = 0.0f;
