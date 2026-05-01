@@ -49,7 +49,7 @@ void ChassisBeybladeCommand::execute()
     calcedRot = calculateBeyBladeRotationSpeed(
         chassis->calculateMaxRotationSpeed(verticalSpeed, horizontalSpeed),
         dt);
-    chassis->setVelocityTurretDrive(verticalSpeed, horizontalSpeed, calcedRot);
+    chassis->setVelocityTurretDrive(verticalSpeed, -horizontalSpeed, calcedRot);
 }
 
 void ChassisBeybladeCommand::end([[maybe_unused]] bool interrupted)

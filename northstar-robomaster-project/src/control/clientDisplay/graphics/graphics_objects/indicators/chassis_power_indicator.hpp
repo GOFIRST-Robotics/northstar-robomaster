@@ -67,16 +67,16 @@ private:
     UnfilledRectangle chargeBarOutline{
         UISubsystem::Color::RED_AND_BLUE,
         X_POSITION - 300,
-        Y_POSITION,
+        Y_POSITION - 200,
         200,
         LINE_HEIGHT,
         2};
     Line chargeBar{
         UISubsystem::Color::RED_AND_BLUE,
         X_POSITION - 300,
-        Y_POSITION,
+        Y_POSITION - 200,
         X_POSITION - 100,
-        Y_POSITION,
+        Y_POSITION - 200,
         16};
 };
 
