@@ -179,7 +179,7 @@ static void initializeIo(Drivers *drivers)
 
     drivers->refSerial.initialize();
 
-    drivers->bmi088.initialize(500, 0.0f, 0.000f);
+    drivers->bmi088.initialize(500, 0.001f, 0.000f);
     drivers->bmi088.setTargetTemperature(35.0f);
     drivers->bmi088.setCalibrationSamples(4000);
 
