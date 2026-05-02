@@ -61,10 +61,6 @@
 #include "control/flywheel/flywheel_constants.hpp"
 #include "control/flywheel/two_flywheel_run_command.hpp"
 
-// hopper
-#include "control/hopper/hopper_subsystem.hpp"
-#include "control/hopper/hopper_toggle_command.hpp"
-
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
 
@@ -126,7 +122,6 @@ using namespace tap::control::governor;
 // using namespace src::control::client_display;
 using namespace src::control::client_display::graphics;
 using namespace tap::communication::serial;
-using namespace src::control::hopper;
 using namespace src::control::buzzer;
 
 driversFunc drivers = DoNotUse_getDrivers;
@@ -176,7 +171,22 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DoubleDjiMotor yawMotor(
+// tap::motor::DoubleDjiMotor yawMotor(
+//     drivers(),
+//     YAW_MOTOR_ID_1,
+//     YAW_MOTOR_ID_2,
+//     CAN_BUS_YAW,
+//     CAN_BUS_YAW,
+//     true,
+//     true,
+//     "YawMotor1",
+//     "YawMotor2",
+//     false,
+//     1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 1.5f),
+//     YAW_MOTOR_CONFIG.startEncoderValue,
+//     &drivers()->encoder);
+
+tap::motor::DoubleDjiMotor yawMotor2(
     drivers(),
     YAW_MOTOR_ID_1,
     YAW_MOTOR_ID_2,
@@ -187,9 +197,18 @@ tap::motor::DoubleDjiMotor yawMotor(
     "YawMotor1",
     "YawMotor2",
     false,
-    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 1.5f),
-    YAW_MOTOR_CONFIG.startEncoderValue,
-    &drivers()->encoder);
+    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue);
+
+tap::motor::DjiMotor yawMotor(
+    drivers(),
+    YAW_MOTOR_ID_1,
+    CAN_BUS_YAW,
+    true,
+    "YawMotor1",
+    false,
+    1.0f / 29.01f,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue);
 
 TurretSubsystem turret(
     drivers(),
@@ -284,17 +303,6 @@ ToggleCommandMapping xCtrlPressedCvControl(
     drivers(),
     {&turretCVControlCommand},
     RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
-
-// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
-//     drivers(),
-//     drivers()->controlOperatorInterface,
-//     &turret,
-//     &worldFrameYawChassisImuController,
-//     &worldFramePitchChassisImuController,
-//     &worldFrameYawTurretCanImuController,
-//     &worldFramePitchTurretCanImuController,
-//     USER_YAW_INPUT_SCALAR,
-//     USER_PITCH_INPUT_SCALAR);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -503,20 +511,6 @@ HoldRepeatCommandMapping rightSwiitchDownBeyblade(
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
     true);
 
-HopperSubsystem hopperSubsystem(drivers(), 0.0585f, 0.025, tap::gpio::Pwm::Pin::C7);
-
-HopperToggleCommand hopperToggleCommand(&hopperSubsystem);
-
-ToggleCommandMapping ctrlVPressedHopperToggle(
-    drivers(),
-    {&hopperToggleCommand},
-    RemoteMapState(RemoteMapState({Remote::Key::CTRL, Remote::Key::V})));
-
-HoldCommandMapping rightSwitchUpHopper(
-    drivers(),
-    {&hopperToggleCommand},
-    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP));
-
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
@@ -536,46 +530,6 @@ ToggleCommandMapping xPressedIMUCalibrate(
     {&imuCalibrateCommand},
     RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
 
-// HUD
-// ClientDisplaySubsystem clientDisplay(drivers());
-// tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
-
-// AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
-
-// VisionIndicator visionIndicator(refSerialTransmitter, drivers()->refSerial,
-// drivers()->visionComms);
-
-// CircleCrosshair circleCrosshair(refSerialTransmitter);
-
-// FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial,
-// flywheelOnGovernor);
-
-// ShootingModeIndicator shootingModeIndicator(
-//     refSerialTransmitter,
-//     drivers()->refSerial,
-//     leftMousePressedShoot);
-
-// CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial,
-// cvOnTargetGovernor);
-
-// TextHudIndicators textHudIndicators(
-//     *drivers(),
-//     agitator,
-//     // imuCalibrateCommand,
-//     {&chassisWiggleCommand, &chassisBeyBladeCommand},
-//     refSerialTransmitter);
-
-// std::vector<HudIndicator *> hudIndicators = {
-//     &ammoIndicator,
-//     &circleCrosshair,
-//     &textHudIndicators,
-//     // &visionIndicator,
-//     // &flyWheelIndicator,
-//     &shootingModeIndicator,
-//     /*&cvAimingIndicator*/};
-
-// ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
-
 src::control::client_display::graphics::UISubsystem ui(drivers());
 src::control::client_display::graphics::InfantryDrawCommand infantryDrawCommand(
     drivers(),
@@ -585,11 +539,6 @@ src::control::client_display::graphics::InfantryDrawCommand infantryDrawCommand(
     &agitator,
     &chassisSubsystem);
 
-// PressCommandMapping crtlShiftEPressedClientDisplay(
-//     drivers(),
-//     {&clientDisplayCommand},
-//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
-
 void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     dummySubsystem.initialize();
@@ -597,7 +546,6 @@ void initializeSubsystems([[maybe_unused]] Drivers *drivers)
     agitator.initialize();
     flywheel.initialize();
     turret.initialize();
-    hopperSubsystem.initialize();
     buzzerSubsystem.initialize();
 }
 
@@ -608,18 +556,15 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
-    drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
-    // drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    // drivers->commandScheduler.registerSubsystem(&ui);
+    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
     chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);       // when mcb is mounted on turret
-    // clientDisplay.setDefaultCommand(&clientDisplayCommand);
-    // ui.setDefaultCommand(&infantryDrawCommand);
+    ui.setDefaultCommand(&infantryDrawCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
@@ -646,7 +591,6 @@ void registerStandardIoMappings(Drivers *drivers)
     // drivers->commandMapper.addMap(&xPressedIMUCalibrate);
     drivers->commandMapper.addMap(&rPressedCVGovernoreToggle);
     drivers->commandMapper.addMap(&gOrVPressedCycleShotSpeed);
-    drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
     drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
     drivers->commandMapper.addMap(&rPressedOrientDrive);
     drivers->commandMapper.addMap(&qPressedNormDrive);
@@ -654,7 +598,6 @@ void registerStandardIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
     drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
     drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
-    drivers->commandMapper.addMap(&rightSwitchUpHopper);
     // drivers->commandMapper.addMap(&ctrlShiftZSong);
     drivers->commandMapper.addMap(&ePressed180);
 }
