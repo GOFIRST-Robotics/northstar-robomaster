@@ -65,7 +65,6 @@
 #include "tap/errors/error_controller.hpp"
 #include "tap/motor/dji_motor_terminal_serial_handler.hpp"
 #include "tap/motor/dji_motor_tx_handler.hpp"
-#include "tap/motor/sparkmax/rev_motor_tx_handler.hpp"
 
 #include "communication/serial/fly_sky.hpp"
 
@@ -95,11 +94,11 @@ protected:
           uart(),
           terminalSerial(this),
           commandMapper(this),
-          schedulerTerminalHandler(this),
+          //   schedulerTerminalHandler(this),
           errorController(this),
-          djiMotorTerminalSerialHandler(this),
+          //   djiMotorTerminalSerialHandler(this),
           djiMotorTxHandler(this),
-          revMotorTxHandler(this),
+          //   revMotorTxHandler(this),
           bmi088(this),
 #ifdef ENV_UNIT_TESTS
           commandScheduler(this)
@@ -122,11 +121,11 @@ protected:
     testing::NiceMock<mock::UartMock> uart;
     testing::NiceMock<mock::TerminalSerialMock> terminalSerial;
     testing::NiceMock<mock::CommandMapperMock> commandMapper;
-    testing::NiceMock<mock::SchedulerTerminalHandlerMock> schedulerTerminalHandler;
+    // testing::NiceMock<mock::SchedulerTerminalHandlerMock> schedulerTerminalHandler;
     testing::StrictMock<mock::ErrorControllerMock> errorController;
-    testing::NiceMock<mock::DjiMotorTerminalSerialHandlerMock> djiMotorTerminalSerialHandler;
+    // testing::NiceMock<mock::DjiMotorTerminalSerialHandlerMock> djiMotorTerminalSerialHandler;
     testing::NiceMock<mock::DjiMotorTxHandlerMock> djiMotorTxHandler;
-    revMotorTxHandler;
+    // revMotorTxHandler;
     testing::NiceMock<mock::Bmi088Mock> bmi088;
     testing::NiceMock<mock::CommandSchedulerMock> commandScheduler;
 #else
@@ -148,11 +147,11 @@ public:
     communication::serial::Uart uart;
     communication::serial::TerminalSerial terminalSerial;
     control::CommandMapper commandMapper;
-    control::SchedulerTerminalHandler schedulerTerminalHandler;
+    // control::SchedulerTerminalHandler schedulerTerminalHandler;
     errors::ErrorController errorController;
-    motor::DjiMotorTerminalSerialHandler djiMotorTerminalSerialHandler;
+    // motor::DjiMotorTerminalSerialHandler djiMotorTerminalSerialHandler;
     motor::DjiMotorTxHandler djiMotorTxHandler;
-    motor::RevMotorTxHandler revMotorTxHandler;
+    // motor::RevMotorTxHandler revMotorTxHandler;
     communication::sensors::imu::bmi088::Bmi088 bmi088;
     control::CommandScheduler commandScheduler;
 #endif

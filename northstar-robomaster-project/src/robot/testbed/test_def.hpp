@@ -50,8 +50,6 @@ DummySubsystem dummySubsystem(drivers());
 
 #if defined(USING_TURRET) && defined(USING_REV)
 
-#include "tap/motor/sparkmax/rev_motor.hpp"
-
 #include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/user/neo_turret_user_control_command.hpp"
 
@@ -93,7 +91,6 @@ DummySubsystem dummySubsystem(drivers());
 #include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
 #include "control/clientDisplay/indicators/text_hud_indicators.hpp"
 #include "control/clientDisplay/indicators/vision_indicator.hpp"
-
 
 #endif
 

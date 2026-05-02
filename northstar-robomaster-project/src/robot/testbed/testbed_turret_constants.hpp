@@ -22,7 +22,6 @@
 
 #include "tap/algorithms/smooth_pid.hpp"
 #include "tap/motor/dji_motor.hpp"
-#include "tap/motor/sparkmax/rev_motor.hpp"
 
 #include "control/turret/turret_motor_config.hpp"
 #include "modm/math/geometry/angle.hpp"
