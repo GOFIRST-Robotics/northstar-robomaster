@@ -166,6 +166,8 @@ MoveUnjamIntegralComprisedCommand rotateAndUnjamAgitator(
     rotateAgitator,
     unjamAgitator);
 
+GovernorLimitedCommand<1> runKickerWhenFlywheelsOn{{&kicker}, rotateKicker, {&flywheelOnGovernor}};
+
 // ConcurrentCommand<2> rotateAndUnjamAgitatorWithKicker(
 //     {&rotateAndUnjamAgitator, &rotateKicker},
 //     "Rotate and Unjam Agitator with Kicker");
@@ -228,9 +230,9 @@ ToggleCommandMapping leftSwitchDownPressedShoot(
     {&rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched},  // TODO
     RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN));
 
-ToggleCommandMapping rightSwitchUpRunKicker(
+HoldCommandMapping rightSwitchUpRunKickerWhenFlywheelsOn(
     drivers(),
-    {&rotateKicker},
+    {&runKickerWhenFlywheelsOn},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP));
 
 // turret subsystem
@@ -539,7 +541,7 @@ void registerHeroIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&zPressedWiggle);
     // drivers->commandMapper.addMap(&ctrlShiftBPressedClientDisplay);
 
-    drivers->commandMapper.addMap(&rightSwitchUpRunKicker);
+    drivers->commandMapper.addMap(&rightSwitchUpRunKickerWhenFlywheelsOn);
 }
 }  // namespace hero_control
 
