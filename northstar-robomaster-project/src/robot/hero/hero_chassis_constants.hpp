@@ -2,8 +2,10 @@
 #define HERO_CHASSIS_CONSTANTS_HPP_
 
 #include "tap/motor/dji_motor.hpp"
+#include "tap/motor/dji_motor_encoder.hpp"
 
 #include "modm/math/interpolation/linear.hpp"
+
 
 #ifndef CHASSIS_CONSTANTS_HPP_
 #error "Do not include this file directly! Use chassis_constants.hpp instead."
@@ -26,7 +28,7 @@ static constexpr float CHASSIS_ROTATION_D = 0.01f;
 static constexpr float CHASSIS_ROTATION_MAX_VEL = 1.0f;
 static constexpr float AUTO_ROTATION_ALPHA = 0.01f;
 
-static constexpr float CHASSIS_GEAR_RATIO = (187.0f / 3591.0f);
+static constexpr float CHASSIS_GEAR_RATIO = tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508;
 
 static const float DIST_TO_CENTER = 0.3429f;  // from wheel to center
 static const float WHEEL_DIAMETER_M = 0.1524f;

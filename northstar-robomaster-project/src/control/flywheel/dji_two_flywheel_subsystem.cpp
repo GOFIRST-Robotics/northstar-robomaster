@@ -14,7 +14,8 @@ DJITwoFlywheelSubsystem::DJITwoFlywheelSubsystem(
     tap::Drivers *drivers,
     tap::motor::MotorId leftMotorId,
     tap::motor::MotorId rightMotorId,
-    tap::can::CanBus canBus)
+    tap::can::CanBus canBus,
+    bool inInverted)
     : TwoFlywheelSubsystem(drivers),
       velocityPidLeftWheel(
           FLYWHEEL_PID_KP_DJI,
@@ -28,8 +29,8 @@ DJITwoFlywheelSubsystem::DJITwoFlywheelSubsystem(
           FLYWHEEL_PID_KD_DJI,
           FLYWHEEL_PID_MAX_ERROR_SUM_DJI,
           FLYWHEEL_PID_MAX_OUTPUT_DJI),
-      leftWheel(drivers, leftMotorId, canBus, false, "Left Flywheel"),
-      rightWheel(drivers, rightMotorId, canBus, true, "Right Flywheel"),
+      leftWheel(drivers, leftMotorId, canBus, inInverted, "Left Flywheel"),
+      rightWheel(drivers, rightMotorId, canBus, !inInverted, "Right Flywheel"),
       desiredLaunchSpeedLeft(0),
       desiredLaunchSpeedRight(0),
       desiredRpmRampLeft(0),
