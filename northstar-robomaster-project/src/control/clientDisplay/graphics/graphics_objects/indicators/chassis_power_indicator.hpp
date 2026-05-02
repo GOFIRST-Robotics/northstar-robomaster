@@ -26,15 +26,27 @@ public:
 
     void update()
     {
-        powerDraw.integer = static_cast<int32_t>(chassis->getChassisPowerDraw());
+        float rawPower = chassis->getChassisPowerDraw();
+
+        powerBuffer[bufferIndex] = rawPower;
+        bufferIndex = (bufferIndex + 1) % BUFFER_SIZE;
+
+        float chassisPower = 0.0f;
+        for (uint8_t i = 0; i < BUFFER_SIZE; i++)
+        {
+            chassisPower += powerBuffer[i];
+        }
+        chassisPower /= BUFFER_SIZE;
+
+        powerDraw.integer = static_cast<int32_t>(chassisPower);
         powerDraw.calculateNumbers();
         powerDraw.x = X_POSITION - powerDraw.width / 2;
 
-        if (chassis->getChassisPowerDraw() > chassis->getChassisPowerLimit())
+        if (chassisPower > chassis->getChassisPowerLimit())
         {
             powerDraw.color = UISubsystem::Color::RED_AND_BLUE;
-            energyInBuffer -= (chassis->getChassisPowerDraw() - chassis->getChassisPowerLimit()) *
-                              drivers->DT / 1000.0f;
+            energyInBuffer -=
+                (chassisPower - chassis->getChassisPowerLimit()) * drivers->DT / 1000.0f;
         }
         else
         {
@@ -62,6 +74,10 @@ private:
     float RECHARGE_PER_CYCLE = 15 * drivers->DT / 1000.0f;
 
     float energyInBuffer = 60.0f;
+
+    static constexpr uint8_t BUFFER_SIZE = 10;
+    float powerBuffer[BUFFER_SIZE] = {0.0f};
+    uint8_t bufferIndex = 0;
 
     IntegerGraphic powerDraw{};
     UnfilledRectangle chargeBarOutline{

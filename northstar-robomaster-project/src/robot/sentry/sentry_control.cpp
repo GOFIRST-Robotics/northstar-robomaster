@@ -508,7 +508,7 @@ GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
 
 HoldRepeatCommandMapping rightSwitchMidOrientDriveWhenImuCalibrated(
     drivers(),
-    {&chassisDriveCommand},
+    {&chassisOrientDriveCommand},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::MID),
     true);
 

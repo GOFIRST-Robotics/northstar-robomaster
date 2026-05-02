@@ -193,12 +193,12 @@ float ChassisSubsystem::getChassisPowerDraw()
     float powerSum = 0.0f;
     for (size_t motor_idx = 0; motor_idx < motors.size(); motor_idx++)
     {
-        float scaledOutput =
-            motors[motor_idx].getOutputDesired() / DjiMotor::MAX_OUTPUT_C620 * 20.0f * 24.0f;
-        float rpmRatio =
-            (motors[motor_idx].getEncoder()->getVelocity() * 60.0f / M_TWOPI / CHASSIS_GEAR_RATIO) /
-            MAX_M3508_RPM_CHASSIS;
-        powerSum += abs(scaledOutput * rpmRatio);
+        powerSum +=
+            (((float)motors[motor_idx].getOutputDesired() / DjiMotor::MAX_OUTPUT_C620) * 20.0f) *
+            (((motors[motor_idx].getEncoder()->getVelocity() * 60.0f / M_TWOPI /
+               CHASSIS_GEAR_RATIO) /
+              MAX_M3508_RPM_CHASSIS) *
+             24.0f);
     }
     return powerSum;
 }
