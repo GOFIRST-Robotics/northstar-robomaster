@@ -27,6 +27,8 @@ static constexpr tap::motor::MotorId RIGHT_BACK_MOTOR_ID = tap::motor::MOTOR4;
 
 static constexpr float AMPS_DESIRED_OUTPUT_RATIO = 20.0f / 16384.0f;  // I/Output
 static constexpr float CHASSIS_VOLTAGE = 24.0f;
+static constexpr float MAX_M3508_RPM_CHASSIS =
+    482.0 / tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508;
 
 [[maybe_unused]] static modm::Pair<float, float> getNormalizedInput(float vert, float hor)
 {

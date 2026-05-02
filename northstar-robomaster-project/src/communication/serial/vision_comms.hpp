@@ -17,7 +17,7 @@ namespace src::serial
 class VisionComms : public tap::communication::serial::DJISerial
 {
 public:
-    static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
+    static constexpr size_t VISION_COMMS_BAUD_RATE = 115'200;
 
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_TX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
@@ -33,7 +33,8 @@ public:
         AUTO_PATH = 5,
         // REF_DATA = 6
         HEALTH = 6,
-        REF_TURRET_DATA
+        REF_TURRET_DATA = 7,
+        VISION_LOCALIZATION = 8
     };
 
     struct RefData
@@ -105,28 +106,35 @@ public:
         float yaw;
         float roll;
 
-        float pitch_vel;
-        float yaw_vel;
-        float roll_vel;
+        // float pitch_vel;
+        // float yaw_vel;
+        // float roll_vel;
 
     } modm_packed;
 
     struct ChassisOdometryData
     {
-        float pos_x;
-        float pos_y;
-        float pos_z;
+        // float pos_x;
+        // float pos_y;
+        // float pos_z;
 
         float vel_x;
         float vel_y;
-        float vel_z;
+        // float vel_z;
 
     } modm_packed;
 
     struct OdometryData
     {
+        uint32_t timestamp;
         ChassisOdometryData chassis_data;
         TurretOdometryData turret_data;
+    } modm_packed;
+
+    struct AprilTagLocalizationData
+    {
+        float posX;
+        float posY;
     } modm_packed;
 
     src::chassis::ChassisOdometry* chassisOdometry;
@@ -223,6 +231,8 @@ private:
     bool decodeToOdometeryData(const ReceivedSerialMessage& message);
 
     bool decodeToAutoPathData(const ReceivedSerialMessage& message);
+
+    bool decodeToVisionAprilTagLocalization(const ReceivedSerialMessage& message);
 };
 }  // namespace src::serial
 

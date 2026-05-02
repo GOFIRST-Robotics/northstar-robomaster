@@ -34,7 +34,7 @@ class ChassisAutoDrive
     src::chassis::ChassisSubsystem* chassis;
     src::chassis::ChassisOdometry* chassisOdometry;
 
-    std::deque<CubicBezier> path;
+    CubicBezier* currentCurve;
     float currentT = 0;
 
     modm::Vector<float, 2> desiredGlobalVelocity;
@@ -43,21 +43,20 @@ class ChassisAutoDrive
 public:
     ChassisAutoDrive(ChassisSubsystem* chassis, ChassisOdometry* chassisOdometry);
 
-    std::deque<CubicBezier> getPath() { return path; }
     modm::Vector<float, 2> getDesiredGlobalVelocity() { return desiredGlobalVelocity; }
     float getDesiredRotation() { return desiredRotation; }
 
     void resetPath();
-    void addCurveToPath(CubicBezier newCurve);
+    void setCurve(CubicBezier* newCurve);
     void updateAutoDrive();
 
     float getOdometryRotation() { return chassisOdometry->getRotation(); }
 
-    bool hasValidPath() { return path.size() > 0 && currentT < 1; }
+    bool hasValidPath() { return currentCurve != NULL && currentT < 1; }
 
     modm::Vector<float, 2> getDirectionToCurve(float t)
     {
-        return path.front().evaluate(t) - chassisOdometry->getPositionGlobal();
+        return currentCurve->evaluate(t) - chassisOdometry->getPositionGlobal();
     }
 
     float getLookahead(float lookaheadVal)
@@ -73,21 +72,19 @@ public:
 
     modm::Vector<float, 2> getDirectionToLookaheadPoint(float t, float lookaheadVal)
     {
-        CubicBezier currentCurve = path.front();
-        if (currentCurve.getLength() <= DEGEN_CURVE_LENGTH)
+        if (currentCurve->getLength() <= DEGEN_CURVE_LENGTH)
         {
-            // hopefully fix issues with small curves??
-            return currentCurve.getEnd() - currentCurve.getStart();
+            return currentCurve->getEnd() - currentCurve->getStart();
         }
 
         float lookahead = getLookahead(lookaheadVal);
         if (lookahead < 1)
         {
-            return currentCurve.evaluate(lookahead) - chassisOdometry->getPositionGlobal();
+            return currentCurve->evaluate(lookahead) - chassisOdometry->getPositionGlobal();
         }
         else
         {
-            return currentCurve.getEnd() - currentCurve.evaluate(0.975f);
+            return currentCurve->getEnd() - currentCurve->evaluate(0.975f);
         }
     }
 
@@ -95,25 +92,22 @@ public:
     {
         float lookahead = getLookahead(lookaheadVal);
 
-        return path.front().evaluateDerivative(lookahead);
+        return currentCurve->evaluateDerivative(lookahead);
     }
 
 private:
     bool tryUpdatePath()
     {
-        if (path.size() == 0)
+        if (currentCurve == NULL)
         {
             return false;
         }
         if (currentT > 1)
         {
-            path.pop_front();
+            currentCurve = NULL;
             currentT = 0;
 
-            if (path.size() == 0)
-            {
-                return false;
-            }
+            return false;
         }
 
         return true;
@@ -137,11 +131,9 @@ private:
         }
     }
 
-    float lengthOfCurrentCurve() { return path.front().getLength(); }
-
     float approximateDistanceToEndOfCurve()
     {
-        float length = path.front().getLength();
+        float length = currentCurve->getLength();
         return length - (length * currentT);
     }
 
@@ -152,7 +144,7 @@ private:
 
         while (t < 1)
         {
-            float currentDistToTarget = (pos - path.front().evaluate(t)).getLength();
+            float currentDistToTarget = (pos - currentCurve->evaluate(t)).getLength();
             if (currentDistToTarget > d)
             {
                 return t;
