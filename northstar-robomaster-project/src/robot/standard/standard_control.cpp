@@ -57,9 +57,9 @@
 #include "control/turret/cv/turret_cv_control_command.hpp"
 
 // flywheel
+#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
-#include "control/flywheel/three_flywheel_run_command.hpp"
+#include "control/flywheel/two_flywheel_run_command.hpp"
 
 // hopper
 #include "control/hopper/hopper_subsystem.hpp"
@@ -149,10 +149,10 @@ PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 //     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
 
 // flywheel subsystem
-RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
+DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
-ThreeFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f, 90.0f);
+TwoFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -611,16 +611,15 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
     // drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    drivers->commandScheduler.registerSubsystem(&ui);
+    // drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(
-        &chassisDriveCommand /*&chassisOrientDriveCommand*/);  //&chassisDriveCommand);  //
+    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);       // when mcb is mounted on turret
     // clientDisplay.setDefaultCommand(&clientDisplayCommand);
-    ui.setDefaultCommand(&infantryDrawCommand);
+    // ui.setDefaultCommand(&infantryDrawCommand);
 }
 
 void startStandardCommands(Drivers *drivers)

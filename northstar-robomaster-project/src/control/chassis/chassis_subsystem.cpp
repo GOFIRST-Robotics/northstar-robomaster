@@ -121,16 +121,7 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
 
 void ChassisSubsystem::setVelocityTurretDrive(float forward, float sideways, float rotational)
 {
-    // float turretRot = -getTurretYaw() + drivers->bmi088.getYaw();
     float turretRot = getTurretYaw();
-    if (turretRot > M_TWOPI)
-    {
-        turretRot -= M_TWOPI;
-    }
-    else if (turretRot < 0.0f)
-    {
-        turretRot += M_TWOPI;
-    }
     driveBasedOnHeading(forward, sideways, rotational, turretRot);
 }
 
@@ -142,6 +133,11 @@ void ChassisSubsystem::setVelocityFieldDrive(float forward, float sideways, floa
 
 float ChassisSubsystem::chassisSpeedRotationPID(float angleOffset)
 {
+    // Deadzone logic, make deadzone area a constant eventaully.
+    if (abs(angleOffset) < modm::toRadian(1.0f))
+    {
+        return 0.0f;
+    }
     // P
     float currRotationPidP = angleOffset * CHASSIS_ROTATION_P;  // P
 
@@ -197,9 +193,14 @@ float ChassisSubsystem::getChassisPowerDraw()
     float powerSum = 0.0f;
     for (size_t motor_idx = 0; motor_idx < motors.size(); motor_idx++)
     {
-        powerSum += abs(motors[motor_idx].getOutputDesired());
+        powerSum +=
+            (((float)motors[motor_idx].getOutputDesired() / DjiMotor::MAX_OUTPUT_C620) * 20.0f) *
+            (((motors[motor_idx].getEncoder()->getVelocity() * 60.0f / M_TWOPI /
+               CHASSIS_GEAR_RATIO) /
+              MAX_M3508_RPM_CHASSIS) *
+             24.0f);
     }
-    return powerSum / DjiMotor::MAX_OUTPUT_C620 * 20.0f * 24.0f;
+    return powerSum;
 }
 
 void ChassisSubsystem::driveBasedOnHeading(
@@ -216,10 +217,13 @@ void ChassisSubsystem::driveBasedOnHeading(
     float rampedSideways = rampControllers[1].getValue();
     float cos_theta = cos(heading);
     float sin_theta = sin(heading);
+
     float vx_local = rampedForward * cos_theta + rampedSideways * sin_theta;
     float vy_local = -rampedForward * sin_theta + rampedSideways * cos_theta;
-    isPeeking = abs(vy_local) > 0.1;
-    isPeekingLeft = isPeeking && (vy_local < 0);
+
+    isPeeking = abs(vx_local) > 0.1;
+    isPeekingLeft = isPeeking && (vx_local < 0);
+
     LFSpeed = mpsToRpm(
         (vx_local - vy_local) / M_SQRT2 +
         (rotational)*DIST_TO_CENTER * M_SQRT2);  // Front-left wheel
@@ -238,13 +242,17 @@ void ChassisSubsystem::driveBasedOnHeading(
     int RB = static_cast<int>(MotorId::RB);
     float calculatedMaxRPMPower = limitVal<float>(
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit()),
-        -MAX_CHASSIS_WHEEL_SPEED,
-        MAX_CHASSIS_WHEEL_SPEED);
+        -MAX_M3508_RPM_CHASSIS,
+        MAX_M3508_RPM_CHASSIS);
     desiredOutput[LF] = limitVal<float>(LFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[LB] = limitVal<float>(LBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RB] = limitVal<float>(RBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
 }
+
+float odomX = 0;
+float odomY = 0;
+float odomRot = 0;
 
 void ChassisSubsystem::refresh()
 {
@@ -265,5 +273,9 @@ void ChassisSubsystem::refresh()
         motors[static_cast<int>(MotorId::LB)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RF)].getEncoder()->getVelocity(),
         motors[static_cast<int>(MotorId::RB)].getEncoder()->getVelocity());
+
+    odomX = chassisOdometry->getPositionGlobal().x;
+    odomY = chassisOdometry->getPositionGlobal().y;
+    odomRot = chassisOdometry->getRotation();
 }
 }  // namespace src::chassis
