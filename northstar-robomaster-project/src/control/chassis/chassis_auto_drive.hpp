@@ -4,7 +4,7 @@
 #include <deque>
 
 #include "tap/algorithms/math_user_utils.hpp"
-#include "tap/algorithms/wrapped_float.hpp";
+#include "tap/algorithms/wrapped_float.hpp"
 
 #include "control/algorithms/CubicBezier.hpp"
 
