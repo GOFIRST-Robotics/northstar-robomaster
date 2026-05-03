@@ -32,7 +32,8 @@ namespace tap
 {
 namespace gpio
 {
-void Analog::init(){
+void Analog::init()
+{
 #ifndef PLATFORM_HOSTED
 
 #endif

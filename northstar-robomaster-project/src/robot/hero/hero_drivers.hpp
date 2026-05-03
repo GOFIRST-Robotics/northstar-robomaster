@@ -6,12 +6,13 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "tap/mock/imu_terminal_serial_handler_mock.hpp"
 #else
-#include "tap/communication/sensors/encoder/pwm_encoder.hpp"
 #include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
 
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
+#include "communication/sensors/encoder/pwm_encoder.hpp"
 #include "communication/serial/vision_comms.hpp"
 #include "robot/control_operator_interface.hpp"
+
 
 #endif
 

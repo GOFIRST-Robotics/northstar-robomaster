@@ -26,6 +26,10 @@
 #include "modm/architecture/interface/can_message.hpp"
 #include "modm/platform.hpp"
 
+#ifdef PLATFORM_HOSTED
+#include "tap/motor/motorsim/dji_motor_sim_handler.hpp"
+#endif
+
 #include "tap/board/board.hpp"
 #include "tap/util_macros.hpp"
 
@@ -79,9 +83,7 @@ bool tap::can::Can::isMessageAvailable(tap::can::CanBus bus) const
 bool tap::can::Can::getMessage(tap::can::CanBus bus, modm::can::Message* message)
 {
 #ifdef PLATFORM_HOSTED
-    UNUSED(bus);
-    UNUSED(message);
-    return false;
+    return motor::motorsim::DjiMotorSimHandler::getInstance()->encodeMessage(bus, message);
 #else
     switch (bus)
     {
@@ -116,9 +118,7 @@ bool tap::can::Can::isReadyToSend(CanBus bus) const
 bool tap::can::Can::sendMessage(CanBus bus, const modm::can::Message& message)
 {
 #ifdef PLATFORM_HOSTED
-    UNUSED(bus);
-    UNUSED(message);
-    return true;
+    return motor::motorsim::DjiMotorSimHandler::getInstance()->parseMotorMessage(bus, message);
 #else
     switch (bus)
     {
