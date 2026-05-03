@@ -14,7 +14,6 @@
 #include "tap/motor/double_dji_motor.hpp"
 #include "tap/util_macros.hpp"
 
-#include "../../robot-type/robot_type.hpp"
 #include "control/cycle_state_command_mapping.hpp"
 #include "control/dummy_subsystem.hpp"
 #include "robot/sentry/sentry_drivers.hpp"
