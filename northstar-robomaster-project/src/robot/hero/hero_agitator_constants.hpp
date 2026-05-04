@@ -33,8 +33,8 @@ static constexpr float OVERSHOOT_FUDGE_FACTOR = .40;  // how much agitator overs
 
 static constexpr src::agitator::VelocityAgitatorSubsystemConfig AGITATOR_CONFIG = {
     .gearRatio = 1,
-    .agitatorMotorId = tap::motor::MOTOR7,
-    .agitatorCanBusId = tap::can::CanBus::CAN_BUS2,
+    .agitatorMotorId = tap::motor::MOTOR5,
+    .agitatorCanBusId = tap::can::CanBus::CAN_BUS1,
     .isAgitatorInverted = false,
     /**
      * The jamming constants. Agitator is considered jammed if difference between the velocity

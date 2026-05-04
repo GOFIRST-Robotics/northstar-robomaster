@@ -129,7 +129,7 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
 // flywheel
-DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
+DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS, true);
 
 TwoFlywheelRunCommand heroFlywheelRunCommand(&flywheel, 12);
 
@@ -237,7 +237,7 @@ ToggleCommandMapping rightSwitchUpRunKicker(
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_MOTORS,
+    CAN_BUS_PITCH,
     true,
     "PitchMotor",
     false,
@@ -248,10 +248,10 @@ tap::motor::DoubleDjiMotor yawMotor(
     drivers(),
     YAW_MOTOR_ID_1,
     YAW_MOTOR_ID_2,
-    CAN_BUS_MOTORS,
-    CAN_BUS_MOTORS,
-    false,
-    false,
+    CAN_BUS_YAW,
+    CAN_BUS_YAW,
+    true,
+    true,
     "YawMotor1",
     "YawMotor2",
     false,

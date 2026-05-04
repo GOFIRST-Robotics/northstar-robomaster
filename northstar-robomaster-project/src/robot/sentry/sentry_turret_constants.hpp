@@ -51,8 +51,8 @@ static constexpr tap::can::CanBus CAN_BUS_PITCH = tap::can::CanBus::CAN_BUS2;
 static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR7;  // 1
 
 static constexpr tap::motor::MotorId YAW_MOTOR_ID_1 =
-    tap::motor::MotorId::MOTOR6;  // May have to change these
-static constexpr tap::motor::MotorId YAW_MOTOR_ID_2 = tap::motor::MotorId::MOTOR7;
+    tap::motor::MotorId::MOTOR7;  // May have to change these
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_2 = tap::motor::MotorId::MOTOR6;
 
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
@@ -88,7 +88,7 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
     // .kp = 60.0f,
     // .ki = 0.0f,
     // .kd = 5.0f,
-    .kp = 10.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
+    .kp = 18.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 0.0f,
@@ -130,8 +130,8 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
     // .kp = 2000.0f,
     // .ki = 20.0f,
     // .kd = 500.0f,
-    .kp = 800.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
-                   // 1000
+    .kp = 2300.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
+                    // 1000
     .ki = 0.0f,
     .kd = 0.0f,
     .maxICumulative = 1'000.0f,

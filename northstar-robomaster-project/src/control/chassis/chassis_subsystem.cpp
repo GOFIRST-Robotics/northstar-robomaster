@@ -193,9 +193,14 @@ float ChassisSubsystem::getChassisPowerDraw()
     float powerSum = 0.0f;
     for (size_t motor_idx = 0; motor_idx < motors.size(); motor_idx++)
     {
-        powerSum += abs(motors[motor_idx].getOutputDesired());
+        powerSum +=
+            (((float)motors[motor_idx].getOutputDesired() / DjiMotor::MAX_OUTPUT_C620) * 20.0f) *
+            (((motors[motor_idx].getEncoder()->getVelocity() * 60.0f / M_TWOPI /
+               CHASSIS_GEAR_RATIO) /
+              MAX_M3508_RPM_CHASSIS) *
+             24.0f);
     }
-    return powerSum / (DjiMotor::MAX_OUTPUT_C620 * 20.0f) * 24.0f;
+    return powerSum;
 }
 
 void ChassisSubsystem::driveBasedOnHeading(
@@ -237,8 +242,8 @@ void ChassisSubsystem::driveBasedOnHeading(
     int RB = static_cast<int>(MotorId::RB);
     float calculatedMaxRPMPower = limitVal<float>(
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit()),
-        -MAX_CHASSIS_WHEEL_SPEED,
-        MAX_CHASSIS_WHEEL_SPEED);
+        -MAX_M3508_RPM_CHASSIS,
+        MAX_M3508_RPM_CHASSIS);
     desiredOutput[LF] = limitVal<float>(LFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[LB] = limitVal<float>(LBSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);
     desiredOutput[RF] = limitVal<float>(RFSpeed, -calculatedMaxRPMPower, calculatedMaxRPMPower);

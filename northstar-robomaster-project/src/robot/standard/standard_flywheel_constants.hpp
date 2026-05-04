@@ -15,6 +15,7 @@ static constexpr tap::motor::MotorId LEFT_MOTOR_ID = tap::motor::MOTOR1;
 static constexpr tap::motor::MotorId RIGHT_MOTOR_ID = tap::motor::MOTOR2;
 
 static constexpr tap::can::CanBus CAN_BUS = tap::can::CanBus::CAN_BUS2;
+
 // rev constants
 static constexpr float FLYWHEEL_PID_KP_REV = 0.0f;
 static constexpr float FLYWHEEL_PID_KI_REV = 0.0f;

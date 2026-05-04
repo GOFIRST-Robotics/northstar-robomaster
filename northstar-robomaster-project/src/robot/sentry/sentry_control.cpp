@@ -169,7 +169,7 @@ tap::motor::DjiMotor pitchMotor(
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DoubleDjiMotor yawMotor(
+tap::motor::DoubleDjiMotor yawMotor2(
     drivers(),
     YAW_MOTOR_ID_1,
     YAW_MOTOR_ID_2,
@@ -181,6 +181,16 @@ tap::motor::DoubleDjiMotor yawMotor(
     "YawMotor2",
     false,
     tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue);
+
+tap::motor::DjiMotor yawMotor(
+    drivers(),
+    YAW_MOTOR_ID_1,
+    CAN_BUS_YAW,
+    true,
+    "YawMotor1",
+    false,
+    1.0f / 29.01f,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
     YAW_MOTOR_CONFIG.startEncoderValue);
 
 TurretSubsystem turret(
