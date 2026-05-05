@@ -50,8 +50,8 @@
 
 /* define timers here -------------------------------------------------------*/
 tap::arch::PeriodicMilliTimer sendMotorTimeout(tap::Drivers::DT);
-// tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
-// tap::arch::PeriodicMilliTimer revHeartBeatTimeout(100);
+tap::arch::PeriodicMilliTimer revTxPublisherTimeout(20);
+tap::arch::PeriodicMilliTimer revHeartBeatTimeout(100);
 
 #ifdef TARGET_STANDARD
 using namespace src::standard;
@@ -76,10 +76,6 @@ static void initializeIo(Drivers *drivers);
 // Anything that you would like to be called place here. It will be called
 // very frequently. Use PeriodicMilliTimers if you don't want something to be
 // called as frequently.
-
-uint16_t deltaTime = 0;
-uint16_t lastTime = 0;
-
 static void updateIo(Drivers *drivers);
 int main()
 {
@@ -105,19 +101,12 @@ int main()
 
     while (1)
     {
-        //         // do this as fast as you can
+        // do this as fast as you can
         PROFILE(drivers->profiler, updateIo, (drivers));
 
         if (sendMotorTimeout.execute())
         {
-            uint16_t currentTTime = tap::arch::clock::getTimeMicroseconds();
-            deltaTime = currentTTime - lastTime;
-            lastTime = currentTTime;
-
             PROFILE(drivers->profiler, drivers->bmi088.periodicIMUUpdate, ());
-
-            PROFILE(drivers->profiler, drivers->encoder.update, ());
-
             // PROFILE(drivers->profiler, drivers->terminalSerial.update, ());
             PROFILE(drivers->profiler, drivers->commandScheduler.run, ());
 #ifdef TURRET
@@ -128,63 +117,48 @@ int main()
             PROFILE(drivers->profiler, drivers->djiMotorTxHandler.encodeAndSendCanData, ());
 #endif
         }
-        // #if defined(TARGET_STANDARD) || defined(TARGET_SENTRY)
-        //         if (revTxPublisherTimeout.execute())
-        //         {
-        //             PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData,
-        //             ());
-        //         }
-        //         if (revHeartBeatTimeout.execute())
-        //         {
-        //             PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
-        //         }
-        //         PROFILE(drivers->profiler, drivers->visionComms.sendMessage, ());
+#if defined(TARGET_STANDARD) || defined(TARGET_SENTRY) || defined(TARGET_TEST_BED)
+        if (revTxPublisherTimeout.execute())
+        {
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.encodeAndSendCanData, ());
+        }
+        if (revHeartBeatTimeout.execute())
+        {
+            PROFILE(drivers->profiler, drivers->revMotorTxHandler.heartBeat, ());
+        }
+        PROFILE(drivers->profiler, drivers->visionComms.sendMessage, ());
 
-        // #endif
+#endif
         modm::delay_us(10);
     }
     return 0;
 }
 static void initializeIo(Drivers *drivers)
 {
-    // things we need to check controller
-    drivers->remote.initialize();
-    drivers->analog.init();
-    drivers->digital.init();
-    drivers->leds.init();
-
-    // if controller is on when the robot turns on, wait for it to be off.
-    // This is to prevent the shredding of wires
-    modm::delay_ms(3000);
-    drivers->leds.set(tap::gpio::Leds::Red, true);
-    int i = 0;
-    while (i < 5000)
-    {
-        drivers->remote.read();
-        if (drivers->remote.isConnected())
-            i = 0;
-        else
-            i++;
-        modm::delay_us(10);
-    }
-
-    drivers->leds.set(tap::gpio::Leds::Blue, true);
-
-    drivers->pwm.init();
+    // drivers->uart.init<tap::communication::serial::Uart::UartPort::Uart1, 115200>();
     drivers->can.initialize();
+    drivers->leds.init();
+    drivers->digital.init();
+    drivers->pwm.init();
     drivers->errorController.init();
-
-    drivers->encoder.initialize();
+    // drivers->terminalSerial.initialize();
+    drivers->bmi088.initialize(500, .001, 0);
     drivers->visionComms.initializeUartDelays();
 
+#if defined(TARGET_STANDARD) || defined(TARGET_HERO)
+    drivers->turretMCBCanCommBus2.init();
+#endif
+#ifdef TURRET
+    chassisMcbCanComm.init();
+#else
+    drivers->analog.init();
+    drivers->remote.initialize();
     drivers->refSerial.initialize();
-
-    drivers->bmi088.initialize(500, -0.005f, 0.000f);
-    drivers->bmi088.setTargetTemperature(35.0f);
-    drivers->bmi088.setCalibrationSamples(4000);
-
 #ifndef FLY_SKY
     drivers->visionComms.initializeCV();
+#endif
+    // drivers->schedulerTerminalHandler.init();
+    // drivers->djiMotorTerminalSerialHandler.init();
 #endif
 }
 float debugYaw = 0.0f;
@@ -196,20 +170,18 @@ float debugRollV = 0.0f;
 bool conneccc = false;
 float debugLastAimDataYaw = 0.0f;
 float debugLastAimDataPitch = 0.0f;
-float dddddgfregr = 0;
-bool uartOnline = false;
 
 bool cal = false;
 bool calibrated = false;
 static void updateIo(Drivers *drivers)
 {
-    // #ifndef TARGET_TEST_BED
+#ifndef TARGET_TEST_BED
     if (!calibrated && drivers->remote.isConnected())
     {
         drivers->commandScheduler.addCommand(getImuCalibrateCommand());
         calibrated = true;
     }
-// #endif
+#endif
 #ifdef PLATFORM_HOSTED
     tap::motorsim::SimHandler::updateSims();
 #endif
@@ -237,8 +209,5 @@ static void updateIo(Drivers *drivers)
     debugRollV = drivers->bmi088.getGx();
     debugRoll = modm::toDegree(drivers->bmi088.getRoll());
     conneccc = drivers->remote.isConnected();
-    dddddgfregr = drivers->encoder.getPosition().getUnwrappedValue();
-    uartOnline = drivers->refSerial.getRefSerialReceivingData();
-
 #endif
 }

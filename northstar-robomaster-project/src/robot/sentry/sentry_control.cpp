@@ -8,7 +8,6 @@
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
 #include "tap/drivers.hpp"
-#include "tap/motor/double_dji_motor.hpp"
 #include "tap/util_macros.hpp"
 
 #include "../../robot-type/robot_type.hpp"
@@ -45,7 +44,7 @@
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
-#include "control/turret/turret_motor_DJI.hpp"
+#include "control/turret/rev_turret_subsystem.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -57,12 +56,9 @@
 #include "control/turret/cv/turret_cv_control_command.hpp"
 
 // flywheel
-#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/two_flywheel_run_command.hpp"
-
-// imu
-#include "control/imu/imu_calibrate_command.hpp"
+#include "control/flywheel/rev_three_flywheel_subsystem.hpp"
+#include "control/flywheel/three_flywheel_run_command.hpp"
 
 // governor
 #include "tap/control/governor/governor_limited_command.hpp"
@@ -92,22 +88,6 @@
 #include "control/buzzer/song/rouser.hpp"
 #include "control/buzzer/song/tuff_startup_noise.hpp"
 
-// hud
-#include "tap/communication/serial/ref_serial_transmitter.hpp"
-
-#include "control/clientDisplay/client_display_command.hpp"
-#include "control/clientDisplay/client_display_subsystem.hpp"
-#include "control/clientDisplay/graphics/core/sentry_draw_command.hpp"
-#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
-#include "control/clientDisplay/indicators/ammo_indicator.hpp"
-#include "control/clientDisplay/indicators/circle_crosshair.hpp"
-#include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
-#include "control/clientDisplay/indicators/flywheel_indicator.hpp"
-#include "control/clientDisplay/indicators/hud_indicator.hpp"
-#include "control/clientDisplay/indicators/shooting_mode_indicator.hpp"
-#include "control/clientDisplay/indicators/text_hud_indicators.hpp"
-#include "control/clientDisplay/indicators/vision_indicator.hpp"
-
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
 using tap::control::RemoteMapState;
@@ -126,7 +106,6 @@ using namespace src::control::governor;
 using namespace tap::control::governor;
 using namespace tap::communication::serial;
 using namespace src::control::buzzer;
-using namespace src::control::client_display::graphics;
 
 driversFunc drivers = DoNotUse_getDrivers;
 
@@ -141,11 +120,9 @@ BuzzerSubsystem buzzerSubsystem(drivers());
 PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 // PlaySongCommand playStartupSongCommand(&buzzerSubsystem, rouser_song);
 
-// flywheel subsystem
-DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
+RevThreeFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, UP_MOTOR_ID, CAN_BUS);
 
-// flywheel commands
-TwoFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f);
+ThreeFlywheelRunCommand flywheelRunCommand(&flywheel);
 
 // flywheel mappings
 ToggleCommandMapping fPressedFlywheels(
@@ -162,38 +139,24 @@ ToggleCommandMapping leftSwitchUpFlywheels(
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_PITCH,
-    false,
+    CAN_BUS_MOTORS,
+    true,
     "PitchMotor",
     false,
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
-tap::motor::DoubleDjiMotor yawMotor2(
-    drivers(),
-    YAW_MOTOR_ID_1,
-    YAW_MOTOR_ID_2,
-    CAN_BUS_YAW,
-    CAN_BUS_YAW,
-    true,
-    true,
-    "YawMotor1",
-    "YawMotor2",
-    false,
-    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
-    YAW_MOTOR_CONFIG.startEncoderValue);
-
 tap::motor::DjiMotor yawMotor(
     drivers(),
-    YAW_MOTOR_ID_1,
-    CAN_BUS_YAW,
+    YAW_MOTOR_ID,
+    CAN_BUS_MOTORS,
     true,
-    "YawMotor1",
+    "YawMotor",
     false,
-    1.0f / 29.01f,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    1,
     YAW_MOTOR_CONFIG.startEncoderValue);
 
-TurretSubsystem turret(
+StandardTurretSubsystem turret(
     drivers(),
     &pitchMotor,
     &yawMotor,
@@ -261,7 +224,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -271,7 +234,7 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchTurretImuController,
+    &worldFramePitchChassisImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -508,7 +471,7 @@ GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
 
 HoldRepeatCommandMapping rightSwitchMidOrientDriveWhenImuCalibrated(
     drivers(),
-    {&chassisOrientDriveCommand},
+    {&orientDriveWhenImuCalibrated},
     RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::MID),
     true);
 
@@ -517,15 +480,6 @@ RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 // STATE MACHINE
 src::stateMachine::StateMachineSubsystem stateMachineSubsystem =
     src::stateMachine::StateMachineSubsystem(drivers(), &chassisSubsystem, chassisAutoDrive);
-
-src::control::client_display::graphics::UISubsystem ui(drivers());
-src::control::client_display::graphics::SentryDrawCommand sentryDrawCommand(
-    drivers(),
-    &ui,
-    &turret,
-    // &flywheel,
-    &agitator,
-    &chassisSubsystem);
 
 void initializeSubsystems(Drivers *drivers)
 {
@@ -544,14 +498,12 @@ void registerSentrySubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&turret);
     drivers->commandScheduler.registerSubsystem(&stateMachineSubsystem);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
-    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
 void setDefaultSentryCommands([[maybe_unused]] Drivers *drivers)
 {
     // chassisSubsystem.setDefaultCommand(&chassisDriveCommand);
     turret.setDefaultCommand(&turretUserControlCommand);
-    ui.setDefaultCommand(&sentryDrawCommand);
 }
 
 void startSentryCommands(Drivers *drivers)
@@ -565,8 +517,8 @@ void startSentryCommands(Drivers *drivers)
         0,
         0,
         0,
-        modm::toRadian(180),
-        modm::toRadian(180)));
+        modm::toRadian(-135),
+        modm::toRadian(-90)));
 }
 // from RM upside down left hand rule 180 around roll
 
@@ -586,7 +538,7 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(&qPressedNormDrive);
     drivers->commandMapper.addMap(&rightSwitchMidOrientDriveWhenImuCalibrated);
 
-    // drivers->commandMapper.addMap(&leftSwitchDownResetOdometry);
+    drivers->commandMapper.addMap(&leftSwitchDownResetOdometry);
 }
 }  // namespace sentry_control
 
@@ -594,7 +546,7 @@ namespace src::sentry
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return nullptr;  //&sentry_control::imuCalibrateCommand;
+    return &sentry_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::sentry::Drivers *drivers)
