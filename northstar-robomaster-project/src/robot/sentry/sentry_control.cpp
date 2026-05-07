@@ -515,7 +515,7 @@ Trigger rightSwitchMidOrientDriveWhenImuCalibrated = (TriggerHelpers::switchStat
                                                           Remote::SwitchState::MID) &&
                                                       Trigger(drivers(), []() {
                                                           return imuCalibratingGovernor.isReady();
-                                                      })).whileTrue(&chassisOrientDriveCommand);
+                                                      })).whileTrue(&chassisDriveCommand);
 
 // auto rightSwitchMidOrientDriveWhenImuCalibrated = std::make_unique<HoldRepeatCommandMapping>(
 //     drivers(),
