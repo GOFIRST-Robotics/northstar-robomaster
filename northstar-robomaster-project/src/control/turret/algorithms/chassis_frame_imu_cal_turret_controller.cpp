@@ -17,7 +17,7 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "chassis_frame_turret_controller.hpp"
+#include "chassis_frame_imu_cal_turret_controller.hpp"
 
 #include "tap/algorithms/wrapped_float.hpp"
 #include "tap/drivers.hpp"
@@ -32,15 +32,19 @@ using tap::algorithms::WrappedFloat;
 
 namespace src::control::turret::algorithms
 {
-ChassisFrameYawTurretController::ChassisFrameYawTurretController(
+ChassisFrameYawImuCalTurretController::ChassisFrameYawImuCalTurretController(
     TurretMotor &yawMotor,
-    const tap::algorithms::SmoothPidConfig &pidConfig)
+    const tap::algorithms::SmoothPidConfig &pidConfig,
+    float errorForMaxOuput,
+    float maxOutput)
     : TurretYawControllerInterface(yawMotor),
-      pid(pidConfig)
+      pid(pidConfig),
+      errorForMaxOuput(errorForMaxOuput),
+      maxOutput(maxOutput)
 {
 }
 
-void ChassisFrameYawTurretController::initialize()
+void ChassisFrameYawImuCalTurretController::initialize()
 {
     if (turretMotor.getTurretController() != this)
     {
@@ -48,7 +52,7 @@ void ChassisFrameYawTurretController::initialize()
         turretMotor.attachTurretController(this);
     }
 }
-void ChassisFrameYawTurretController::runController(
+void ChassisFrameYawImuCalTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
@@ -60,39 +64,50 @@ void ChassisFrameYawTurretController::runController(
     float pidOutput =
         pid.runController(positionControllerError, turretMotor.getChassisFrameVelocity(), dt);
 
-    turretMotor.setMotorOutput(pidOutput);
+    if (positionControllerError > errorForMaxOuput)
+    {
+        turretMotor.setMotorOutput(limitVal<float>(pidOutput, -maxOutput, maxOutput));
+    }
+    else
+    {
+        turretMotor.setMotorOutput(pidOutput);
+    }
 }
 
-void ChassisFrameYawTurretController::setSetpoint(WrappedFloat desiredSetpoint)
+void ChassisFrameYawImuCalTurretController::setSetpoint(WrappedFloat desiredSetpoint)
 {
     turretMotor.setChassisFrameSetpoint(desiredSetpoint);
 }
 
-WrappedFloat ChassisFrameYawTurretController::getSetpoint() const
+WrappedFloat ChassisFrameYawImuCalTurretController::getSetpoint() const
 {
     return turretMotor.getChassisFrameSetpoint();
 }
 
-WrappedFloat ChassisFrameYawTurretController::getMeasurement() const
+WrappedFloat ChassisFrameYawImuCalTurretController::getMeasurement() const
 {
     return turretMotor.getChassisFrameMeasuredAngle();
 }
 bool isOn = true;
-bool ChassisFrameYawTurretController::isOnline() const
+bool ChassisFrameYawImuCalTurretController::isOnline() const
 {
     isOn = turretMotor.isOnline();
     return isOn;
 }
 
-ChassisFramePitchTurretController::ChassisFramePitchTurretController(
+ChassisFramePitchImuCalTurretController::ChassisFramePitchImuCalTurretController(
     TurretMotor &pitchMotor,
-    const tap::algorithms::SmoothPidConfig &pidConfig)
+    const tap::algorithms::SmoothPidConfig &pidConfig,
+    float errorForMaxOuput,
+    float maxOutput)
     : TurretPitchControllerInterface(pitchMotor),
-      pid(pidConfig)
+      pid(pidConfig),
+      errorForMaxOuput(errorForMaxOuput),
+      maxOutput(maxOutput)
 {
 }
 
-void ChassisFramePitchTurretController::initialize()
+void ChassisFramePitchImuCalTurretController::initialize()
 {
     if (turretMotor.getTurretController() != this)
     {
@@ -101,7 +116,7 @@ void ChassisFramePitchTurretController::initialize()
     }
 }
 
-void ChassisFramePitchTurretController::runController(
+void ChassisFramePitchImuCalTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
 {
@@ -120,24 +135,31 @@ void ChassisFramePitchTurretController::runController(
         -turretMotor.getChassisFrameMeasuredAngle().getWrappedValue(),
         GRAVITY_COMPENSATION_SCALAR);
 
-    turretMotor.setMotorOutput(pidOutput);
+    if (positionControllerError > errorForMaxOuput)
+    {
+        turretMotor.setMotorOutput(limitVal<float>(pidOutput, -maxOutput, maxOutput));
+    }
+    else
+    {
+        turretMotor.setMotorOutput(pidOutput);
+    }
 }
 
-void ChassisFramePitchTurretController::setSetpoint(WrappedFloat desiredSetpoint)
+void ChassisFramePitchImuCalTurretController::setSetpoint(WrappedFloat desiredSetpoint)
 {
     turretMotor.setChassisFrameSetpoint(desiredSetpoint);
 }
 
-WrappedFloat ChassisFramePitchTurretController::getSetpoint() const
+WrappedFloat ChassisFramePitchImuCalTurretController::getSetpoint() const
 {
     return turretMotor.getChassisFrameSetpoint();
 }
 
-WrappedFloat ChassisFramePitchTurretController::getMeasurement() const
+WrappedFloat ChassisFramePitchImuCalTurretController::getMeasurement() const
 {
     return turretMotor.getChassisFrameMeasuredAngle();
 }
 
-bool ChassisFramePitchTurretController::isOnline() const { return turretMotor.isOnline(); }
+bool ChassisFramePitchImuCalTurretController::isOnline() const { return turretMotor.isOnline(); }
 
 }  // namespace src::control::turret::algorithms
