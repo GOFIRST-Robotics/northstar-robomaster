@@ -10,6 +10,8 @@
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
+#include "tap/control/trigger.hpp"
+#include "tap/control/trigger_helpers.hpp"
 #include "tap/drivers.hpp"
 #include "tap/motor/double_dji_motor.hpp"
 #include "tap/util_macros.hpp"
@@ -194,8 +196,9 @@ tap::motor::DjiMotor yawMotor(
     true,
     "YawMotor1",
     false,
-    1.0f / 29.01f,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
 TurretSubsystem turret(
     drivers(),
@@ -506,11 +509,19 @@ GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
     {&imuCalibratingGovernor});
 
 RemoteMapState rightSwitchMid(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::MID);
-auto rightSwitchMidOrientDriveWhenImuCalibrated = std::make_unique<HoldRepeatCommandMapping>(
-    drivers(),
-    std::vector<Command *>{&chassisOrientDriveCommand},
-    &rightSwitchMid,
-    true);
+Trigger rightSwitchMidOrientDriveWhenImuCalibrated = TriggerHelpers::switchState(
+                                                         drivers(),
+                                                         Remote::Switch::RIGHT_SWITCH,
+                                                         Remote::SwitchState::MID) &&
+                                                     Trigger(drivers(), []() {
+                                                         return imuCalibratingGovernor.isReady();
+                                                     }).whileTrue(&chassisOrientDriveCommand);
+
+// auto rightSwitchMidOrientDriveWhenImuCalibrated = std::make_unique<HoldRepeatCommandMapping>(
+//     drivers(),
+//     std::vector<Command *>{&chassisOrientDriveCommand},
+//     &rightSwitchMid,
+//     true);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
@@ -584,7 +595,7 @@ void registerSentryIoMappings(Drivers *drivers)
     drivers->commandMapper.addMap(std::move(leftSwitchDownPressedShoot));
     drivers->commandMapper.addMap(std::move(leftSwitchUpFlywheels));
     drivers->commandMapper.addMap(std::move(qPressedNormDrive));
-    drivers->commandMapper.addMap(std::move(rightSwitchMidOrientDriveWhenImuCalibrated));
+    // drivers->commandMapper.addMap(std::move(rightSwitchMidOrientDriveWhenImuCalibrated));
 
     // drivers->commandMapper.addMap(std::move(leftSwitchDownResetOdometry));
 }
@@ -594,7 +605,7 @@ namespace src::sentry
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return nullptr;  //&sentry_control::imuCalibrateCommand;
+    return &sentry_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::sentry::Drivers *drivers)
