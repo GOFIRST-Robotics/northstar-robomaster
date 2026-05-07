@@ -509,13 +509,13 @@ GovernorLimitedCommand<1> orientDriveWhenImuCalibrated(
     {&imuCalibratingGovernor});
 
 RemoteMapState rightSwitchMid(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::MID);
-Trigger rightSwitchMidOrientDriveWhenImuCalibrated = TriggerHelpers::switchState(
-                                                         drivers(),
-                                                         Remote::Switch::RIGHT_SWITCH,
-                                                         Remote::SwitchState::MID) &&
-                                                     Trigger(drivers(), []() {
-                                                         return imuCalibratingGovernor.isReady();
-                                                     }).whileTrue(&chassisOrientDriveCommand);
+Trigger rightSwitchMidOrientDriveWhenImuCalibrated = (TriggerHelpers::switchState(
+                                                          drivers(),
+                                                          Remote::Switch::RIGHT_SWITCH,
+                                                          Remote::SwitchState::MID) &&
+                                                      Trigger(drivers(), []() {
+                                                          return imuCalibratingGovernor.isReady();
+                                                      })).whileTrue(&chassisOrientDriveCommand);
 
 // auto rightSwitchMidOrientDriveWhenImuCalibrated = std::make_unique<HoldRepeatCommandMapping>(
 //     drivers(),
