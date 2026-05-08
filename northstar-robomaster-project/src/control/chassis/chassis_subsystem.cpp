@@ -109,9 +109,7 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
     float maxWheelSpeed =
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
     float allowedwheelSpeed =
-        (maxWheelSpeed -
-         (sqrt(pow(vert / MAX_CHASSIS_SPEED_MPS, 2) + pow(hor / MAX_CHASSIS_SPEED_MPS, 2)) *
-          maxWheelSpeed));
+        (maxWheelSpeed - (sqrt(pow(mpsToRpm(vert), 2) + pow(mpsToRpm(hor), 2))));
     if (allowedwheelSpeed < 0.0f)
     {
         allowedwheelSpeed = 0.0f;
