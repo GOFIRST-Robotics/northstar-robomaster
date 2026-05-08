@@ -56,7 +56,6 @@
 #include "control/turret/user/turret_user_world_relative_command.hpp"
 #include "robot/standard/standard_turret_subsystem.hpp"
 
-
 // cv
 #include "control/agitator/multi_shot_cv_command_mapping.hpp"
 #include "control/governor/cv_on_target_governor.hpp"
@@ -218,6 +217,20 @@ algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
 algorithms::ChassisFrameYawTurretController chassisFrameYawTurretController(
     turret.yawMotor,
     chassis_rel::YAW_PID_CONFIG);
+
+algorithms::ChassisFramePitchImuCalTurretController chassisFrameImuCalPitchTurretController(
+    turret.pitchMotor,
+    chassis_rel::PITCH_IMU_CAL_PID_CONFIG,
+    modm::toRadian(15),
+    4000,
+    modm::toRadian(4));
+
+algorithms::ChassisFrameYawImuCalTurretController chassisFrameImuCalYawTurretController(
+    turret.yawMotor,
+    chassis_rel::YAW_IMU_CAL_PID_CONFIG,
+    modm::toRadian(15),
+    4000,
+    modm::toRadian(4));
 
 algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuController(
     *drivers(),
@@ -488,7 +501,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
         &turret,
-        &chassisFrameYawTurretController,
+        &chassisFrameImuCalYawTurretController,
         &chassisFramePitchTurretController,
         true,
     }},
