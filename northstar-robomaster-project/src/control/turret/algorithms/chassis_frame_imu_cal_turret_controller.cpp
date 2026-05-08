@@ -36,11 +36,14 @@ ChassisFrameYawImuCalTurretController::ChassisFrameYawImuCalTurretController(
     TurretMotor &yawMotor,
     const tap::algorithms::SmoothPidConfig &pidConfig,
     float errorForMaxOuput,
-    float maxOutput)
+    float maxOutput,
+    float errorForAveraging)
     : TurretYawControllerInterface(yawMotor),
       pid(pidConfig),
       errorForMaxOuput(errorForMaxOuput),
-      maxOutput(maxOutput)
+      maxOutput(maxOutput),
+      errorForAveraging(errorForAveraging),
+      positionBuffer(std::deque<float>())
 {
 }
 
@@ -68,6 +71,15 @@ void ChassisFrameYawImuCalTurretController::runController(
     {
         turretMotor.setMotorOutput(limitVal<float>(pidOutput, -maxOutput, maxOutput));
     }
+    else if (positionControllerError < errorForAveraging)
+    {
+        if (positionBuffer.size() > 10)
+        {
+            positionBuffer.pop_front();
+        }
+        positionBuffer.push_back(positionControllerError);
+        turretMotor.setMotorOutput(getPositionBufferAverage());
+    }
     else
     {
         turretMotor.setMotorOutput(pidOutput);
@@ -94,11 +106,14 @@ ChassisFramePitchImuCalTurretController::ChassisFramePitchImuCalTurretController
     TurretMotor &pitchMotor,
     const tap::algorithms::SmoothPidConfig &pidConfig,
     float errorForMaxOuput,
-    float maxOutput)
+    float maxOutput,
+    float errorForAveraging)
     : TurretPitchControllerInterface(pitchMotor),
       pid(pidConfig),
       errorForMaxOuput(errorForMaxOuput),
-      maxOutput(maxOutput)
+      maxOutput(maxOutput),
+      errorForAveraging(errorForAveraging),
+      positionBuffer(std::deque<float>())
 {
 }
 
@@ -133,6 +148,15 @@ void ChassisFramePitchImuCalTurretController::runController(
     if (positionControllerError > errorForMaxOuput)
     {
         turretMotor.setMotorOutput(limitVal<float>(pidOutput, -maxOutput, maxOutput));
+    }
+    else if (positionControllerError < errorForAveraging)
+    {
+        if (positionBuffer.size() > 10)
+        {
+            positionBuffer.pop_front();
+        }
+        positionBuffer.push_back(positionControllerError);
+        turretMotor.setMotorOutput(getPositionBufferAverage());
     }
     else
     {

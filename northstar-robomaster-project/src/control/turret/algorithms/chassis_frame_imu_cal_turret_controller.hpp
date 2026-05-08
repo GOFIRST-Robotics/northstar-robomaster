@@ -21,6 +21,7 @@
 #define CHASSIS_FRAME_TURRET_CONTROLLER_HPP_
 
 #include <cstdint>
+#include <queue>
 
 #include "tap/algorithms/smooth_pid.hpp"
 
@@ -50,7 +51,8 @@ public:
         TurretMotor &yawMotor,
         const tap::algorithms::SmoothPidConfig &pidConfig,
         float errorForMaxOuput,
-        float maxOutput);
+        float maxOutput,
+        float errorForAveraging);
 
     void initialize() final;
 
@@ -87,10 +89,24 @@ public:
         return chassisFrameAngle;
     }
 
+    inline float getPositionBufferAverage()
+    {
+        float posTotal = 0;
+        int numVals = 0;
+        for (const auto &value : positionBuffer)
+        {
+            posTotal += value;
+            numVals++;
+        }
+        return posTotal / numVals;
+    }
+
 private:
     tap::algorithms::SmoothPid pid;
     float errorForMaxOuput;
     float maxOutput;
+    float errorForAveraging;
+    std::deque<float> positionBuffer;
 };
 
 /**
@@ -110,7 +126,8 @@ public:
         TurretMotor &pitchMotor,
         const tap::algorithms::SmoothPidConfig &pidConfig,
         float errorForMaxOuput,
-        float maxOutput);
+        float maxOutput,
+        float errorForAveraging);
 
     void initialize() final;
 
@@ -147,10 +164,24 @@ public:
         return chassisFrameAngle;
     }
 
+    inline float getPositionBufferAverage()
+    {
+        float posTotal = 0;
+        int numVals = 0;
+        for (const auto &value : positionBuffer)
+        {
+            posTotal += value;
+            numVals++;
+        }
+        return posTotal / numVals;
+    }
+
 private:
     tap::algorithms::SmoothPid pid;
     float errorForMaxOuput;
     float maxOutput;
+    float errorForAveraging;
+    std::deque<float> positionBuffer;
 };
 
 }  // namespace src::control::turret::algorithms
