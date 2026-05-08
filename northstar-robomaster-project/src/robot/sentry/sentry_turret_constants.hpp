@@ -78,9 +78,9 @@ static constexpr TurretMotorConfig YAW_MOTOR_REV_CONFIG = {
     .limitMotorAngles = false,
 };
 
-static constexpr float TURRET_CG_X = 80.0f;                 // 30.17;
-static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 12000 // 7'000;
+static constexpr float TURRET_CG_X = 30.0f;                     // 30.17;
+static constexpr float TURRET_CG_Z = 0.0f;                      // 34.02;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = -3300.0f;  // 12000 // 7'000;
 
 namespace world_rel_turret_imu
 {
@@ -292,9 +292,9 @@ namespace chassis_rel
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
     .kp = 8000.0f,
     .ki = 0.0f,
-    .kd = 10.0f,
+    .kd = 900.0f,
     .maxICumulative = 0.0f,
-    .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_C620 / 2,
+    .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_C620,
     .tQDerivativeKalman = 0.1f,
     .tRDerivativeKalman = 70.0f,
     .tQProportionalKalman = 0.1f,
@@ -330,9 +330,9 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
 static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
     .kp = 60'000.0f,  // TODO for imu cal command
     .ki = 0.0f,
-    .kd = 100.0f,
+    .kd = 5000.0f,
     .maxICumulative = 0.0f,
-    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020 / 2,  // 0.0f
+    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,  // 0.0f
     .tQDerivativeKalman = 0.1f,
     .tRDerivativeKalman = 10.0f,
     .tQProportionalKalman = 0.1f,
