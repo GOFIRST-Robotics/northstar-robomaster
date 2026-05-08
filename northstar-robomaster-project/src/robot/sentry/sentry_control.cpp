@@ -44,6 +44,7 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // turret
+#include "control/turret/algorithms/chassis_frame_imu_cal_turret_controller.hpp"
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
@@ -216,6 +217,20 @@ algorithms::ChassisFramePitchTurretController chassisFramePitchTurretController(
 algorithms::ChassisFrameYawTurretController chassisFrameYawTurretController(
     turret.yawMotor,
     chassis_rel::YAW_PID_CONFIG);
+
+algorithms::ChassisFramePitchImuCalTurretController chassisFrameImuCalPitchTurretController(
+    turret.pitchMotor,
+    chassis_rel::PITCH_IMU_CAL_PID_CONFIG,
+    modm::toRadian(15),
+    4000,
+    modm::toRadian(4));
+
+algorithms::ChassisFrameYawImuCalTurretController chassisFrameImuCalYawTurretController(
+    turret.yawMotor,
+    chassis_rel::YAW_IMU_CAL_PID_CONFIG,
+    modm::toRadian(15),
+    4000,
+    modm::toRadian(4));
 
 algorithms::WorldFrameYawChassisImuTurretController worldFrameYawChassisImuController(
     *drivers(),
@@ -486,7 +501,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
         &turret,
-        &chassisFrameYawTurretController,
+        &chassisFrameImuCalYawTurretController,
         &chassisFramePitchTurretController,
         true,
     }},
@@ -515,7 +530,7 @@ Trigger rightSwitchMidOrientDriveWhenImuCalibrated = (TriggerHelpers::switchStat
                                                           Remote::SwitchState::MID) &&
                                                       Trigger(drivers(), []() {
                                                           return imuCalibratingGovernor.isReady();
-                                                      })).whileTrue(&chassisDriveCommand);
+                                                      })).whileTrue(&chassisOrientDriveCommand);
 
 // auto rightSwitchMidOrientDriveWhenImuCalibrated = std::make_unique<HoldRepeatCommandMapping>(
 //     drivers(),

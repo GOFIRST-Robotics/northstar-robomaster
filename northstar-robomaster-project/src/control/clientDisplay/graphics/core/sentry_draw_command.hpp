@@ -53,7 +53,7 @@ public:
         addGraphicsObject(&lane);
         // addGraphicsObject(&supercap);
         addGraphicsObject(&orient);
-        addGraphicsObject(&peek);
+        // addGraphicsObject(&peek);
         addGraphicsObject(&reticle);
         addGraphicsObject(&ring);
         // addGraphicsObject(&remain);
@@ -71,7 +71,7 @@ public:
         lane.update();
         // supercap.update();
         orient.update();
-        peek.update();
+        // peek.update();
         reticle.update();
         ring.update();
         // remain.update();

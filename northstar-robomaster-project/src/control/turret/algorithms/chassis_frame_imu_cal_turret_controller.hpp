@@ -17,8 +17,8 @@
  * along with aruw-mcb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef CHASSIS_FRAME_TURRET_CONTROLLER_HPP_
-#define CHASSIS_FRAME_TURRET_CONTROLLER_HPP_
+#ifndef CHASSIS_FRAME_IMU_CAL_TURRET_CONTROLLER_HPP_
+#define CHASSIS_FRAME_IMU_CAL_TURRET_CONTROLLER_HPP_
 
 #include <cstdint>
 #include <queue>
