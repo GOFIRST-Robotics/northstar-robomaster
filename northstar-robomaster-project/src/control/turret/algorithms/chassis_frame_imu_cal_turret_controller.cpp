@@ -64,11 +64,11 @@ void ChassisFrameYawImuCalTurretController::runController(
 
     // position controller based on turret yaw gimbal
     float positionControllerError = turretMotor.getValidChassisMeasurementError();
-    float pidOutput =
-        pid.runController(positionControllerError, turretMotor.getChassisFrameVelocity(), dt);
 
     if (positionControllerError > errorForMaxOuput)
     {
+        float pidOutput =
+            pid.runController(positionControllerError, turretMotor.getChassisFrameVelocity(), dt);
         turretMotor.setMotorOutput(limitVal<float>(pidOutput, -maxOutput, maxOutput));
     }
     else if (positionControllerError < errorForAveraging)
@@ -78,10 +78,16 @@ void ChassisFrameYawImuCalTurretController::runController(
             positionBuffer.pop_front();
         }
         positionBuffer.push_back(positionControllerError);
-        turretMotor.setMotorOutput(getPositionBufferAverage());
+        float pidOutput = pid.runController(
+            getPositionBufferAverage(),
+            turretMotor.getChassisFrameVelocity(),
+            dt);
+        turretMotor.setMotorOutput(pidOutput);
     }
     else
     {
+        float pidOutput =
+            pid.runController(positionControllerError, turretMotor.getChassisFrameVelocity(), dt);
         turretMotor.setMotorOutput(pidOutput);
     }
 }
