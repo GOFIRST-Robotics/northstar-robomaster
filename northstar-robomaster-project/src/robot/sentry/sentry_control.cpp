@@ -465,11 +465,12 @@ FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
 // chassis Mappings
-RemoteMapState bPressedNotCntl({Remote::Key::B}, {Remote::Key::CTRL});
-auto bPressedNotCntlPressedBeyblade = std::make_unique<ToggleCommandMapping>(
+RemoteMapState bPressedNotCntl({Remote::Key::SHIFT}, {Remote::Key::CTRL});
+auto bPressedNotCntlPressedBeyblade = std::make_unique<HoldRepeatCommandMapping>(
     drivers(),
     std::vector<Command *>{&chassisBeyBladeCommand},
-    &bPressedNotCntl);
+    &bPressedNotCntl,
+    true);
 
 RemoteMapState ePressed({Remote::Key::E});
 auto ePressedOrientDrive = std::make_unique<ToggleCommandMapping>(
@@ -501,7 +502,7 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
     drivers(),
     {{
         &turret,
-        &chassisFrameImuCalYawTurretController,
+        &chassisFrameYawTurretController,
         &chassisFramePitchTurretController,
         true,
     }},

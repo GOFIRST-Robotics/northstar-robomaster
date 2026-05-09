@@ -109,7 +109,10 @@ float ChassisSubsystem::calculateMaxRotationSpeed(float vert, float hor)
     float maxWheelSpeed =
         getMaxWheelSpeed(drivers->refSerial.getRefSerialReceivingData(), getChassisPowerLimit());
     float allowedwheelSpeed =
-        (maxWheelSpeed - (sqrt(pow(mpsToRpm(vert), 2) + pow(mpsToRpm(hor), 2))));
+        (maxWheelSpeed + 800 -
+         (sqrt(
+             pow(mpsToRpm(rampControllers[0].getValue()), 2) +
+             pow(mpsToRpm(rampControllers[1].getValue()), 2))));
     if (allowedwheelSpeed < 0.0f)
     {
         allowedwheelSpeed = 0.0f;
@@ -209,10 +212,38 @@ void ChassisSubsystem::driveBasedOnHeading(
     float heading)
 {
     rampControllers[0].setTarget(forward);
-    rampControllers[0].update(CHASSIS_ACCEL_VALUE);
+
+    double currentOutput = rampControllers[0].getValue();
+
+    double rateToUse;
+
+    if (abs(forward) > abs(currentOutput) && (forward * currentOutput >= 0))
+    {
+        rateToUse = CHASSIS_ACCEL_VALUE;  // Accelerating
+    }
+    else
+    {
+        rateToUse = CHASSIS_DECCEL_VALUE;  // Decelerating (or reversing direction)
+    }
+
+    rampControllers[0].update(rateToUse);
     float rampedForward = rampControllers[0].getValue();
+
     rampControllers[1].setTarget(sideways);
-    rampControllers[1].update(CHASSIS_ACCEL_VALUE);
+
+    currentOutput = rampControllers[1].getValue();
+
+    if (abs(sideways) > abs(currentOutput) && (sideways * currentOutput >= 0))
+    {
+        rateToUse = CHASSIS_ACCEL_VALUE;  // Accelerating
+    }
+    else
+    {
+        rateToUse = CHASSIS_DECCEL_VALUE;  // Decelerating (or reversing direction)
+    }
+
+    rampControllers[1].update(rateToUse);
+
     float rampedSideways = rampControllers[1].getValue();
     float cos_theta = cos(heading);
     float sin_theta = sin(heading);
