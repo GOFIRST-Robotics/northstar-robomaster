@@ -50,7 +50,8 @@ static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
     {125, 6'000}};
 // At 9000 rpm the beyblade was around 130, Its over
 
-static constexpr float CHASSIS_ACCEL_VALUE = 0.015f;
+static constexpr float CHASSIS_ACCEL_VALUE = 0.007f;   // 0.015f;
+static constexpr float CHASSIS_DECCEL_VALUE = 0.015f;  // 0.015f;
 
 static modm::interpolation::Linear<modm::Pair<int, float>> CHASSIS_POWER_TO_SPEED_INTERPOLATOR(
     CHASSIS_POWER_TO_MAX_SPEED_LUT,
