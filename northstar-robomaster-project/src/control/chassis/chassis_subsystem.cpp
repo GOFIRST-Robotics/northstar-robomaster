@@ -187,6 +187,10 @@ float ChassisSubsystem::getMaxWheelSpeed(bool refSerialOnline, float chassisPowe
             CHASSIS_POWER_TO_SPEED_INTERPOLATOR.interpolate(chassisPowerLimit);
     }
 
+    if (!isSprinting)
+    {
+        return lastComputedMaxWheelSpeed.second * CHASSIS_WALK_MULTIPLIER;
+    }
     return lastComputedMaxWheelSpeed.second;
 }
 

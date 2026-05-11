@@ -6,7 +6,6 @@
 
 #include "modm/math/interpolation/linear.hpp"
 
-
 #ifndef CHASSIS_CONSTANTS_HPP_
 #error "Do not include this file directly! Use chassis_constants.hpp instead."
 #endif
@@ -37,6 +36,8 @@ static const float RAMP_UP_RPM_INCREMENT_MPS = 0.021f;
 static constexpr float MAX_CHASSIS_SPEED_MPS = 4.0f;
 
 static constexpr float MAX_CHASSIS_WHEEL_SPEED = 9000.0f;
+
+static constexpr float CHASSIS_WALK_MULTIPLIER = 0.5f;
 
 static constexpr modm::Pair<int, float> CHASSIS_POWER_TO_MAX_SPEED_LUT[] = {
     /*
