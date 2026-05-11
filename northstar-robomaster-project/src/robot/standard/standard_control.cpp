@@ -203,8 +203,9 @@ tap::motor::DoubleDjiMotor yawMotor2(
     "YawMotor1",
     "YawMotor2",
     false,
-    tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
 tap::motor::DjiMotor yawMotor(
     drivers(),
@@ -213,8 +214,9 @@ tap::motor::DjiMotor yawMotor(
     true,
     "YawMotor1",
     false,
-    1.0f / 29.01f,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
 TurretSubsystem turret(
     drivers(),
@@ -556,8 +558,9 @@ void registerStandardSubsystems(Drivers *drivers)
 
 void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //&chassisOrientDriveCommand);  //
-    turret.setDefaultCommand(&turretUserControlCommand);       // when mcb is mounted on turret
+    chassisSubsystem.setDefaultCommand(
+        &chassisOrientDriveCommand);                      //&chassisOrientDriveCommand);  //
+    turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
     ui.setDefaultCommand(&infantryDrawCommand);
 }
 
@@ -601,7 +604,7 @@ namespace src::standard
 {
 imu::ImuCalibrateCommandBase *getImuCalibrateCommand()
 {
-    return nullptr;  //&standard_control::imuCalibrateCommand;
+    return &standard_control::imuCalibrateCommand;
 }
 
 void initSubsystemCommands(src::standard::Drivers *drivers)
