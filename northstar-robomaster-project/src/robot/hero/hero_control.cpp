@@ -11,6 +11,8 @@
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
+#include "tap/control/trigger.hpp"
+#include "tap/control/trigger_helpers.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
@@ -24,6 +26,7 @@
 #include "control/chassis/chassis_drive_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
+#include "control/chassis/chassis_sprint_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
@@ -399,6 +402,11 @@ src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &drivers()->controlOperatorInterface,
     0.6f,
     M_PI * 4 / 3);
+
+src::chassis::ChassisSprintCommand chassisSprintCommand(&chassisSubsystem);
+
+Trigger chassisSprint =
+    TriggerHelpers::button(drivers(), Remote::Key::SHIFT).whileTrue(&chassisSprintCommand);
 
 // Chassis Governors
 

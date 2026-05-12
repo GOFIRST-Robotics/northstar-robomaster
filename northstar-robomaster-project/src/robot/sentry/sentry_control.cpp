@@ -22,7 +22,7 @@
 
 #include "drivers_singleton.hpp"
 
-// chasis
+// chassis
 #include "control/chassis/chassis_auto_drive.hpp"
 #include "control/chassis/chassis_beyblade_command.hpp"
 #include "control/chassis/chassis_drive_command.hpp"
@@ -30,6 +30,7 @@
 #include "control/chassis/chassis_drive_to_point_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
+#include "control/chassis/chassis_sprint_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
@@ -457,6 +458,11 @@ src::chassis::ChassisDriveToPointCommand driveToOneMeterForward(
     0,
     1,
     0.02);
+
+src::chassis::ChassisSprintCommand chassisSprintCommand(&chassisSubsystem);
+
+Trigger chassisSprint =
+    TriggerHelpers::button(drivers(), Remote::Key::SHIFT).whileTrue(&chassisSprintCommand);
 
 // Chassis Governors
 

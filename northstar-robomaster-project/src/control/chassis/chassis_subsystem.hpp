@@ -137,7 +137,6 @@ public:
      */
     float getChassisPowerLimit()
     {
-        // return 120.0f;
         return drivers->refSerial.getRobotData().chassis.powerConsumptionLimit;
     }
 
@@ -185,6 +184,8 @@ public:
         return modm::Angle::normalize(targetAngle - getChassisYaw());
     }
 
+    void setIsSprinting(bool sprinting) { isSprinting = sprinting; }
+
     bool isBeyblading{false};
     bool isPeeking{false};
     bool isPeekingLeft{false};
@@ -208,7 +209,7 @@ private:
 
     src::control::turret::TurretMotor* yawMotor;
 
-    float beyBladeRotationSpeed = 0.0f;
+    bool isSprinting{false};
 
     std::array<float, static_cast<uint8_t>(MotorId::NUM_MOTORS)> desiredOutput;
 
