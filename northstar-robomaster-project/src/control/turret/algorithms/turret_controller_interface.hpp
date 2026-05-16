@@ -89,7 +89,8 @@ public:
 
     /// @return World frame yaw angle measurement, refer to top level documentation for more
     /// details.
-    virtual WrappedFloat getMeasurementMotor() const {};
+
+    virtual WrappedFloat getMeasurementMotor() const { return WrappedFloat(0, 0, M_TWOPI); };
 
     /**
      * @return `false` if the turret controller should not be running, whether this is because the

@@ -8,11 +8,9 @@ SentryCvManagerCommand::SentryCvManagerCommand(
     tap::Drivers *drivers,
     src::control::ControlOperatorInterface &controlOperatorInterface,
     src::serial::VisionComms &visionComms,
-    src::control::turret::SentryTurretSubsystem *sentryTurretSubsystem,
-    src::control::turret::algorithms::TurretYawControllerInterface *yawControllerBottom,
-    src::control::turret::algorithms::TurretPitchControllerInterface *pitchControllerBottom,
-    src::control::turret::algorithms::TurretYawControllerInterface *yawControllerTop,
-    src::control::turret::algorithms::TurretPitchControllerInterface *pitchControllerTop,
+    src::control::turret::TurretSubsystem *sentryTurretSubsystem,
+    src::control::turret::algorithms::TurretYawControllerInterface *yawController,
+    src::control::turret::algorithms::TurretPitchControllerInterface *pitchController,
     float userYawInputScalar,
     float userPitchInputScalar,
     float DELTA_MAX,
@@ -25,21 +23,16 @@ SentryCvManagerCommand::SentryCvManagerCommand(
           controlOperatorInterface,
           visionComms,
           sentryTurretSubsystem,
-          yawControllerBottom,
-          pitchControllerBottom,
-          yawControllerTop,  // controler for top turret
-          pitchControllerTop,
+          yawController,
+          pitchController,
           userYawInputScalar,
           userPitchInputScalar,
-          MAX_ERROR,
-          DELTA_MAX),  // +- offset max rads
+          MAX_ERROR),  // +- offset max rads
       turretScanCommand(
           drivers,
           sentryTurretSubsystem,
-          yawControllerBottom,
-          pitchControllerBottom,
-          yawControllerTop,  // controler for top turret
-          pitchControllerTop,
+          yawController,
+          pitchController,
           DELTA_MAX,
           MAX_ERROR,
           ROT_SPEED)

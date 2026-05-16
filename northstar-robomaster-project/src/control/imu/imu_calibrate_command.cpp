@@ -126,10 +126,12 @@ void ImuCalibrateCommand::execute()
                 // enter calibration phase
                 calibrationTimer.stop();
 
-                for (auto &config : turretsAndControllers)
-                {
-                    // config.turretMCBCanComm->sendImuCalibrationRequest();
-                }
+                /*
+                 *for (auto &config : turretsAndControllers)
+                 *{
+                 *    config.turretMCBCanComm->sendImuCalibrationRequest();
+                 *}
+                 */
 
                 drivers->bmi088.requestCalibration();
                 calibrationState = CalibrationState::CALIBRATING_IMU;
@@ -152,6 +154,9 @@ void ImuCalibrateCommand::execute()
             break;
         case CalibrationState::WAITING_CALIBRATION_COMPLETE:
             drivers->commandScheduler.addCommand(song);
+            break;
+
+        default:
             break;
     }
 

@@ -39,7 +39,7 @@ public:
         tap::Drivers *drivers,
         src::serial::VisionComms &visionComms,
         src::control::turret::cv::TurretCVControlCommandTemplate &turretCVCommand,
-        uint8_t turretID = 0,
+        [[maybe_unused]] uint8_t turretID = 0,
         bool sentry = false)
         : drivers(drivers),
           visionComms(visionComms),

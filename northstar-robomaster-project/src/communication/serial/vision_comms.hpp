@@ -10,12 +10,14 @@
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/turret/constants/turret_constants.hpp"
 
+#include "uart_constants.hpp"
+
 namespace src::serial
 {
 class VisionComms : public tap::communication::serial::DJISerial
 {
 public:
-    static constexpr size_t VISION_COMMS_BAUD_RATE = 115200;
+    static constexpr size_t VISION_COMMS_BAUD_RATE = 115'200;
 
     static constexpr tap::communication::serial::Uart::UartPort VISION_COMMS_TX_UART_PORT =
         tap::communication::serial::Uart::UartPort::Uart1;
@@ -24,12 +26,15 @@ public:
 
     enum MessageType : uint16_t
     {
-        TURRET_DATA = 1,
+        TURRET_AIM_DATA = 1,
         ROBOT_ID = 2,
         ALIVE = 3,
         ODOMETRY = 4,
         AUTO_PATH = 5,
-        REF_DATA = 6
+        // REF_DATA = 6
+        HEALTH = 6,
+        REF_TURRET_DATA = 7,
+        VISION_LOCALIZATION = 8
     };
 
     struct RefData
@@ -101,28 +106,35 @@ public:
         float yaw;
         float roll;
 
-        float pitch_vel;
-        float yaw_vel;
-        float roll_vel;
+        // float pitch_vel;
+        // float yaw_vel;
+        // float roll_vel;
 
     } modm_packed;
 
     struct ChassisOdometryData
     {
-        float pos_x;
-        float pos_y;
-        float pos_z;
+        // float pos_x;
+        // float pos_y;
+        // float pos_z;
 
         float vel_x;
         float vel_y;
-        float vel_z;
+        // float vel_z;
 
     } modm_packed;
 
     struct OdometryData
     {
+        uint32_t timestamp;
         ChassisOdometryData chassis_data;
         TurretOdometryData turret_data;
+    } modm_packed;
+
+    struct AprilTagLocalizationData
+    {
+        float posX;
+        float posY;
     } modm_packed;
 
     src::chassis::ChassisOdometry* chassisOdometry;
@@ -159,6 +171,8 @@ public:
 
     mockable void initializeCV();
 
+    mockable void initializeUartDelays();
+
     void messageReceiveCallback(const ReceivedSerialMessage& completeMessage) override;
 
     mockable bool isCvOnline() const;
@@ -193,11 +207,6 @@ public:
         this->pitchMotor = pitchMotor;
     }
 
-    /** Time in ms between sending the odometry message. */
-    static constexpr uint32_t TIME_BTWN_SENDING_ODOMETRY_MSG = 33;
-
-    tap::arch::PeriodicMilliTimer sendOdometryMsgTimeout{TIME_BTWN_SENDING_ODOMETRY_MSG};
-
     mockable void sendMessage();
 
 private:
@@ -213,13 +222,17 @@ private:
 
     mockable void sendRobotOdometry();
 
-    mockable void sendRefData();
+    mockable void sendHealthData();
+
+    mockable void sendTurretRefData();
 
     bool decodeToTurretAimData(const ReceivedSerialMessage& message);
 
     bool decodeToOdometeryData(const ReceivedSerialMessage& message);
 
     bool decodeToAutoPathData(const ReceivedSerialMessage& message);
+
+    bool decodeToVisionAprilTagLocalization(const ReceivedSerialMessage& message);
 };
 }  // namespace src::serial
 

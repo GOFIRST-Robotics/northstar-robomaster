@@ -33,7 +33,6 @@
 
 using tap::motor::DjiMotor;
 
-// adding a missing definition in this version of taproot
 namespace DjiMotorConstants
 {
 // Output is in mV
@@ -47,23 +46,27 @@ static constexpr uint8_t NUM_TURRETS = 1;
 static constexpr float USER_YAW_INPUT_SCALAR = 0.02f;
 static constexpr float USER_PITCH_INPUT_SCALAR = 0.02f;
 
-static constexpr tap::can::CanBus CAN_BUS_MOTORS = tap::can::CanBus::CAN_BUS2;
+static constexpr tap::can::CanBus CAN_BUS_YAW = tap::can::CanBus::CAN_BUS1;
+static constexpr tap::can::CanBus CAN_BUS_PITCH = tap::can::CanBus::CAN_BUS2;
 static constexpr tap::motor::MotorId PITCH_MOTOR_ID = tap::motor::MOTOR5;  // 1
-static constexpr tap::motor::MotorId YAW_MOTOR_ID = tap::motor::MOTOR6;    // 2
+
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_1 =
+    tap::motor::MotorId::MOTOR7;  // May have to change these
+static constexpr tap::motor::MotorId YAW_MOTOR_ID_2 = tap::motor::MotorId::MOTOR6;
 
 static constexpr TurretMotorConfig YAW_MOTOR_CONFIG = {
     .startAngle = 0,
-    .startEncoderValue = 7519 + 341,  // Normal bot = 7519 + 341,  // Test bot = 450
+    .startEncoderValue = 0,  // Normal bot = 7519 + 341,  // Test bot = 450
     .minAngle = 0,
     .maxAngle = M_PI / 4,
     .limitMotorAngles = false,
 };
 
 static constexpr TurretMotorConfig PITCH_MOTOR_CONFIG = {
-    .startAngle = modm::toRadian(90),  // 7.45
-    .startEncoderValue = 5450,
-    .minAngle = modm::toRadian(45),
-    .maxAngle = modm::toRadian(115),
+    .startAngle = modm::toRadian(0),  // 7.45
+    .startEncoderValue = 4750,        // 3427,
+    .minAngle = modm::toRadian(-10),
+    .maxAngle = modm::toRadian(45),
     .limitMotorAngles = true,
 };
 
@@ -75,9 +78,9 @@ static constexpr TurretMotorConfig YAW_MOTOR_REV_CONFIG = {
     .limitMotorAngles = false,
 };
 
-static constexpr float TURRET_CG_X = 80.0f;                 // 30.17;
-static constexpr float TURRET_CG_Z = 0.0f;                  // 34.02;
-static constexpr float GRAVITY_COMPENSATION_SCALAR = 0.0f;  // 12000 // 7'000;
+static constexpr float TURRET_CG_X = 10.0f;                     // 30.17;
+static constexpr float TURRET_CG_Z = 15.0f;                     // 34.02;
+static constexpr float GRAVITY_COMPENSATION_SCALAR = -3300.0f;  // 12000 // 7'000;
 
 namespace world_rel_turret_imu
 {
@@ -85,9 +88,9 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_POS_PID_CONFIG = {
     // .kp = 60.0f,
     // .ki = 0.0f,
     // .kd = 5.0f,
-    .kp = 30.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
+    .kp = 12.0f,  // Test bot = kp 25.0f * 2 / 3, kd 2.4 * 2 / 3 // Main bot = kp 30, kd 3
     .ki = 0.0f,
-    .kd = 3.0f,
+    .kd = 0.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
     .tQDerivativeKalman = 1.0f,
@@ -127,13 +130,12 @@ static constexpr tap::algorithms::SmoothPidConfig YAW_VEL_PID_CONFIG = {
     // .kp = 2000.0f,
     // .ki = 20.0f,
     // .kd = 500.0f,
-    .kp = 10000.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
-                     // 1000
+    .kp = 2300.0f,  // Test bot = kp 9000.0f * 2 / 3, kd 900.0f * 2 / 3 // Main Bot kp = 10000 kd =
+                    // 1000
     .ki = 0.0f,
-    .kd = 1000.0f,
+    .kd = 0.0f,
     .maxICumulative = 1'000.0f,
-    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    .tQDerivativeKalman = 1.0f,
+    .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_C620,
     .tRDerivativeKalman = 0.0f,
     .tQProportionalKalman = 1.0f,
     .tRProportionalKalman = 0.5f,
@@ -192,9 +194,9 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_POS_PID_AUTO_AIM_CONFIG 
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_VEL_PID_CONFIG = {
-    .kp = 1'000.0f,
+    .kp = 6'000.0f,
     .ki = 0.0f,
-    .kd = 10.0f,
+    .kd = 0.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,  // 0.0f
     .tQDerivativeKalman = 1.0f,
@@ -288,59 +290,51 @@ static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
 namespace chassis_rel
 {
 static constexpr tap::algorithms::SmoothPidConfig YAW_PID_CONFIG = {
-    .kp = 70'000.0f,
+    .kp = 8000.0f,
     .ki = 0.0f,
-    .kd = 4000.0f,
+    .kd = 900.0f,
     .maxICumulative = 0.0f,
-    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
+    .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_C620,
     .tQDerivativeKalman = 0.1f,
     .tRDerivativeKalman = 70.0f,
     .tQProportionalKalman = 0.1f,
     .tRProportionalKalman = 0.0f,
     .errDeadzone = 0.0f,
     .errorDerivativeFloor = 0.0f,
+};
 
-    // .kp = 100'000.0f,
-    // .ki = 0.0f,
-    // .kd = 2000.0f,
-    // .maxICumulative = 0.0f,
-    // .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    // .tQDerivativeKalman = 0.1f,
-    // .tRDerivativeKalman = 70.0f,
-    // .tQProportionalKalman = 0.1f,
-    // .tRProportionalKalman = 0.0f,
-    // .errDeadzone = 0.0f,
-    // .errorDerivativeFloor = 0.0f,
-
-    // .kp = 3'000.1f,
-    // .ki = 0.0f,
-    // .kd = 500.2f,
-    // .maxICumulative = 0.0f,
-    // .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    // .tQDerivativeKalman = 0.0001f,
-    // .tRDerivativeKalman = 100000.0f,
-    // .tQProportionalKalman = 0.00001f,
-    // .tRProportionalKalman =10000.0f,
-    // .errDeadzone = 0.0f,
-    // .errorDerivativeFloor = 0.0f,
+static constexpr tap::algorithms::SmoothPidConfig YAW_IMU_CAL_PID_CONFIG = {
+    .kp = 8000.0f,
+    .ki = 0.0f,
+    .kd = 900.0f,
+    .maxICumulative = 0.0f,
+    .maxOutput = tap::motor::DjiMotor::MAX_OUTPUT_C620,
+    .tQDerivativeKalman = 0.1f,
+    .tRDerivativeKalman = 70.0f,
+    .tQProportionalKalman = 0.1f,
+    .tRProportionalKalman = 0.0f,
+    .errDeadzone = 0.0f,
+    .errorDerivativeFloor = 0.0f,
 };
 
 static constexpr tap::algorithms::SmoothPidConfig PITCH_PID_CONFIG = {
-    // .kp = 100'183.1f,
-    // .ki = 0.0f,
-    // .kd = 3'448.5f,
-    // .maxICumulative = 0.0f,
-    // .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,
-    // .tQDerivativeKalman = 0.1f,
-    // .tRDerivativeKalman = 10.0f,
-    // .tQProportionalKalman = 0.1f,
-    // .tRProportionalKalman = 2.0f,
-    // .errDeadzone = 0.0f,
-    // .errorDerivativeFloor = 0.0f,
-
-    .kp = 100'000.0f,
+    .kp = 60'000.0f,  // TODO for imu cal command
     .ki = 0.0f,
-    .kd = 3000.0f,
+    .kd = 5000.0f,
+    .maxICumulative = 0.0f,
+    .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,  // 0.0f
+    .tQDerivativeKalman = 0.1f,
+    .tRDerivativeKalman = 10.0f,
+    .tQProportionalKalman = 0.1f,
+    .tRProportionalKalman = 2.0f,
+    .errDeadzone = 0.0f,
+    .errorDerivativeFloor = 0.0f,
+};
+
+static constexpr tap::algorithms::SmoothPidConfig PITCH_IMU_CAL_PID_CONFIG = {
+    .kp = 60'000.0f,  // TODO for imu cal command
+    .ki = 0.0f,
+    .kd = 5000.0f,
     .maxICumulative = 0.0f,
     .maxOutput = DjiMotorConstants::MAX_OUTPUT_GM6020,  // 0.0f
     .tQDerivativeKalman = 0.1f,

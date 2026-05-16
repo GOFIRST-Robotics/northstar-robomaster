@@ -22,6 +22,11 @@ void StateMachineSubsystem::initialize() {}
 
 bool beyblade = false;
 
+#include "control/algorithms/CubicBezier.hpp"
+CubicBezier* leftSide = new CubicBezier({0, 0}, {0, 2}, {-1.5f, 0}, {-1.5f, 2});
+CubicBezier* rightSide = new CubicBezier({0, 2}, {0, 0}, {1.5f, 2}, {1.5f, 0});
+bool l = true;
+
 void StateMachineSubsystem::refresh()
 {
     // return;
@@ -38,7 +43,18 @@ void StateMachineSubsystem::refresh()
     }
     if (!chassisAutoDrive->hasValidPath())
     {
-        chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
+        // chassisSubsystem->setVelocityFieldDrive(0, 0, 0);
+        if (l)
+        {
+            chassisAutoDrive->setCurve(leftSide);
+            l = false;
+        }
+        else
+        {
+            chassisAutoDrive->setCurve(rightSide);
+            l = true;
+        }
+
         return;
     }
 
@@ -46,9 +62,9 @@ void StateMachineSubsystem::refresh()
     modm::Vector<float, 2> desiredGlobalVelocity = chassisAutoDrive->getDesiredGlobalVelocity();
     float desiredRotation = chassisAutoDrive->getDesiredRotation();
 
-    chassisSubsystem->setVelocityFieldDrive(
+    chassisSubsystem->setVelocityFieldDrive(  // fuck chassis subsystems fucked up coordinate frames
         desiredGlobalVelocity.y,
-        desiredGlobalVelocity.x,
+        -desiredGlobalVelocity.x,
         desiredRotation);
 }  // namespace src::stateMachine
 

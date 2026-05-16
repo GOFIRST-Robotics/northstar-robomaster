@@ -1,12 +1,17 @@
 #ifdef TARGET_STANDARD
 
+#include <memory>
+
 #include "tap/control/hold_command_mapping.hpp"
 #include "tap/control/hold_repeat_command_mapping.hpp"
 #include "tap/control/press_command_mapping.hpp"
+#include "tap/control/remote_map_state.hpp"
 #include "tap/control/sequential_command.hpp"
 #include "tap/control/setpoint/commands/move_integral_command.hpp"
 #include "tap/control/setpoint/commands/move_unjam_integral_comprised_command.hpp"
 #include "tap/control/toggle_command_mapping.hpp"
+#include "tap/control/trigger.hpp"
+#include "tap/control/trigger_helpers.hpp"
 #include "tap/drivers.hpp"
 #include "tap/util_macros.hpp"
 
@@ -24,6 +29,7 @@
 #include "control/chassis/chassis_drive_to_point_command.hpp"
 #include "control/chassis/chassis_field_command.hpp"
 #include "control/chassis/chassis_orient_drive_command.hpp"
+#include "control/chassis/chassis_sprint_command.hpp"
 #include "control/chassis/chassis_subsystem.hpp"
 #include "control/chassis/chassis_wiggle_command.hpp"
 #include "control/chassis/constants/chassis_constants.hpp"
@@ -37,12 +43,14 @@
 #include "control/agitator/velocity_agitator_subsystem.hpp"
 
 // turret
+#include "tap/motor/double_dji_motor.hpp"
+
 #include "control/turret/algorithms/chassis_frame_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_chassis_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_can_imu_turret_controller.hpp"
 #include "control/turret/algorithms/world_frame_turret_imu_turret_controller.hpp"
 #include "control/turret/constants/turret_constants.hpp"
-#include "control/turret/rev_turret_subsystem.hpp"
+#include "control/turret/test/turret_test_command.hpp"
 #include "control/turret/user/turret_quick_turn_command.hpp"
 #include "control/turret/user/turret_user_control_command.hpp"
 #include "control/turret/user/turret_user_world_relative_command.hpp"
@@ -54,13 +62,9 @@
 #include "control/turret/cv/turret_cv_control_command.hpp"
 
 // flywheel
+#include "control/flywheel/dji_two_flywheel_subsystem.hpp"
 #include "control/flywheel/flywheel_constants.hpp"
-#include "control/flywheel/flywheel_run_command.hpp"
-#include "control/flywheel/flywheel_subsystem.hpp"
-
-// hopper
-#include "control/hopper/hopper_subsystem.hpp"
-#include "control/hopper/hopper_toggle_command.hpp"
+#include "control/flywheel/two_flywheel_run_command.hpp"
 
 // imu
 #include "control/imu/imu_calibrate_command.hpp"
@@ -93,6 +97,8 @@
 
 #include "control/clientDisplay/client_display_command.hpp"
 #include "control/clientDisplay/client_display_subsystem.hpp"
+#include "control/clientDisplay/graphics/core/infantry_draw_command.hpp"
+#include "control/clientDisplay/graphics/core/ui_subsystem.hpp"
 #include "control/clientDisplay/indicators/ammo_indicator.hpp"
 #include "control/clientDisplay/indicators/circle_crosshair.hpp"
 #include "control/clientDisplay/indicators/cv_aiming_indicator.hpp"
@@ -104,7 +110,6 @@
 
 using tap::can::CanBus;
 using tap::communication::serial::Remote;
-using tap::control::RemoteMapState;
 using tap::motor::MotorId;
 
 using namespace tap::control::setpoint;
@@ -118,9 +123,9 @@ using namespace src::agitator;
 using namespace src::control::agitator;
 using namespace src::control::governor;
 using namespace tap::control::governor;
-using namespace src::control::client_display;
+// using namespace src::control::client_display;
+using namespace src::control::client_display::graphics;
 using namespace tap::communication::serial;
-using namespace src::control::hopper;
 using namespace src::control::buzzer;
 
 driversFunc drivers = DoNotUse_getDrivers;
@@ -133,67 +138,86 @@ inline src::can::TurretMCBCanComm &getTurretMCBCanComm() { return drivers()->tur
 
 // songs
 BuzzerSubsystem buzzerSubsystem(drivers());
+PlaySongCommand playStartupSongCommand(&buzzerSubsystem, tsnSong);
 
-PlaySongCommand playTwinkleCommand(&buzzerSubsystem, twinkleTwinkle);
-
-// PlaySongCommand playMegalovaniaCommand(&buzzerSubsystem, megalovaniaSong);
-
-// PressCommandMapping ctrlShiftZSong(
-//     drivers(),
-//     {&playMegalovaniaCommand},
-//     RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z}));
+RemoteMapState ctrlShiftZPressed({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::Z});
+auto ctrlShiftZSong = std::make_unique<PressCommandMapping>(
+    drivers(),
+    std::vector<Command *>{&playStartupSongCommand},
+    &ctrlShiftZPressed);
 
 // flywheel subsystem
-FlywheelSubsystem flywheel(
-    drivers(),
-    LEFT_MOTOR_ID,
-    RIGHT_MOTOR_ID,
-    UP_MOTOR_ID,
-    CAN_BUS,
-    tap::motor::RevMotor::PIDConfig{
-        .PIDSlot = 0,
-        .kP = FLYWHEEL_PID_KP,
-        .kI = FLYWHEEL_PID_KI,
-        .kD = FLYWHEEL_PID_KD,
-        .kF = FLYWHEEL_PID_KF,
-    });
+DJITwoFlywheelSubsystem flywheel(drivers(), LEFT_MOTOR_ID, RIGHT_MOTOR_ID, CAN_BUS);
 
 // flywheel commands
-FlywheelRunCommand flywheelRunCommand(&flywheel);
+TwoFlywheelRunCommand flywheelRunCommand(&flywheel, 24.0f);
 
 // flywheel mappings
-ToggleCommandMapping fPressedFlywheels(
+RemoteMapState fPressed({tap::communication::serial::Remote::Key::F});
+auto fPressedFlywheels = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&flywheelRunCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::F})));
+    std::vector<Command *>{&flywheelRunCommand},
+    &fPressed);
 
-ToggleCommandMapping leftSwitchUpFlywheels(
+RemoteMapState leftSwitchUpState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP);
+auto leftSwitchUpFlywheels = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&flywheelRunCommand},
-    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::UP));
+    std::vector<Command *>{&flywheelRunCommand},
+    &leftSwitchUpState);
 
 // turret subsystem
 tap::motor::DjiMotor pitchMotor(
     drivers(),
     PITCH_MOTOR_ID,
-    CAN_BUS_MOTORS,
-    true,
+    CAN_BUS_PITCH,
+    false,
     "PitchMotor",
     false,
     1,
     PITCH_MOTOR_CONFIG.startEncoderValue);
 
+// tap::motor::DoubleDjiMotor yawMotor(
+//     drivers(),
+//     YAW_MOTOR_ID_1,
+//     YAW_MOTOR_ID_2,
+//     CAN_BUS_YAW,
+//     CAN_BUS_YAW,
+//     true,
+//     true,
+//     "YawMotor1",
+//     "YawMotor2",
+//     false,
+//     1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(1.0f / 1.5f),
+//     YAW_MOTOR_CONFIG.startEncoderValue,
+//     &drivers()->encoder);
+
+tap::motor::DoubleDjiMotor yawMotor2(
+    drivers(),
+    YAW_MOTOR_ID_1,
+    YAW_MOTOR_ID_2,
+    CAN_BUS_YAW,
+    CAN_BUS_YAW,
+    true,
+    true,
+    "YawMotor1",
+    "YawMotor2",
+    false,
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
+
 tap::motor::DjiMotor yawMotor(
     drivers(),
-    YAW_MOTOR_ID,
-    CAN_BUS_MOTORS,
+    YAW_MOTOR_ID_1,
+    CAN_BUS_YAW,
     true,
-    "YawMotor",
+    "YawMotor1",
     false,
-    1,
-    YAW_MOTOR_CONFIG.startEncoderValue);
+    1,  // tap::motor::DjiMotorEncoder::GEAR_RATIO_M3508 *(54.0f / 81.0f),
+    YAW_MOTOR_CONFIG.startEncoderValue,
+    &drivers()->encoder);
 
-StandardTurretSubsystem turret(
+TurretSubsystem turret(
     drivers(),
     &pitchMotor,
     &yawMotor,
@@ -261,7 +285,7 @@ user::TurretUserControlCommand turretUserControlCommand(
     drivers()->controlOperatorInterface,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,  //&worldFramePitchTurretImuController,
+    &worldFramePitchTurretImuController,  //&worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
@@ -271,25 +295,23 @@ cv::TurretCVControlCommand turretCVControlCommand(
     drivers()->visionComms,
     &turret,
     &worldFrameYawTurretImuController,
-    &worldFramePitchChassisImuController,
+    &worldFramePitchTurretImuController,
     USER_YAW_INPUT_SCALAR,
     USER_PITCH_INPUT_SCALAR);
 
-ToggleCommandMapping xCtrlPressedCvControl(
-    drivers(),
-    {&turretCVControlCommand},
-    RemoteMapState({Remote::Key::X, Remote::Key::CTRL}));
+// user::TurretQuickTurnCommand turret180TurnCommand(&turret, modm::toRadian(180));
 
-// user::TurretUserWorldRelativeCommand turretUserWorldRelativeCommand(
+// RemoteMapState ePressed({Remote::Key::Q});
+// auto ePressed180 = std::make_unique<PressCommandMapping>(
 //     drivers(),
-//     drivers()->controlOperatorInterface,
-//     &turret,
-//     &worldFrameYawChassisImuController,
-//     &worldFramePitchChassisImuController,
-//     &worldFrameYawTurretCanImuController,
-//     &worldFramePitchTurretCanImuController,
-//     USER_YAW_INPUT_SCALAR,
-//     USER_PITCH_INPUT_SCALAR);
+//     std::vector<Command *>{&turret180TurnCommand},
+//     &ePressed);
+
+RemoteMapState xCtrlPressed({Remote::Key::X, Remote::Key::CTRL});
+auto xCtrlPressedCvControl = std::make_unique<ToggleCommandMapping>(
+    drivers(),
+    std::vector<Command *>{&turretCVControlCommand},
+    &xCtrlPressed);
 
 // agitator subsystem
 VelocityAgitatorSubsystem agitator(
@@ -342,67 +364,55 @@ GovernorLimitedCommand<3> rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProject
 
 CvOnTargetGovernor cvOnTargetGovernor(drivers(), drivers()->visionComms, turretCVControlCommand);
 
-CycleStateCommandMapping<bool, 2, CvOnTargetGovernor> rPressedCVGovernoreToggle(
-    drivers(),
-    RemoteMapState({Remote::Key::R}),
-    true,
-    &cvOnTargetGovernor,
-    &CvOnTargetGovernor::setGovernorEnabled);
+RemoteMapState rPressed({Remote::Key::R});
+auto rPressedCVGovernoreToggle =
+    std::make_unique<CycleStateCommandMapping<bool, 2, CvOnTargetGovernor>>(
+        drivers(),
+        &rPressed,
+        true,
+        &cvOnTargetGovernor,
+        &CvOnTargetGovernor::setGovernorEnabled);
 
 GovernorLimitedCommand<2> rotateAndUnjamAgitatorWithHeatAndCVLimiting(
     {&agitator},
     rotateAndUnjamAgitatorWhenFrictionWheelsOnUntilProjectileLaunched,
     {&heatLimitGovernor, &cvOnTargetGovernor});
 
-MultiShotCvCommandMapping leftMousePressedShoot(
+RemoteMapState leftMousePressed(RemoteMapState::MouseButton::LEFT);
+auto leftMousePressedShoot = std::make_unique<MultiShotCvCommandMapping>(
     *drivers(),
     rotateAndUnjamAgitatorWithHeatAndCVLimiting,
-    RemoteMapState(RemoteMapState::MouseButton::LEFT),
+    leftMousePressed,
     &manualFireRateReselectionManager,
     cvOnTargetGovernor,
     &rotateAgitator);
 
-MultiShotCvCommandMapping leftSwitchDownPressedShoot(
+RemoteMapState leftSwitchDown(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN);
+auto leftSwitchDownPressedShoot = std::make_unique<MultiShotCvCommandMapping>(
     *drivers(),
     rotateAndUnjamAgitatorWithHeatAndCVLimiting,
-    RemoteMapState(Remote::Switch::LEFT_SWITCH, Remote::SwitchState::DOWN),
+    leftSwitchDown,
     &manualFireRateReselectionManager,
     cvOnTargetGovernor,
     &rotateAgitator);
 
-CycleStateCommandMapping<
+RemoteMapState gPressed({Remote::Key::G});
+RemoteMapState vPressed({Remote::Key::V});
+auto gOrVPressedCycleShotSpeed = std::make_unique<CycleStateCommandMapping<
     MultiShotCvCommandMapping::LaunchMode,
     MultiShotCvCommandMapping::NUM_SHOOTER_STATES,
-    MultiShotCvCommandMapping>
-    gOrVPressedCycleShotSpeed(
-        drivers(),
-        RemoteMapState({Remote::Key::G}),
-        MultiShotCvCommandMapping::SINGLE,
-        &leftMousePressedShoot,
-        &MultiShotCvCommandMapping::setShooterState,
-        RemoteMapState({Remote::Key::V}));
-
-// agitator mappings
-ToggleCommandMapping vPressed(
+    MultiShotCvCommandMapping>>(
     drivers(),
-    {&setFireRateCommandFullAuto},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::V})));
-
-ToggleCommandMapping gPressed(
-    drivers(),
-    {&setFireRateCommand10RPS},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::G})));
-
-// HoldRepeatCommandMapping leftMousePressedShoot(
-//     drivers(),
-//     {&rotateAndUnjamAgitator},  // TODO
-//     RemoteMapState(RemoteMapState::MouseButton::LEFT),
-//     false);
+    &gPressed,
+    MultiShotCvCommandMapping::SINGLE,
+    leftMousePressedShoot.get(),
+    &MultiShotCvCommandMapping::setShooterState,
+    vPressed);
 
 // chassis odometry
 src::chassis::ChassisOdometry *chassisOdometry = new src::chassis::ChassisOdometry(
     &drivers()->bmi088,
-    &yawMotor,
+    &turret.yawMotor,
     src::chassis::DIST_TO_CENTER,
     src::chassis::WHEEL_DIAMETER_M);
 
@@ -422,7 +432,7 @@ src::chassis::ChassisSubsystem chassisSubsystem(
             src::chassis::VELOCITY_PID_MAX_ERROR_SUM),
     },
     &drivers()->turretMCBCanCommBus2,
-    &yawMotor,
+    &turret.yawMotor,
     chassisOdometry);
 
 src::chassis::ChassisDriveCommand chassisDriveCommand(
@@ -433,21 +443,11 @@ src::chassis::ChassisOrientDriveCommand chassisOrientDriveCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface);
 
-src::chassis::ChassisBeybladeCommand chassisBeyBladeSlowCommand(
+src::chassis::ChassisBeybladeCommand chassisBeyBladeCommand(
     &chassisSubsystem,
     &drivers()->controlOperatorInterface,
-    1,
     -1,
-    M_PI_2,
     true);
-
-src::chassis::ChassisBeybladeCommand chassisBeyBladeFastCommand(
-    &chassisSubsystem,
-    &drivers()->controlOperatorInterface,
-    1,
-    -1,
-    M_PI,
-    false);
 
 src::chassis::ChassisWiggleCommand chassisWiggleCommand(
     &chassisSubsystem,
@@ -462,65 +462,48 @@ src::chassis::ChassisDriveToPointCommand driveToOneMeterForward(
     1,
     0.02);
 
+src::chassis::ChassisSprintCommand chassisSprintCommand(&chassisSubsystem);
+
+Trigger chassisSprint =
+    TriggerHelpers::button(drivers(), Remote::Key::SHIFT).whileTrue(&chassisSprintCommand);
+
 // Chassis Governors
 
 FiredRecentlyGovernor firedRecentlyGovernor(drivers(), 5000);
 
 PlateHitGovernor plateHitGovernor(drivers(), 5000);
 
-// GovernorWithFallbackCommand<2> beyBladeSlowOutOfCombat(
-//     {&chassisSubsystem},
-//     chassisBeyBladeSlowCommand,
-//     chassisBeyBladeFastCommand,
-//     {&firedRecentlyGovernor, &plateHitGovernor},
-//     false);
-
 // chassis Mappings
-PressCommandMapping lClickPressedDriveOneMeter(
+RemoteMapState bPressedNotCntl({Remote::Key::B}, {Remote::Key::CTRL});
+auto bPressedNotCntlPressedBeyblade = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&driveToOneMeterForward},
-    RemoteMapState(RemoteMapState::MouseButton::LEFT));
+    std::vector<Command *>{&chassisBeyBladeCommand},
+    &bPressedNotCntl);
 
-ToggleCommandMapping bPressedNotCntlPressedBeyblade(
+RemoteMapState qPressed({tap::communication::serial::Remote::Key::Q});
+auto qPressedNormDrive = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&chassisBeyBladeFastCommand},
-    RemoteMapState({Remote::Key::B}, {Remote::Key::CTRL}));
+    std::vector<Command *>{&chassisDriveCommand},
+    &qPressed);
 
-ToggleCommandMapping rPressedOrientDrive(
+RemoteMapState ePressed({tap::communication::serial::Remote::Key::E});
+auto ePressedOrientDrive = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&chassisOrientDriveCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::R})));
+    std::vector<Command *>{&chassisOrientDriveCommand},
+    &ePressed);
 
-ToggleCommandMapping qPressedNormDrive(
+RemoteMapState zPressedNotCtrl({tap::communication::serial::Remote::Key::Z}, {Remote::Key::CTRL});
+auto zPressedNotCtrlWiggle = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&chassisDriveCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::Q})));
+    std::vector<Command *>{&chassisWiggleCommand},
+    &zPressedNotCtrl);
 
-ToggleCommandMapping zPressedNotCtrlWiggle(
+RemoteMapState rightSwitchDown(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN);
+auto rightSwiitchDownBeyblade = std::make_unique<HoldRepeatCommandMapping>(
     drivers(),
-    {&chassisWiggleCommand},
-    RemoteMapState(
-        RemoteMapState({tap::communication::serial::Remote::Key::Z}, {Remote::Key::CTRL})));
-
-HoldRepeatCommandMapping rightSwiitchDownBeyblade(
-    drivers(),
-    {&chassisBeyBladeFastCommand},
-    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::DOWN),
+    std::vector<Command *>{&chassisBeyBladeCommand},
+    &rightSwitchDown,
     true);
-
-HopperSubsystem hopperSubsystem(drivers(), 0.0585f, 0.025, tap::gpio::Pwm::Pin::C7);
-
-HopperToggleCommand hopperToggleCommand(&hopperSubsystem);
-
-ToggleCommandMapping ctrlVPressedHopperToggle(
-    drivers(),
-    {&hopperToggleCommand},
-    RemoteMapState(RemoteMapState({Remote::Key::CTRL, Remote::Key::V})));
-
-HoldCommandMapping rightSwitchUpHopper(
-    drivers(),
-    {&hopperToggleCommand},
-    RemoteMapState(Remote::Switch::RIGHT_SWITCH, Remote::SwitchState::UP));
 
 // imu commands
 imu::ImuCalibrateCommand imuCalibrateCommand(
@@ -531,65 +514,33 @@ imu::ImuCalibrateCommand imuCalibrateCommand(
         &chassisFramePitchTurretController,
         true,
     }},
-    &chassisSubsystem);
+    &chassisSubsystem,
+    &playStartupSongCommand);
 
 RemoteSafeDisconnectFunction remoteSafeDisconnectFunction(drivers());
 
-ToggleCommandMapping xPressedIMUCalibrate(
+RemoteMapState xPressed({tap::communication::serial::Remote::Key::X});
+auto xPressedIMUCalibrate = std::make_unique<ToggleCommandMapping>(
     drivers(),
-    {&imuCalibrateCommand},
-    RemoteMapState(RemoteMapState({tap::communication::serial::Remote::Key::X})));
+    std::vector<Command *>{&imuCalibrateCommand},
+    &xPressed);
 
-// HUD
-ClientDisplaySubsystem clientDisplay(drivers());
-tap::communication::serial::RefSerialTransmitter refSerialTransmitter(drivers());
-
-AmmoIndicator ammoIndicator(refSerialTransmitter, drivers()->refSerial);
-
-VisionIndicator visionIndicator(refSerialTransmitter, drivers()->refSerial, drivers()->visionComms);
-
-CircleCrosshair circleCrosshair(refSerialTransmitter);
-
-FlywheelIndicator flyWheelIndicator(refSerialTransmitter, drivers()->refSerial, flywheelOnGovernor);
-
-ShootingModeIndicator shootingModeIndicator(
-    refSerialTransmitter,
-    drivers()->refSerial,
-    leftMousePressedShoot);
-
-CvAimingIndicator cvAimingIndicator(refSerialTransmitter, drivers()->refSerial, cvOnTargetGovernor);
-
-TextHudIndicators textHudIndicators(
-    *drivers(),
-    agitator,
-    // imuCalibrateCommand,
-    {&chassisWiggleCommand, &chassisBeyBladeFastCommand},
-    refSerialTransmitter);
-
-std::vector<HudIndicator *> hudIndicators = {
-    &ammoIndicator,
-    &circleCrosshair,
-    &textHudIndicators,
-    // &visionIndicator,
-    // &flyWheelIndicator,
-    &shootingModeIndicator,
-    /*&cvAimingIndicator*/};
-
-ClientDisplayCommand clientDisplayCommand(*drivers(), clientDisplay, hudIndicators);
-
-PressCommandMapping crtlShiftEPressedClientDisplay(
+src::control::client_display::graphics::UISubsystem ui(drivers());
+src::control::client_display::graphics::InfantryDrawCommand infantryDrawCommand(
     drivers(),
-    {&clientDisplayCommand},
-    RemoteMapState({Remote::Key::CTRL, Remote::Key::SHIFT, Remote::Key::E}));
+    &ui,
+    &turret,
+    // &flywheel,
+    &agitator,
+    &chassisSubsystem);
 
-void initializeSubsystems(Drivers *drivers)
+void initializeSubsystems([[maybe_unused]] Drivers *drivers)
 {
     dummySubsystem.initialize();
     chassisSubsystem.initialize();
     agitator.initialize();
     flywheel.initialize();
     turret.initialize();
-    hopperSubsystem.initialize();
     buzzerSubsystem.initialize();
 }
 
@@ -600,54 +551,51 @@ void registerStandardSubsystems(Drivers *drivers)
     drivers->commandScheduler.registerSubsystem(&agitator);
     drivers->commandScheduler.registerSubsystem(&flywheel);
     drivers->commandScheduler.registerSubsystem(&turret);
-    drivers->commandScheduler.registerSubsystem(&hopperSubsystem);
-    drivers->commandScheduler.registerSubsystem(&clientDisplay);
     drivers->commandScheduler.registerSubsystem(&buzzerSubsystem);
+    drivers->commandScheduler.registerSubsystem(&ui);
 }
 
-void setDefaultStandardCommands(Drivers *drivers)
+void setDefaultStandardCommands([[maybe_unused]] Drivers *drivers)
 {
-    chassisSubsystem.setDefaultCommand(&chassisDriveCommand);  //
-    // chassisOrientDriveCommand);
-    // turret.setDefaultCommand(&turretUserWorldRelaftiveCommand); // for use when can comm is
-    // running
+    chassisSubsystem.setDefaultCommand(
+        &chassisOrientDriveCommand);                      //&chassisOrientDriveCommand);  //
     turret.setDefaultCommand(&turretUserControlCommand);  // when mcb is mounted on turret
-    clientDisplay.setDefaultCommand(&clientDisplayCommand);
+    ui.setDefaultCommand(&infantryDrawCommand);
 }
 
 void startStandardCommands(Drivers *drivers)
 {
+    drivers->visionComms.attachOdometry(chassisOdometry);
+    drivers->visionComms.attachPitchMotor(&pitchMotor);
+
     drivers->bmi088.setMountingTransform(tap::algorithms::transforms::Transform(
         0,
         0,
         0,
         0,
-        modm::toRadian(-135),
-        modm::toRadian(-90)));
-
-    drivers->commandScheduler.addCommand(&imuCalibrateCommand);
+        modm::toRadian(180),    // modm::toRadian(-135),
+        modm::toRadian(180)));  //-90 for current standard
 }
 
 void registerStandardIoMappings(Drivers *drivers)
 {
-    drivers->commandMapper.addMap(&leftMousePressedShoot);
-    // drivers->commandMapper.addMap(&vPressed);
-    drivers->commandMapper.addMap(&fPressedFlywheels);
-    drivers->commandMapper.addMap(&bPressedNotCntlPressedBeyblade);
-    drivers->commandMapper.addMap(&xCtrlPressedCvControl);
-    // drivers->commandMapper.addMap(&xPressedIMUCalibrate);
-    drivers->commandMapper.addMap(&rPressedCVGovernoreToggle);
-    drivers->commandMapper.addMap(&gOrVPressedCycleShotSpeed);
-    drivers->commandMapper.addMap(&ctrlVPressedHopperToggle);
-    drivers->commandMapper.addMap(&zPressedNotCtrlWiggle);
-    drivers->commandMapper.addMap(&rPressedOrientDrive);
-    drivers->commandMapper.addMap(&crtlShiftEPressedClientDisplay);
-    drivers->commandMapper.addMap(&rightSwiitchDownBeyblade);
-    drivers->commandMapper.addMap(&leftSwitchDownPressedShoot);
-    drivers->commandMapper.addMap(&leftSwitchUpFlywheels);
-    drivers->commandMapper.addMap(&rightSwitchUpHopper);
-    // drivers->commandMapper.addMap(&ctrlShiftZSong);
-    drivers->commandMapper.addMap(&qPressedNormDrive);
+    // Use ) to pass the raw pointers from the unique_ptrs to the command mapper
+    drivers->commandMapper.addMap(std::move(leftMousePressedShoot));
+    // drivers->commandMapper.addMap(vPressed));
+    drivers->commandMapper.addMap(std::move(fPressedFlywheels));
+    drivers->commandMapper.addMap(std::move(bPressedNotCntlPressedBeyblade));
+    drivers->commandMapper.addMap(std::move(xCtrlPressedCvControl));
+    // drivers->commandMapper.addMap(std::move(xPressedIMUCalibrate));
+    drivers->commandMapper.addMap(std::move(rPressedCVGovernoreToggle));
+    drivers->commandMapper.addMap(std::move(gOrVPressedCycleShotSpeed));
+    drivers->commandMapper.addMap(std::move(zPressedNotCtrlWiggle));
+    drivers->commandMapper.addMap(std::move(ePressedOrientDrive));
+    drivers->commandMapper.addMap(std::move(qPressedNormDrive));
+    drivers->commandMapper.addMap(std::move(rightSwiitchDownBeyblade));
+    drivers->commandMapper.addMap(std::move(leftSwitchDownPressedShoot));
+    drivers->commandMapper.addMap(std::move(leftSwitchUpFlywheels));
+    drivers->commandMapper.addMap(std::move(ctrlShiftZSong));
+    // drivers->commandMapper.addMap(std::move(ePressed180));
 }
 }  // namespace standard_control
 

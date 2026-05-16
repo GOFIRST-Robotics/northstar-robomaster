@@ -25,12 +25,13 @@ TestSubsystem::TestSubsystem(tap::Drivers* drivers)
 }
 
 // STEP 2 (Tank Drive): initialize function
-    void TestSubsystem::initialize() {
-        debugPitchMotor.initialize();
-        
-        // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
-    }
-    
+void TestSubsystem::initialize()
+{
+    debugPitchMotor.initialize();
+
+    // motor1.setTargetVoltage(0.1f); //causing error bacause setTargetVoltage dosen't exist
+}
+
 // void RevMotorTester::initialize()
 // {
 //     motor1.initialize();
@@ -44,7 +45,8 @@ TestSubsystem::TestSubsystem(tap::Drivers* drivers)
 
 void TestSubsystem::refresh()
 {
-    double fuckYOU = debugPitchMotor.getInternalEncoder().getPosition().getUnwrappedValue();
+    [[maybe_unused]] double fuckYOU =
+        debugPitchMotor.getInternalEncoder().getPosition().getUnwrappedValue();
 }
 // STEP
-}  // namespace Communications::Rev
+}  // namespace HardwareTesting

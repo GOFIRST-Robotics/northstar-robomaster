@@ -68,20 +68,18 @@ void TurretCVControlCommand::execute()
     if (visionComms.isAimDataUpdated(turretID))
     {
         // up has positive error so up positive
-        const WrappedFloat pitchSetpoint = Angle(
-            pitchController->getMeasurement().getUnwrappedValue() +
-            visionComms.getLastAimData(turretID).pitch);
+        const WrappedFloat pitchSetpoint = Angle(visionComms.getLastAimData(turretID).pitch);
         pitchController->runController(dt, pitchSetpoint);
         // left neg right post
-        const WrappedFloat yawSetpoint = Angle(
-            yawController->getMeasurement().getUnwrappedValue() +
-            visionComms.getLastAimData(turretID).yaw);
+        const WrappedFloat yawSetpoint = Angle(visionComms.getLastAimData(turretID).yaw);
         yawController->runController(dt, yawSetpoint);
 
         withinAimingTolerance =  // TODO calculate off the distance
-            (abs(visionComms.getLastAimData(turretID).yaw) <
+            (abs(visionComms.getLastAimData(turretID).yaw -
+                 yawController->getMeasurement().getUnwrappedValue()) <
                  visionComms.getLastAimData(turretID).maxErrorYaw &&
-             abs(visionComms.getLastAimData(turretID).pitch) <
+             abs(visionComms.getLastAimData(turretID).pitch -
+                 pitchController->getMeasurement().getUnwrappedValue()) <
                  visionComms.getLastAimData(turretID).maxErrorPitch);
     }
     else

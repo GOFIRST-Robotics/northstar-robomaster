@@ -168,6 +168,7 @@ static inline void updateWorldFrameSetpoint(
  */
 float debugpositionControllerError;
 float debugvelocityPidOutput;
+float debugPositionPidOutput;
 float debugworldFrameAngleError;
 float debugchassisFrameAngleMeasurement;
 
@@ -188,7 +189,7 @@ static inline float runWorldFrameTurretImuController(
     debugpositionControllerError = positionControllerError;
     const float positionPidOutput =
         positionPid.runController(positionControllerError, worldFrameVelocityMeasured, dt);
-
+    debugPositionPidOutput = positionPidOutput;
     const float velocityControllerError = positionPidOutput - worldFrameVelocityMeasured;
     const float velocityPidOutput =
         velocityPid.runControllerDerivateError(velocityControllerError, dt);
@@ -220,7 +221,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::initialize()
         velocityPid,
         worldFrameSetpoint);
 }
-
+float lastpidOut = 0;
 void WorldFrameYawTurretImuCascadePidTurretController::runController(
     const uint32_t dt,
     const WrappedFloat desiredSetpoint)
@@ -251,6 +252,7 @@ void WorldFrameYawTurretImuCascadePidTurretController::runController(
         positionPid,
         velocityPid);
 
+    lastpidOut = pidOut;
     turretMotor.setMotorOutput(pidOut);
 }
 
@@ -359,12 +361,11 @@ void WorldFramePitchTurretImuCascadePidTurretController::runController(  // TODO
         turretMotor,
         positionPid,
         velocityPid);
-    debugpidOut = pidOut;
-    // pidOut += computeGravitationalForceOffset(
-    //     TURRET_CG_X,
-    //     TURRET_CG_Z,
-    //     turretMotor.getChassisFrameMeasuredAngle().getWrappedValue() - M_PI / 2,
-    //     GRAVITY_COMPENSATION_SCALAR);
+    pidOut += computeGravitationalForceOffset(
+        TURRET_CG_X,
+        TURRET_CG_Z,
+        turretMotor.getChassisFrameMeasuredAngle().getWrappedValue(),
+        GRAVITY_COMPENSATION_SCALAR);
     debugpidOut = pidOut;
     turretMotor.setMotorOutput(pidOut);
 }

@@ -10,11 +10,12 @@
 
 #else
 #include "tap/communication/sensors/imu/imu_terminal_serial_handler.hpp"
-#include "tap/motor/sparkmax/rev_motor_tx_handler.hpp"
 
 #include "communication/can/turret/turret_mcb_can_comm.hpp"
+#include "communication/sensors/encoder/pwm_encoder.hpp"
 #include "communication/serial/vision_comms.hpp"
 #include "robot/control_operator_interface.hpp"
+
 
 #endif
 
@@ -31,7 +32,8 @@ public:
         : tap::Drivers(),
           controlOperatorInterface(this),
           visionComms(this),
-          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2)
+          turretMCBCanCommBus2(this, tap::can::CanBus::CAN_BUS2),
+          encoder(true, 1.0f)
     {
     }
 
@@ -43,6 +45,7 @@ public:
     control::ControlOperatorInterface controlOperatorInterface;
     serial::VisionComms visionComms;
     can::TurretMCBCanComm turretMCBCanCommBus2;
+    tap::encoder::PwmEncoder encoder;
 #endif
 };  // class src::testbedDrivers
 }  // namespace src::testbed

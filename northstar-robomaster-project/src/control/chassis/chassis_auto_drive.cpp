@@ -9,25 +9,21 @@ ChassisAutoDrive::ChassisAutoDrive(
     src::chassis::ChassisOdometry* chassisOdometry)
     : chassis(chassis),
       chassisOdometry(chassisOdometry),
-      path(std::deque<CubicBezier>())
+      currentCurve(NULL)
 
 {
 }
 
 void ChassisAutoDrive::resetPath()
 {
-    path.clear();
+    currentCurve = NULL;
     currentT = 0;
 }
 
-void ChassisAutoDrive::addCurveToPath(CubicBezier newPoint)
+void ChassisAutoDrive::setCurve(CubicBezier* newPoint)
 {
-    path.push_back(newPoint);
-
-    if (path.size() == 1)
-    {
-        currentT = approximateTClosestToPoint(chassisOdometry->getPositionGlobal());
-    }
+    currentCurve = newPoint;
+    currentT = approximateTClosestToPoint(chassisOdometry->getPositionGlobal());
 }
 
 float globVelX = 0;
@@ -86,7 +82,7 @@ void ChassisAutoDrive::updateAutoDrive()
 
     desiredGlobalVelocity = clampMagnitude(
         ((dirToTarget / distanceToTarget) *
-         (lookaheadDerivative.getLength() / lengthOfCurrentCurve())) *
+         (lookaheadDerivative.getLength() / currentCurve->getLength())) *
             (slowdownMult * dot),
         MINIMUM_MPS,
         MAXIMUM_MPS);

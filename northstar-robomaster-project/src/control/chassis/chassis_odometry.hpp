@@ -23,7 +23,7 @@ class ChassisOdometry
         0.98f;  // 0-1, 1 = no smoothing, 0 = max smoothing
 
     tap::communication::sensors::imu::bmi088::Bmi088* imu;
-    tap::motor::DjiMotor* turretYaw;
+    src::control::turret::TurretMotor* turretYaw;
 
     // rad/sec to m/sec
     float RPS_TO_MPS;
@@ -45,7 +45,7 @@ class ChassisOdometry
 public:
     ChassisOdometry(
         tap::communication::sensors::imu::bmi088::Bmi088* imu,
-        tap::motor::DjiMotor* turretYaw,
+        src::control::turret::TurretMotor* turretYaw,
         float distanceToCenter,
         float wheelDiameter)
         : imu(imu),
@@ -77,6 +77,8 @@ public:
         velocityGlobal = velo;
         rotation = rot;
     }
+
+    void setGlobalPosition(modm::Vector2f pos) { positionGlobal = pos; }
 
     // input is in radians per second
     void updateOdometry(float motorRPS_LF, float motorRPS_LB, float motorRPS_RF, float motorRPS_RB)
@@ -111,11 +113,11 @@ public:
         // rotation -= radiansPerSec * deltaTimeSeconds;
         rotation = calculateRobotHeading();
 
-        velocityGlobal = convertLocalToGlobal(velocitySmoothedLocal);
+        velocityGlobal = convertLocalToGlobal(velocityLocal);
         positionGlobal += velocityGlobal * deltaTimeSeconds;
 
-        velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
-        positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
+        // velocityProjectedGlobal = modm::Vector<float, 2>(velocity3dGlobal.x, velocity3dGlobal.z);
+        // positionProjectedGlobal += velocityProjectedGlobal * deltaTimeSeconds;
     }
 
     modm::Vector<float, 2> convertLocalToGlobal(const modm::Vector<float, 2>& local)
@@ -130,7 +132,8 @@ public:
 
     float calculateRobotHeading()
     {
-        return tap::algorithms::Angle(imu->getYaw() - turretYaw->getPositionWrapped())
+        return tap::algorithms::Angle(
+                   imu->getYaw() - turretYaw->getChassisFrameMeasuredAngle().getWrappedValue())
             .getWrappedValue();
     }
 

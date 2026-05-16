@@ -35,10 +35,8 @@ namespace tap::can
 {
 CanRxHandler::CanRxHandler(Drivers* drivers)
     : drivers(drivers),
-      messageHandlerStoreDjiCan1(),
-      messageHandlerStoreRevCan1(),
-      messageHandlerStoreDjiCan2(),
-      messageHandlerStoreRevCan2()
+      messageHandlerStoreCan1(),
+      messageHandlerStoreCan2()
 {
 }
 
@@ -46,25 +44,11 @@ void CanRxHandler::attachReceiveHandler(CanRxListener* const listener)
 {
     if (listener->canBus == can::CanBus::CAN_BUS1)
     {
-        if (isRevCanId(listener->canIdentifier))
-        {
-            attachReceiveHandler(listener, messageHandlerStoreRevCan1);
-        }
-        else if (isDjiCanId(listener->canIdentifier))
-        {
-            attachReceiveHandler(listener, messageHandlerStoreDjiCan1);
-        }
+        attachReceiveHandler(listener, messageHandlerStoreCan1);
     }
     else
     {
-        if (isRevCanId(listener->canIdentifier))
-        {
-            attachReceiveHandler(listener, messageHandlerStoreRevCan2);
-        }
-        else if (isDjiCanId(listener->canIdentifier))
-        {
-            attachReceiveHandler(listener, messageHandlerStoreDjiCan2);
-        }
+        attachReceiveHandler(listener, messageHandlerStoreCan2);
     }
 }
 
@@ -102,27 +86,16 @@ void CanRxHandler::pollCanData()
 {
     modm::can::Message rxMessage;
 
-
     // handle incoming CAN 1 messages
     if (drivers->can.getMessage(CanBus::CAN_BUS1, &rxMessage))
     {
-        //small hack to switch between the two motor stores without having to change a large chunk of code
-        if(rxMessage.isExtended()){
-            processReceivedCanData(rxMessage, messageHandlerStoreRevCan1);
-        } else {
-            processReceivedCanData(rxMessage, messageHandlerStoreDjiCan1);
-        }
-        
+        processReceivedCanData(rxMessage, messageHandlerStoreCan1);
     }
 
     // handle incoming CAN 2 messages
     if (drivers->can.getMessage(CanBus::CAN_BUS2, &rxMessage))
     {
-        if(rxMessage.isExtended()){
-            processReceivedCanData(rxMessage, messageHandlerStoreRevCan2);
-        } else {
-            processReceivedCanData(rxMessage, messageHandlerStoreDjiCan2);
-        }
+        processReceivedCanData(rxMessage, messageHandlerStoreCan2);
     }
 }
 
@@ -148,25 +121,11 @@ void CanRxHandler::removeReceiveHandler(const CanRxListener& canRxListener)
 {
     if (canRxListener.canBus == CanBus::CAN_BUS1)
     {
-        if (isRevCanId(canRxListener.canIdentifier))
-        {
-            removeReceiveHandler(canRxListener, messageHandlerStoreRevCan1);
-        }
-        else if (isDjiCanId(canRxListener.canIdentifier))
-        {
-            removeReceiveHandler(canRxListener, messageHandlerStoreDjiCan1);
-        }
+        removeReceiveHandler(canRxListener, messageHandlerStoreCan1);
     }
     else
     {
-        if (isRevCanId(canRxListener.canIdentifier))
-        {
-            removeReceiveHandler(canRxListener, messageHandlerStoreRevCan2);
-        }
-        else if (isDjiCanId(canRxListener.canIdentifier))
-        {
-            removeReceiveHandler(canRxListener, messageHandlerStoreDjiCan2);
-        }
+        removeReceiveHandler(canRxListener, messageHandlerStoreCan2);
     }
 }
 

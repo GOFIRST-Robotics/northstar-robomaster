@@ -5,7 +5,7 @@
 #include "tap/drivers.hpp"
 
 #include "control/turret/algorithms/turret_controller_interface.hpp"
-#include "robot/sentry/sentry_turret_subsystem.hpp"
+#include "control/turret/turret_subsystem.hpp"
 
 namespace src::control::turret::cv
 {
@@ -14,11 +14,9 @@ class SentryScanCommand : public tap::control::Command
 public:
     SentryScanCommand(
         tap::Drivers *drivers,
-        SentryTurretSubsystem *turretSubsystem,
-        algorithms::TurretYawControllerInterface *yawControllerBottom,
-        algorithms::TurretPitchControllerInterface *pitchControllerBottom,
-        algorithms::TurretYawControllerInterface *yawControllerTop,
-        algorithms::TurretPitchControllerInterface *pitchControllerTop,
+        TurretSubsystem *turretSubsystem,
+        algorithms::TurretYawControllerInterface *yawController,
+        algorithms::TurretPitchControllerInterface *pitchController,
         float DELTA_MAX,
         float MAX_ERROR,
         float ROT_SPEED);
@@ -37,14 +35,12 @@ public:
 
 private:
     tap::Drivers *drivers;
-    SentryTurretSubsystem *turretSubsystem;
+    TurretSubsystem *turretSubsystem;
 
     uint32_t prevTime = 0;
 
-    algorithms::TurretYawControllerInterface *yawControllerBottom;
-    algorithms::TurretPitchControllerInterface *pitchControllerBottom;
-    algorithms::TurretYawControllerInterface *yawControllerTop;
-    algorithms::TurretPitchControllerInterface *pitchControllerTop;
+    algorithms::TurretYawControllerInterface *yawController;
+    algorithms::TurretPitchControllerInterface *pitchController;
 
     float comp = 0;
     float yawSetpointTop = 0;

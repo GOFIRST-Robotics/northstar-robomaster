@@ -31,7 +31,9 @@
 #if defined(PLATFORM_HOSTED) && defined(ENV_UNIT_TESTS)
 #include "src/mock/turret_motor_mock.hpp"
 #else
-#include "turret_motor_GM6020.hpp"
+
+#include "turret_motor_DJI.hpp"
+
 #endif
 
 #include "tap/util_macros.hpp"
@@ -88,7 +90,10 @@ public:
 
     const char* getName() const override { return "Turret"; }
 
-    mockable inline bool isOnline() const { return pitchMotor.isOnline() && yawMotor.isOnline(); }
+    mockable inline bool isOnline() const
+    {
+        return true;
+    }  // pitchMotor.isOnline() && yawMotor.isOnline(); }
 
     const inline src::can::TurretMCBCanComm* getTurretMCB() const { return turretMCB; }
 
@@ -97,9 +102,9 @@ public:
     testing::NiceMock<mock::TurretMotorMock> yawMotor;
 #else
     /// Associated with and contains logic for controlling the turret's pitch motor
-    TurretMotorGM6020 pitchMotor;
+    TurretMotorDJI pitchMotor;
     /// Associated with and contains logic for controlling the turret's yaw motor
-    TurretMotorGM6020 yawMotor;
+    TurretMotorDJI yawMotor;
 #endif
 
 protected:

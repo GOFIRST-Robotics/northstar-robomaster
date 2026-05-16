@@ -28,17 +28,28 @@
     <option name="taproot:board:digital_out_pins">B13,B14,B15,Laser</option>
     <option name="taproot:board:analog_in_pins"></option>
     <option name="taproot:board:pwm_pins">C1,C2,C3,C4,C5,C6,C7,Buzzer,ImuHeater</option>
-   
+    <option name="taproot:modm-project.xml:modm_hal_modules">modm:platform:timer:12</option>
 
   </options>
   <modules>
+    <module>taproot:algorithms:odometry</module>
+    <module>taproot:architecture:profiler</module>
     <module>taproot:core</module>
-    <module>taproot:build</module>
+    <module>taproot:communication:sensors:current:analog</module>
     <module>taproot:communication:sensors:buzzer</module>
-    <module>taproot:communication:sensors:distance</module>
+    <module>taproot:communication:sensors:limit-switch</module>
     <module>taproot:communication:gpio:leds</module>
     <module>taproot:communication:gpio:digital</module>
-    <module>taproot:communication:tcp-server</module>
+    <module>taproot:communication:sensors:imu:display</module>
+    <module>taproot:communication:sensors:imu:terminal_serial</module>
+    <module>taproot:control:terminal_serial</module>
+    <module>taproot:ext:littlefs</module>
+    <module>taproot:ext:eigen</module>
+    <module>taproot:errors</module>
+    <module>taproot:motor:motorsim</module>
+    <module>taproot:motor:pwm</module>
+    <module>taproot:motor:terminal_serial</module>
+
 
     <!-- Only supported on RoboMaster Development Board Type A -->
     <!-- <module>taproot:communication:sensors:imu:mpu6500</module>
