@@ -1,4 +1,8 @@
-Follow the [Northstar specific setup](https://github.com/Northstar-Advanced-Robotics/resources) for controls before going further.
+# Setup
+
+Follow [this guild](https://github.com/Northstar-Advanced-Robotics/resources/blob/david/refactor/setup/docker_setup.md) using this repo to setup the docker container.  
+
+Also take a look at the [intro project](https://github.com/Northstar-Advanced-Robotics/northstar-intro) if you want to learn the code structure.
 
 ## Resources
 
